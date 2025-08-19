@@ -19,7 +19,7 @@
   "female": "Femmina",
   "preferredStyles": "Stili Preferiti",
   "freestyle": "Stile Libero",
-  "butterfly": "Delfino",
+  "butterfly": "Farfalla",
   "backstroke": "Dorso",
   "breaststroke": "Rana",
   "status": "Stato",
@@ -27,5 +27,6 @@
   "inactive": "Inattivo",
   "notes": "Note",
   "noAthletesYet": "Nessun atleta.",
-  "noAthletesHint": "Tocca il pulsante + per aggiungere il tuo primo atleta!"
+  "noAthletesHint": "Tocca il pulsante + per aggiungere il tuo primo atleta!",
+  "searchAthletes": "Cerca atleti..."
 }

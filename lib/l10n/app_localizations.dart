@@ -265,6 +265,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap the + button to add your first athlete!'**
   String get noAthletesHint;
+
+  /// No description provided for @searchAthletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Search athletes...'**
+  String get searchAthletes;
 }
 
 class _AppLocalizationsDelegate

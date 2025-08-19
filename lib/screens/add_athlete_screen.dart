@@ -14,17 +14,29 @@ class AddAthleteScreen extends StatefulWidget {
 class _AddAthleteScreenState extends State<AddAthleteScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _birthYearController = TextEditingController();
   final _notesController = TextEditingController();
+
+  int? _selectedBirthYear;
+  late List<int> _birthYearOptions;
 
   String _gender = 'Male';
   bool _isActive = true;
+  // The keys of this map are the values we save to Firestore. They are language-independent.
   final Map<String, bool> _preferredStyles = {
     'Freestyle': false,
     'Butterfly': false,
     'Backstroke': false,
     'Breaststroke': false,
   };
+
+  @override
+  void initState() {
+    super.initState();
+    final currentYear = DateTime.now().year;
+    _birthYearOptions =
+        List.generate(100, (index) => currentYear - index);
+    _selectedBirthYear = currentYear;
+  }
 
   Future<void> _saveAthlete() async {
     if (_formKey.currentState!.validate()) {
@@ -35,12 +47,12 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
 
       await widget.athletesCollection.add({
         'name': _nameController.text,
-        'birthYear': int.tryParse(_birthYearController.text) ?? 2000,
+        'birthYear': _selectedBirthYear,
         'gender': _gender,
         'preferredStyles': selectedStyles,
         'isActive': _isActive,
         'notes': _notesController.text,
-        'createdAt': Timestamp.now(), // Good practice to add a timestamp
+        'createdAt': Timestamp.now(),
       });
 
       if (mounted) {
@@ -52,6 +64,15 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    // UPDATED: Create a map to link the database keys to the translated display names.
+    final Map<String, String> styleDisplayNames = {
+      'Freestyle': l10n.freestyle,
+      'Butterfly': l10n.butterfly,
+      'Backstroke': l10n.backstroke,
+      'Breaststroke': l10n.breaststroke,
+    };
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.addNewAthlete),
@@ -73,18 +94,24 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
               validator: (value) =>
                   value!.isEmpty ? 'Please enter a name' : null,
             ),
-            TextFormField(
-              controller: _birthYearController,
+            DropdownButtonFormField<int>(
+              value: _selectedBirthYear,
               decoration: InputDecoration(labelText: l10n.birthYear),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value!.isEmpty) return 'Please enter a year';
-                if (int.tryParse(value) == null) return 'Invalid year';
-                return null;
+              items: _birthYearOptions.map((year) {
+                return DropdownMenuItem(
+                  value: year,
+                  child: Text(year.toString()),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedBirthYear = value;
+                });
               },
+              validator: (value) =>
+                  value == null ? 'Please select a year' : null,
             ),
             DropdownButtonFormField<String>(
-              // UPDATED: Replaced deprecated 'value' with 'initialValue'
               initialValue: _gender,
               decoration: InputDecoration(labelText: l10n.gender),
               items: [
@@ -96,13 +123,13 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
             const SizedBox(height: 16),
             Text(l10n.preferredStyles,
                 style: Theme.of(context).textTheme.titleMedium),
-            // UPDATED: Removed unnecessary .toList()
-            ..._preferredStyles.keys.map((style) {
+            ..._preferredStyles.keys.map((styleKey) {
               return CheckboxListTile(
-                title: Text(style), // Note: these are not translated yet for simplicity
-                value: _preferredStyles[style],
+                // UPDATED: Use the translated name for the title.
+                title: Text(styleDisplayNames[styleKey]!),
+                value: _preferredStyles[styleKey],
                 onChanged: (value) =>
-                    setState(() => _preferredStyles[style] = value!),
+                    setState(() => _preferredStyles[styleKey] = value!),
               );
             }),
             SwitchListTile(

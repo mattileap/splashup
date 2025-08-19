@@ -67,7 +67,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get freestyle => 'Stile Libero';
 
   @override
-  String get butterfly => 'Delfino';
+  String get butterfly => 'Farfalla';
 
   @override
   String get backstroke => 'Dorso';
@@ -93,4 +93,7 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get noAthletesHint =>
       'Tocca il pulsante + per aggiungere il tuo primo atleta!';
+
+  @override
+  String get searchAthletes => 'Cerca atleti...';
 }

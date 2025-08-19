@@ -91,4 +91,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noAthletesHint => 'Tap the + button to add your first athlete!';
+
+  @override
+  String get searchAthletes => 'Search athletes...';
 }

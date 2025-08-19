@@ -27,5 +27,6 @@
   "inactive": "Inactive",
   "notes": "Notes",
   "noAthletesYet": "No athletes yet.",
-  "noAthletesHint": "Tap the + button to add your first athlete!"
+  "noAthletesHint": "Tap the + button to add your first athlete!",
+  "searchAthletes": "Search athletes..."
 }
