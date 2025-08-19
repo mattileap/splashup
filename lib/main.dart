@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'l10n/app_localizations.dart';
 import 'firebase_options.dart';
-import 'screens/teams_screen.dart'; // Import the new screen
+import 'screens/auth_wrapper.dart'; // Import the new wrapper
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,8 +31,8 @@ class SplashUpApp extends StatelessWidget {
           elevation: 4,
         ),
       ),
-      // Set the home to our new, separated screen
-      home: const TeamsScreen(),
+      // Set the home to our new AuthWrapper
+      home: const AuthWrapper(),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
+import '../services/auth_service.dart'; // Import AuthService
 
 class TeamsScreen extends StatefulWidget {
   const TeamsScreen({super.key});
@@ -11,12 +13,13 @@ class TeamsScreen extends StatefulWidget {
 }
 
 class _TeamsScreenState extends State<TeamsScreen> {
-  // Get a reference to the Firestore collection where we store teams.
-  final CollectionReference _teamsCollection =
-      FirebaseFirestore.instance.collection('teams');
+  final AuthService _authService = AuthService();
 
-  // This function now saves the team to Firestore.
-  Future<void> _addTeam() async {
+  // This function is now inside the state, making it easier to manage.
+  Future<void> _addTeam(CollectionReference teamsCollection) async {
+    // Prevent adding a team if the user is not logged in (redundant check)
+    if (FirebaseAuth.instance.currentUser == null) return;
+
     final l10n = AppLocalizations.of(context)!;
     final TextEditingController teamNameController = TextEditingController();
 
@@ -49,8 +52,8 @@ class _TeamsScreenState extends State<TeamsScreen> {
               onPressed: () async {
                 final newTeamName = teamNameController.text;
                 if (newTeamName.isNotEmpty) {
-                  // Add the new team to the 'teams' collection in Firestore.
-                  await _teamsCollection.add({'name': newTeamName});
+                  // Use the passed-in collection reference
+                  await teamsCollection.add({'name': newTeamName});
                 }
                 if (mounted) Navigator.of(context).pop();
               },
@@ -64,24 +67,48 @@ class _TeamsScreenState extends State<TeamsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // Get the current user's ID inside the build method.
+    // This ensures we always have the latest auth state.
+    final String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+    // Handle the case where the user ID is somehow null
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text("Error: User not logged in. Please restart the app."),
+        ),
+      );
+    }
+
+    // Define the collection reference here, using the guaranteed non-null userId.
+    final CollectionReference teamsCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('teams');
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.myTeams),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await _authService.signOut();
+              // The AuthWrapper will handle navigation
+            },
+          ),
+        ],
       ),
-      // Use a StreamBuilder to listen for real-time updates from Firestore.
       body: StreamBuilder<QuerySnapshot>(
-        stream: _teamsCollection.snapshots(),
+        // Use the collection reference defined in the build method.
+        stream: teamsCollection.snapshots(),
         builder: (context, snapshot) {
-          // Handle loading state
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          // Handle error state
           if (snapshot.hasError) {
             return const Center(child: Text('Something went wrong'));
           }
-          // Handle empty state
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return Center(
               child: Column(
@@ -105,7 +132,6 @@ class _TeamsScreenState extends State<TeamsScreen> {
             );
           }
 
-          // If we have data, build the list
           final teams =
               snapshot.data!.docs.map((doc) => Team.fromFirestore(doc)).toList();
 
@@ -141,7 +167,8 @@ class _TeamsScreenState extends State<TeamsScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addTeam,
+        // Pass the collection reference to the add function.
+        onPressed: () => _addTeam(teamsCollection),
         tooltip: l10n.addTeam,
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
