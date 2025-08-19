@@ -21,7 +21,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get teamName => 'Nome Squadra';
 
   @override
-  String get teamNameHint => 'es. Ragazzi Esordienti A';
+  String get teamNameHint => 'es. Nome Squadra';
 
   @override
   String get cancel => 'Annulla';

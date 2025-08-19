@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "704905740833",
+    "project_id": "splashup-app",
+    "storage_bucket": "splashup-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:704905740833:android:ab93d893dce32df81b1960",
+        "android_client_info": {
+          "package_name": "com.example.splashup"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXunmcOSWv6rONhvkzgvZaLeffdkrSbjE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
