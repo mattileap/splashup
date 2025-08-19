@@ -30,6 +30,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations: #Adding languages support
+    sdk: flutter         #Adding languages support
+  intl: ^0.20.2          #Adding languages support
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -38,9 +41,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_localizations: #Adding languages support
-    sdk: flutter         #Adding languages support
-  intl: ^0.20.2          #Adding languages support
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
