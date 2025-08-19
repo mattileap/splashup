@@ -1,0 +1,12 @@
+{
+  "@@locale": "it",
+  "myTeams": "Le Mie Squadre",
+  "addTeam": "Aggiungi Squadra",
+  "addNewTeam": "Aggiungi Nuova Squadra",
+  "teamName": "Nome Squadra",
+  "teamNameHint": "es. Ragazzi Esordienti A",
+  "cancel": "Annulla",
+  "add": "Aggiungi",
+  "noTeamsYet": "Nessuna squadra.",
+  "noTeamsHint": "Tocca il pulsante + per aggiungere la tua prima squadra!"
+}

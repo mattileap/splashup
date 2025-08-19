@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; 
 
 void main() {
   runApp(const SplashUpApp());
@@ -11,6 +12,9 @@ class SplashUpApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SplashUp',
+      // Add these lines for localization
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
@@ -42,27 +46,26 @@ class _TeamsScreenState extends State<TeamsScreen> {
   ];
 
   void _addTeam() {
-    // This is where we will open a dialog to add a new team.
-    // For now, it just prints a message to the debug console.
-    print("Add Team button pressed!");
+    // We use AppLocalizations.of(context) to get the translated strings
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         final TextEditingController teamNameController = TextEditingController();
         return AlertDialog(
-          title: const Text('Add New Team'),
+          title: Text(l10n.addNewTeam),
           content: TextField(
             controller: teamNameController,
             autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Team Name',
-              hintText: 'e.g., Varsity Girls',
+            decoration: InputDecoration(
+              labelText: l10n.teamName,
+              hintText: l10n.teamNameHint,
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -72,13 +75,10 @@ class _TeamsScreenState extends State<TeamsScreen> {
                 backgroundColor: Colors.blue.shade700,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Add'),
+              child: Text(l10n.add),
               onPressed: () {
-                // TODO: Add logic to save the team to Firebase
                 final newTeamName = teamNameController.text;
                 if (newTeamName.isNotEmpty) {
-                  print("New Team: $newTeamName");
-                  // For now, we just add to the local list to see the UI update.
                   setState(() {
                     _teams.add(newTeamName);
                   });
@@ -94,25 +94,29 @@ class _TeamsScreenState extends State<TeamsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // We use AppLocalizations.of(context) to get the translated strings
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Teams'),
+        title: Text(l10n.myTeams),
       ),
       body: _teams.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.group_add_outlined, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
+                  const Icon(Icons.group_add_outlined, size: 80, color: Colors.grey),
+                  const SizedBox(height: 16),
                   Text(
-                    'No teams yet.',
-                    style: TextStyle(fontSize: 22, color: Colors.grey),
+                    l10n.noTeamsYet,
+                    style: const TextStyle(fontSize: 22, color: Colors.grey),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Tap the + button to add your first team!',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    l10n.noTeamsHint,
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -139,7 +143,6 @@ class _TeamsScreenState extends State<TeamsScreen> {
                     ),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () {
-                      // TODO: Navigate to the list of athletes for this team.
                       print("$teamName tapped!");
                     },
                   ),
@@ -148,7 +151,7 @@ class _TeamsScreenState extends State<TeamsScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addTeam,
-        tooltip: 'Add Team',
+        tooltip: l10n.addTeam,
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),

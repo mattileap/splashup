@@ -1,0 +1,12 @@
+{
+  "@@locale": "en",
+  "myTeams": "My Teams",
+  "addTeam": "Add Team",
+  "addNewTeam": "Add New Team",
+  "teamName": "Team Name",
+  "teamNameHint": "e.g., Varsity Girls",
+  "cancel": "Cancel",
+  "add": "Add",
+  "noTeamsYet": "No teams yet.",
+  "noTeamsHint": "Tap the + button to add your first team!"
+}
