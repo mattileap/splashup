@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
+import 'package:firebase_auth/firebase_auth.dart';
 import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
-import '../services/auth_service.dart'; // Import AuthService
+import '../services/auth_service.dart';
+import 'athletes_screen.dart'; // Import the new athletes screen
 
 class TeamsScreen extends StatefulWidget {
   const TeamsScreen({super.key});
@@ -15,9 +16,7 @@ class TeamsScreen extends StatefulWidget {
 class _TeamsScreenState extends State<TeamsScreen> {
   final AuthService _authService = AuthService();
 
-  // This function is now inside the state, making it easier to manage.
   Future<void> _addTeam(CollectionReference teamsCollection) async {
-    // Prevent adding a team if the user is not logged in (redundant check)
     if (FirebaseAuth.instance.currentUser == null) return;
 
     final l10n = AppLocalizations.of(context)!;
@@ -44,18 +43,20 @@ class _TeamsScreenState extends State<TeamsScreen> {
               },
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade700,
-                foregroundColor: Colors.white,
+              style: ButtonStyle(
+                backgroundColor:
+                    WidgetStateProperty.all(Colors.blue.shade700),
+                foregroundColor: WidgetStateProperty.all(Colors.white),
               ),
               child: Text(l10n.add),
               onPressed: () async {
                 final newTeamName = teamNameController.text;
                 if (newTeamName.isNotEmpty) {
-                  // Use the passed-in collection reference
                   await teamsCollection.add({'name': newTeamName});
                 }
-                if (mounted) Navigator.of(context).pop();
+                // UPDATED: Check for 'mounted' right before using the context.
+                if (!mounted) return;
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -67,11 +68,8 @@ class _TeamsScreenState extends State<TeamsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    // Get the current user's ID inside the build method.
-    // This ensures we always have the latest auth state.
     final String? userId = FirebaseAuth.instance.currentUser?.uid;
 
-    // Handle the case where the user ID is somehow null
     if (userId == null) {
       return const Scaffold(
         body: Center(
@@ -80,7 +78,6 @@ class _TeamsScreenState extends State<TeamsScreen> {
       );
     }
 
-    // Define the collection reference here, using the guaranteed non-null userId.
     final CollectionReference teamsCollection = FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
@@ -94,13 +91,11 @@ class _TeamsScreenState extends State<TeamsScreen> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await _authService.signOut();
-              // The AuthWrapper will handle navigation
             },
           ),
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // Use the collection reference defined in the build method.
         stream: teamsCollection.snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -157,8 +152,11 @@ class _TeamsScreenState extends State<TeamsScreen> {
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    // TODO: Navigate to the list of athletes for this team.
-                    print("${team.name} tapped!");
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => AthletesScreen(team: team),
+                      ),
+                    );
                   },
                 ),
               );
@@ -167,7 +165,6 @@ class _TeamsScreenState extends State<TeamsScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        // Pass the collection reference to the add function.
         onPressed: () => _addTeam(teamsCollection),
         tooltip: l10n.addTeam,
         backgroundColor: Colors.blue.shade700,

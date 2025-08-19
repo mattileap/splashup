@@ -35,4 +35,62 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get noTeamsHint =>
       'Tocca il pulsante + per aggiungere la tua prima squadra!';
+
+  @override
+  String get athletes => 'Atleti';
+
+  @override
+  String get addAthlete => 'Aggiungi Atleta';
+
+  @override
+  String get addNewAthlete => 'Aggiungi Nuovo Atleta';
+
+  @override
+  String get athleteName => 'Nome Atleta';
+
+  @override
+  String get birthYear => 'Anno di Nascita';
+
+  @override
+  String get gender => 'Sesso';
+
+  @override
+  String get male => 'Maschio';
+
+  @override
+  String get female => 'Femmina';
+
+  @override
+  String get preferredStyles => 'Stili Preferiti';
+
+  @override
+  String get freestyle => 'Stile Libero';
+
+  @override
+  String get butterfly => 'Delfino';
+
+  @override
+  String get backstroke => 'Dorso';
+
+  @override
+  String get breaststroke => 'Rana';
+
+  @override
+  String get status => 'Stato';
+
+  @override
+  String get active => 'Attivo';
+
+  @override
+  String get inactive => 'Inattivo';
+
+  @override
+  String get notes => 'Note';
+
+  @override
+  String get noAthletesYet => 'Nessun atleta.';
+
+  @override
+  String get noAthletesHint =>
+      'Tocca il pulsante + per aggiungere il tuo primo atleta!';
 }

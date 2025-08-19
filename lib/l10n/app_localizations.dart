@@ -151,6 +151,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap the + button to add your first team!'**
   String get noTeamsHint;
+
+  /// No description provided for @athletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Athletes'**
+  String get athletes;
+
+  /// No description provided for @addAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Athlete'**
+  String get addAthlete;
+
+  /// No description provided for @addNewAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Athlete'**
+  String get addNewAthlete;
+
+  /// No description provided for @athleteName.
+  ///
+  /// In en, this message translates to:
+  /// **'Athlete Name'**
+  String get athleteName;
+
+  /// No description provided for @birthYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth Year'**
+  String get birthYear;
+
+  /// No description provided for @gender.
+  ///
+  /// In en, this message translates to:
+  /// **'Gender'**
+  String get gender;
+
+  /// No description provided for @male.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get male;
+
+  /// No description provided for @female.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get female;
+
+  /// No description provided for @preferredStyles.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred Styles'**
+  String get preferredStyles;
+
+  /// No description provided for @freestyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freestyle'**
+  String get freestyle;
+
+  /// No description provided for @butterfly.
+  ///
+  /// In en, this message translates to:
+  /// **'Butterfly'**
+  String get butterfly;
+
+  /// No description provided for @backstroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Backstroke'**
+  String get backstroke;
+
+  /// No description provided for @breaststroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Breaststroke'**
+  String get breaststroke;
+
+  /// No description provided for @status.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get status;
+
+  /// No description provided for @active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// No description provided for @inactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get inactive;
+
+  /// No description provided for @notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notes;
+
+  /// No description provided for @noAthletesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No athletes yet.'**
+  String get noAthletesYet;
+
+  /// No description provided for @noAthletesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button to add your first athlete!'**
+  String get noAthletesHint;
 }
 
 class _AppLocalizationsDelegate
