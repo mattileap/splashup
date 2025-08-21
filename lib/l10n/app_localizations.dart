@@ -295,6 +295,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @athleteDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Athlete Details'**
+  String get athleteDetails;
+
+  /// No description provided for @editAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Athlete'**
+  String get editAthlete;
+
+  /// No description provided for @age.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get age;
+
+  /// No description provided for @noTimesRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'No times recorded yet.'**
+  String get noTimesRecorded;
+
+  /// No description provided for @addYourFirstTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button to add the first time!'**
+  String get addYourFirstTime;
+
+  /// No description provided for @addChrono.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Chrono'**
+  String get addChrono;
+
+  /// No description provided for @editChrono.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Chrono'**
+  String get editChrono;
+
+  /// No description provided for @date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get date;
+
+  /// No description provided for @poolLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Pool Length'**
+  String get poolLength;
+
+  /// No description provided for @distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance (meters)'**
+  String get distance;
+
+  /// No description provided for @style.
+  ///
+  /// In en, this message translates to:
+  /// **'Style'**
+  String get style;
+
+  /// No description provided for @im.
+  ///
+  /// In en, this message translates to:
+  /// **'IM (Individual Medley)'**
+  String get im;
+
+  /// No description provided for @finalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Time'**
+  String get finalTime;
+
+  /// No description provided for @finalTimeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'MM:SS.ss'**
+  String get finalTimeHint;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @deleteConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this record?'**
+  String get deleteConfirmation;
+
+  /// No description provided for @deleteChronoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Chrono'**
+  String get deleteChronoTitle;
+
+  /// No description provided for @unsavedChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved Changes'**
+  String get unsavedChanges;
+
+  /// No description provided for @discardChangesWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes. Are you sure you want to discard them?'**
+  String get discardChangesWarning;
+
+  /// No description provided for @discard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discard;
+
+  /// No description provided for @filterBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by:'**
+  String get filterBy;
+
+  /// No description provided for @allDistances.
+  ///
+  /// In en, this message translates to:
+  /// **'All Distances'**
+  String get allDistances;
+
+  /// No description provided for @allStyles.
+  ///
+  /// In en, this message translates to:
+  /// **'All Styles'**
+  String get allStyles;
+
+  /// No description provided for @noResultsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found for the selected filters.'**
+  String get noResultsFound;
+
+  /// No description provided for @favoriteStyles.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Styles'**
+  String get favoriteStyles;
+
+  /// No description provided for @chronoType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get chronoType;
+
+  /// No description provided for @training.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get training;
+
+  /// No description provided for @race.
+  ///
+  /// In en, this message translates to:
+  /// **'Race'**
+  String get race;
+
+  /// No description provided for @allTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'All Types'**
+  String get allTypes;
+
+  /// No description provided for @personalBestsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Bests'**
+  String get personalBestsTitle;
+
+  /// No description provided for @noBestsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No personal bests recorded yet.'**
+  String get noBestsYet;
 }
 
 class _AppLocalizationsDelegate

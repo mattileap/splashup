@@ -37,6 +37,7 @@ dependencies:
   cloud_firestore: ^5.1.0 # Adding Firebase support
   firebase_auth: ^5.1.2   # Adding Google Authentication
   google_sign_in: ^6.2.1  # Adding Google Authentication
+  collection: ^1.18.0 # Add this for deep equality checks
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

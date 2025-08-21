@@ -5,6 +5,7 @@ import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
 import '../models/athlete_model.dart';
 import 'add_athlete_screen.dart';
+import 'athlete_details_screen.dart'; // Import the new details screen
 
 class AthletesScreen extends StatefulWidget {
   final Team team;
@@ -36,7 +37,6 @@ class _AthletesScreenState extends State<AthletesScreen> {
     super.dispose();
   }
 
-  // ADDED: Function to show the notes in a pop-up dialog.
   void _showNotesDialog(BuildContext context, Athlete athlete) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
@@ -165,7 +165,6 @@ class _AthletesScreenState extends State<AthletesScreen> {
                           CircleAvatar(child: Text(athlete.name.substring(0, 1))),
                       title: Text(athlete.name),
                       subtitle: Text('${l10n.birthYear}: ${athlete.birthYear}'),
-                      // UPDATED: The trailing widget is now a Row to hold multiple icons.
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -178,8 +177,16 @@ class _AthletesScreenState extends State<AthletesScreen> {
                                 color: Colors.grey),
                         ],
                       ),
+                      // UPDATED: Navigate to the new details screen.
                       onTap: () {
-                        // TODO: Navigate to athlete details/times screen
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => AthleteDetailsScreen(
+                              team: widget.team,
+                              athlete: athlete,
+                            ),
+                          ),
+                        );
                       },
                     );
                   },

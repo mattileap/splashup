@@ -106,4 +106,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get close => 'Close';
+
+  @override
+  String get athleteDetails => 'Athlete Details';
+
+  @override
+  String get editAthlete => 'Edit Athlete';
+
+  @override
+  String get age => 'Age';
+
+  @override
+  String get noTimesRecorded => 'No times recorded yet.';
+
+  @override
+  String get addYourFirstTime => 'Tap the + button to add the first time!';
+
+  @override
+  String get addChrono => 'Add Chrono';
+
+  @override
+  String get editChrono => 'Edit Chrono';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get poolLength => 'Pool Length';
+
+  @override
+  String get distance => 'Distance (meters)';
+
+  @override
+  String get style => 'Style';
+
+  @override
+  String get im => 'IM (Individual Medley)';
+
+  @override
+  String get finalTime => 'Final Time';
+
+  @override
+  String get finalTimeHint => 'MM:SS.ss';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get deleteConfirmation =>
+      'Are you sure you want to delete this record?';
+
+  @override
+  String get deleteChronoTitle => 'Delete Chrono';
+
+  @override
+  String get unsavedChanges => 'Unsaved Changes';
+
+  @override
+  String get discardChangesWarning =>
+      'You have unsaved changes. Are you sure you want to discard them?';
+
+  @override
+  String get discard => 'Discard';
+
+  @override
+  String get filterBy => 'Filter by:';
+
+  @override
+  String get allDistances => 'All Distances';
+
+  @override
+  String get allStyles => 'All Styles';
+
+  @override
+  String get noResultsFound => 'No results found for the selected filters.';
+
+  @override
+  String get favoriteStyles => 'Favorite Styles';
+
+  @override
+  String get chronoType => 'Type';
+
+  @override
+  String get training => 'Training';
+
+  @override
+  String get race => 'Race';
+
+  @override
+  String get allTypes => 'All Types';
+
+  @override
+  String get personalBestsTitle => 'Personal Bests';
+
+  @override
+  String get noBestsYet => 'No personal bests recorded yet.';
 }

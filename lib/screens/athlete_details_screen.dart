@@ -1,0 +1,380 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
+import '../models/athlete_model.dart';
+import '../models/chrono_model.dart';
+import '../models/team_model.dart';
+import 'add_edit_chrono_screen.dart';
+import 'edit_athlete_screen.dart';
+
+class AthleteDetailsScreen extends StatefulWidget {
+  final Team team;
+  final Athlete athlete;
+
+  const AthleteDetailsScreen({
+    super.key,
+    required this.team,
+    required this.athlete,
+  });
+
+  @override
+  State<AthleteDetailsScreen> createState() => _AthleteDetailsScreenState();
+}
+
+class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
+  int? _selectedDistance;
+  String? _selectedStyle;
+  String? _selectedType;
+
+  Duration _parseTime(String time) {
+    try {
+      final parts = time.split(RegExp(r'[:.]'));
+      if (parts.length != 3) return const Duration(days: 999);
+      final minutes = int.parse(parts[0]);
+      final seconds = int.parse(parts[1]);
+      final hundredths = int.parse(parts[2]);
+      return Duration(minutes: minutes, seconds: seconds, milliseconds: hundredths * 10);
+    } catch (e) {
+      return const Duration(days: 999);
+    }
+  }
+
+  void _showPersonalBestsDialog(BuildContext context, List<Chrono> allChronos, AppLocalizations l10n) {
+    final personalBests = <String, Chrono>{};
+
+    final Map<String, String> styleDisplayNames = {
+      'Freestyle': l10n.freestyle,
+      'Butterfly': l10n.butterfly,
+      'Backstroke': l10n.backstroke,
+      'Breaststroke': l10n.breaststroke,
+      'IM': l10n.im,
+    };
+
+    for (final chrono in allChronos) {
+      final key = '${chrono.distance}-${chrono.style}';
+      final existingBest = personalBests[key];
+
+      if (existingBest == null || _parseTime(chrono.finalTime) < _parseTime(existingBest.finalTime)) {
+        personalBests[key] = chrono;
+      }
+    }
+
+    final sortedBests = personalBests.values.toList()
+      ..sort((a, b) {
+        int distanceCompare = a.distance.compareTo(b.distance);
+        if (distanceCompare != 0) {
+          return distanceCompare;
+        }
+        return a.style.compareTo(b.style);
+      });
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.personalBestsTitle),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: personalBests.isEmpty
+                ? Text(l10n.noBestsYet)
+                : ListView(
+                    shrinkWrap: true,
+                    children: sortedBests.map((chrono) {
+                      final translatedStyle = styleDisplayNames[chrono.style] ?? chrono.style;
+                      return ListTile(
+                        title: Text('${chrono.distance}m $translatedStyle'),
+                        subtitle: Text(chrono.finalTime),
+                      );
+                    }).toList(),
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.close),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final String? userId = FirebaseAuth.instance.currentUser?.uid;
+    final int currentYear = DateTime.now().year;
+    final int age = currentYear - widget.athlete.birthYear;
+
+    if (userId == null) {
+      return const Scaffold(body: Center(child: Text("User not logged in")));
+    }
+
+    final chronoCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('teams')
+        .doc(widget.team.id)
+        .collection('athletes')
+        .doc(widget.athlete.id)
+        .collection('chronos');
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.athlete.name),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.emoji_events_outlined),
+            tooltip: l10n.personalBestsTitle,
+            onPressed: () {
+               chronoCollection.get().then((snapshot) {
+                  if (!mounted) return;
+                  final allChronos = snapshot.docs.map((doc) => Chrono.fromFirestore(doc)).toList();
+                 _showPersonalBestsDialog(context, allChronos, l10n);
+               });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => EditAthleteScreen(
+                    team: widget.team,
+                    athlete: widget.athlete,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          _buildAthleteHeader(context, widget.athlete, age, l10n),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: chronoCollection.orderBy('date', descending: true).snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(
+                    child: Text(l10n.noTimesRecorded),
+                  );
+                }
+
+                final allChronos = snapshot.data!.docs
+                    .map((doc) => Chrono.fromFirestore(doc))
+                    .toList();
+
+                final filteredChronos = allChronos.where((chrono) {
+                  final distanceMatch = _selectedDistance == null || chrono.distance == _selectedDistance;
+                  final styleMatch = _selectedStyle == null || chrono.style == _selectedStyle;
+                  final typeMatch = _selectedType == null || chrono.type == _selectedType;
+                  return distanceMatch && styleMatch && typeMatch;
+                }).toList();
+
+                return Column(
+                  children: [
+                    _buildFilterBar(context, allChronos, l10n),
+                    if (filteredChronos.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(l10n.noResultsFound),
+                      )
+                    else
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: filteredChronos.length,
+                          itemBuilder: (context, index) {
+                            return _buildChronoCard(context, filteredChronos[index], chronoCollection, l10n);
+                          },
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) =>
+                  AddEditChronoScreen(chronoCollection: chronoCollection)));
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildAthleteHeader(BuildContext context, Athlete athlete, int age, AppLocalizations l10n) {
+    final Map<String, String> styleDisplayNames = {
+      'Freestyle': l10n.freestyle,
+      'Butterfly': l10n.butterfly,
+      'Backstroke': l10n.backstroke,
+      'Breaststroke': l10n.breaststroke,
+      'IM': l10n.im,
+    };
+
+    // ADDED: Map for gender translations
+    final Map<String, String> genderDisplayNames = {
+      'Male': l10n.male,
+      'Female': l10n.female,
+    };
+    final translatedGender = genderDisplayNames[athlete.gender] ?? athlete.gender;
+
+    return Card(
+      margin: const EdgeInsets.all(8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(athlete.name, style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 8),
+            // UPDATED: Use the translated gender string
+            Text('${l10n.age}: $age • $translatedGender'),
+            const SizedBox(height: 8),
+            Text(l10n.favoriteStyles, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8.0,
+              children: athlete.preferredStyles
+                  .map((styleKey) => Chip(label: Text(styleDisplayNames[styleKey] ?? styleKey)))
+                  .toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterBar(BuildContext context, List<Chrono> allChronos, AppLocalizations l10n) {
+    final uniqueDistances = allChronos.map((c) => c.distance).toSet().toList()..sort();
+    final uniqueStyles = allChronos.map((c) => c.style).toSet().toList()..sort();
+    final uniqueTypes = allChronos.map((c) => c.type).toSet().toList()..sort();
+
+    final Map<String, String> styleDisplayNames = {
+      'Freestyle': l10n.freestyle,
+      'Butterfly': l10n.butterfly,
+      'Backstroke': l10n.backstroke,
+      'Breaststroke': l10n.breaststroke,
+      'IM': l10n.im,
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButton<int>(
+                  isExpanded: true,
+                  value: _selectedDistance,
+                  hint: Text(l10n.allDistances),
+                  onChanged: (value) => setState(() => _selectedDistance = value),
+                  items: [
+                    DropdownMenuItem<int>(value: null, child: Text(l10n.allDistances)),
+                    ...uniqueDistances.map((d) => DropdownMenuItem(value: d, child: Text("$d m"))),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  value: _selectedStyle,
+                  hint: Text(l10n.allStyles),
+                  onChanged: (value) => setState(() => _selectedStyle = value),
+                  items: [
+                    DropdownMenuItem<String>(value: null, child: Text(l10n.allStyles)),
+                    ...uniqueStyles.map((s) => DropdownMenuItem(value: s, child: Text(styleDisplayNames[s] ?? s))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          DropdownButton<String>(
+            isExpanded: true,
+            value: _selectedType,
+            hint: Text(l10n.allTypes),
+            onChanged: (value) => setState(() => _selectedType = value),
+            items: [
+              DropdownMenuItem<String>(value: null, child: Text(l10n.allTypes)),
+              ...uniqueTypes.map((t) => DropdownMenuItem(value: t, child: Text(t == 'Race' ? l10n.race : l10n.training))),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildChronoCard(BuildContext context, Chrono chrono, CollectionReference chronoCollection, AppLocalizations l10n) {
+    final Map<String, String> typeDisplayNames = {
+      'Training': l10n.training,
+      'Race': l10n.race,
+    };
+    
+    final Map<String, String> styleDisplayNames = {
+      'Freestyle': l10n.freestyle,
+      'Butterfly': l10n.butterfly,
+      'Backstroke': l10n.backstroke,
+      'Breaststroke': l10n.breaststroke,
+      'IM': l10n.im,
+    };
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: ListTile(
+        leading: CircleAvatar(
+          child: Text(chrono.distance.toString()),
+        ),
+        title: Text('${styleDisplayNames[chrono.style] ?? chrono.style} - ${chrono.finalTime}'),
+        subtitle: Text('${DateFormat.yMMMd().format(chrono.date)} • ${typeDisplayNames[chrono.type] ?? chrono.type}'),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.grey),
+              onPressed: () {
+                 Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => AddEditChronoScreen(
+                        chronoCollection: chronoCollection,
+                        existingChrono: chrono,
+                    )));
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.redAccent),
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(l10n.deleteChronoTitle),
+                    content: Text(l10n.deleteConfirmation),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.cancel)),
+                      TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.delete)),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  await chronoCollection.doc(chrono.id).delete();
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

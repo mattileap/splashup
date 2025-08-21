@@ -108,4 +108,103 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get close => 'Chiudi';
+
+  @override
+  String get athleteDetails => 'Dettagli Atleta';
+
+  @override
+  String get editAthlete => 'Modifica Atleta';
+
+  @override
+  String get age => 'Età';
+
+  @override
+  String get noTimesRecorded => 'Nessun tempo registrato.';
+
+  @override
+  String get addYourFirstTime =>
+      'Tocca il pulsante + per aggiungere il primo tempo!';
+
+  @override
+  String get addChrono => 'Aggiungi Crono';
+
+  @override
+  String get editChrono => 'Modifica Crono';
+
+  @override
+  String get date => 'Data';
+
+  @override
+  String get poolLength => 'Lunghezza Vasca';
+
+  @override
+  String get distance => 'Distanza (metri)';
+
+  @override
+  String get style => 'Stile';
+
+  @override
+  String get im => 'Misti';
+
+  @override
+  String get finalTime => 'Tempo Finale';
+
+  @override
+  String get finalTimeHint => 'MM:SS.ss';
+
+  @override
+  String get save => 'Salva';
+
+  @override
+  String get delete => 'Elimina';
+
+  @override
+  String get deleteConfirmation =>
+      'Sei sicuro di voler eliminare questo tempo?';
+
+  @override
+  String get deleteChronoTitle => 'Elimina Crono';
+
+  @override
+  String get unsavedChanges => 'Modifiche non salvate';
+
+  @override
+  String get discardChangesWarning =>
+      'Hai delle modifiche non salvate. Sei sicuro di volerle ignorare?';
+
+  @override
+  String get discard => 'Ignora';
+
+  @override
+  String get filterBy => 'Filtra per:';
+
+  @override
+  String get allDistances => 'Tutte le Distanze';
+
+  @override
+  String get allStyles => 'Tutti gli Stili';
+
+  @override
+  String get noResultsFound => 'Nessun risultato per i filtri selezionati.';
+
+  @override
+  String get favoriteStyles => 'Stili Preferiti';
+
+  @override
+  String get chronoType => 'Tipo';
+
+  @override
+  String get training => 'Allenamento';
+
+  @override
+  String get race => 'Gara';
+
+  @override
+  String get allTypes => 'Tutti i Tipi';
+
+  @override
+  String get personalBestsTitle => 'Migliori Personali';
+
+  @override
+  String get noBestsYet => 'Nessun record personale registrato.';
 }

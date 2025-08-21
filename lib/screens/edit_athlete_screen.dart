@@ -1,69 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../l10n/app_localizations.dart';
+import '../models/athlete_model.dart';
+import '../models/team_model.dart';
+import 'package:collection/collection.dart';
 
-class AddAthleteScreen extends StatefulWidget {
-  final CollectionReference athletesCollection;
+class EditAthleteScreen extends StatefulWidget {
+  final Team team;
+  final Athlete athlete;
 
-  const AddAthleteScreen({super.key, required this.athletesCollection});
+  const EditAthleteScreen({
+    super.key,
+    required this.team,
+    required this.athlete,
+  });
 
   @override
-  State<AddAthleteScreen> createState() => _AddAthleteScreenState();
+  State<EditAthleteScreen> createState() => _EditAthleteScreenState();
 }
 
-class _AddAthleteScreenState extends State<AddAthleteScreen> {
+class _EditAthleteScreenState extends State<EditAthleteScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _notesController = TextEditingController();
-
-  int? _selectedBirthYear;
+  late TextEditingController _nameController;
+  late TextEditingController _notesController;
+  late int? _selectedBirthYear;
   late List<int> _birthYearOptions;
-
-  String _gender = 'Male';
-  bool _isActive = true;
-  final Map<String, bool> _preferredStyles = {
-    'Freestyle': false,
-    'Butterfly': false,
-    'Backstroke': false,
-    'Breaststroke': false,
-  };
+  late String _gender;
+  late bool _isActive;
+  late Map<String, bool> _preferredStyles;
 
   bool _isDirty = false;
 
   @override
   void initState() {
     super.initState();
+    _nameController = TextEditingController(text: widget.athlete.name);
+    _notesController = TextEditingController(text: widget.athlete.notes);
+    _selectedBirthYear = widget.athlete.birthYear;
+    _gender = widget.athlete.gender;
+    _isActive = widget.athlete.isActive;
+
+    _preferredStyles = {
+      'Freestyle': false,
+      'Butterfly': false,
+      'Backstroke': false,
+      'Breaststroke': false,
+    };
+    for (var style in widget.athlete.preferredStyles) {
+      if (_preferredStyles.containsKey(style)) {
+        _preferredStyles[style] = true;
+      }
+    }
+
     final currentYear = DateTime.now().year;
     _birthYearOptions = List.generate(100, (index) => currentYear - index);
-    _selectedBirthYear = currentYear;
 
-    _nameController.addListener(() => _markDirty(true));
-    _notesController.addListener(() => _markDirty(true));
+    _nameController.addListener(_markDirty);
+    _notesController.addListener(_markDirty);
   }
 
-  void _markDirty(bool isDirty) {
-    if (_isDirty != isDirty) {
+  void _markDirty() {
+    final selectedStyles = _preferredStyles.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key)
+        .toList();
+
+    // UPDATED: Corrected the class name.
+    final stylesEqual = const DeepCollectionEquality()
+        .equals(selectedStyles, widget.athlete.preferredStyles);
+
+    final newDirtyState = _nameController.text != widget.athlete.name ||
+        _notesController.text != widget.athlete.notes ||
+        _selectedBirthYear != widget.athlete.birthYear ||
+        _gender != widget.athlete.gender ||
+        _isActive != widget.athlete.isActive ||
+        !stylesEqual;
+
+    if (newDirtyState != _isDirty) {
       setState(() {
-        _isDirty = isDirty;
+        _isDirty = newDirtyState;
       });
     }
   }
-
+  
   @override
   void dispose() {
+    _nameController.removeListener(_markDirty);
+    _notesController.removeListener(_markDirty);
     _nameController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
   Future<bool> _canPop() async {
-    // Only show dialog if the form has been touched and is not empty
-    final formIsDirty = _nameController.text.isNotEmpty ||
-        _notesController.text.isNotEmpty ||
-        _preferredStyles.containsValue(true);
-
-    if (!formIsDirty) return true;
-
+    if (!_isDirty) {
+      return true;
+    }
     final l10n = AppLocalizations.of(context)!;
     final shouldPop = await showDialog<bool>(
       context: context,
@@ -85,21 +118,33 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
     return shouldPop ?? false;
   }
 
-  Future<void> _saveAthlete() async {
+
+  Future<void> _updateAthlete() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isDirty = false;
+      });
+
       final selectedStyles = _preferredStyles.entries
           .where((entry) => entry.value)
           .map((entry) => entry.key)
           .toList();
 
-      await widget.athletesCollection.add({
+      final athleteRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('teams')
+          .doc(widget.team.id)
+          .collection('athletes')
+          .doc(widget.athlete.id);
+
+      await athleteRef.update({
         'name': _nameController.text,
         'birthYear': _selectedBirthYear,
         'gender': _gender,
         'preferredStyles': selectedStyles,
         'isActive': _isActive,
         'notes': _notesController.text,
-        'createdAt': Timestamp.now(),
       });
 
       if (mounted) {
@@ -111,6 +156,7 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
     final Map<String, String> styleDisplayNames = {
       'Freestyle': l10n.freestyle,
       'Butterfly': l10n.butterfly,
@@ -118,8 +164,9 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
       'Breaststroke': l10n.breaststroke,
     };
 
+    // UPDATED: Replaced deprecated WillPopScope with PopScope.
     return PopScope(
-      canPop: false, // We handle it manually
+      canPop: !_isDirty,
       onPopInvoked: (didPop) async {
         if (didPop) return;
         final shouldPop = await _canPop();
@@ -129,11 +176,11 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l10n.addNewAthlete),
+          title: Text(l10n.editAthlete),
           actions: [
             IconButton(
               icon: const Icon(Icons.save),
-              onPressed: _saveAthlete,
+              onPressed: _updateAthlete,
             ),
           ],
         ),
@@ -149,7 +196,8 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
                     value!.isEmpty ? 'Please enter a name' : null,
               ),
               DropdownButtonFormField<int>(
-                value: _selectedBirthYear,
+                // UPDATED: Replaced 'value' with 'initialValue'
+                initialValue: _selectedBirthYear,
                 decoration: InputDecoration(labelText: l10n.birthYear),
                 items: _birthYearOptions.map((year) {
                   return DropdownMenuItem(
@@ -160,13 +208,14 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
                 onChanged: (value) {
                   setState(() {
                     _selectedBirthYear = value;
-                    _markDirty(true);
+                    _markDirty();
                   });
                 },
                 validator: (value) =>
                     value == null ? 'Please select a year' : null,
               ),
               DropdownButtonFormField<String>(
+                // UPDATED: Replaced 'value' with 'initialValue'
                 initialValue: _gender,
                 decoration: InputDecoration(labelText: l10n.gender),
                 items: [
@@ -175,7 +224,7 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
                 ],
                 onChanged: (value) => setState(() {
                   _gender = value!;
-                  _markDirty(true);
+                  _markDirty();
                 }),
               ),
               const SizedBox(height: 16),
@@ -188,7 +237,7 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
                   onChanged: (value) =>
                       setState(() {
                         _preferredStyles[styleKey] = value!;
-                        _markDirty(true);
+                        _markDirty();
                       }),
                 );
               }),
@@ -198,7 +247,7 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
                 value: _isActive,
                 onChanged: (value) => setState(() {
                   _isActive = value;
-                  _markDirty(true);
+                  _markDirty();
                 }),
               ),
               TextFormField(
