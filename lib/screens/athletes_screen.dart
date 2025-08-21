@@ -6,7 +6,6 @@ import '../models/team_model.dart';
 import '../models/athlete_model.dart';
 import 'add_athlete_screen.dart';
 
-// UPDATED: Converted to a StatefulWidget to handle search state.
 class AthletesScreen extends StatefulWidget {
   final Team team;
 
@@ -17,14 +16,13 @@ class AthletesScreen extends StatefulWidget {
 }
 
 class _AthletesScreenState extends State<AthletesScreen> {
-  // ADDED: State for managing the search query.
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _showInactive = false;
 
   @override
   void initState() {
     super.initState();
-    // Add a listener to the controller to update the state on text change.
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text;
@@ -36,6 +34,30 @@ class _AthletesScreenState extends State<AthletesScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  // ADDED: Function to show the notes in a pop-up dialog.
+  void _showNotesDialog(BuildContext context, Athlete athlete) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(l10n.notesTitle),
+          content: Text(
+            athlete.notes.isNotEmpty ? athlete.notes : l10n.noNotesForAthlete,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(l10n.close),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -56,7 +78,6 @@ class _AthletesScreenState extends State<AthletesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        // UPDATED: The title now includes a search bar.
         title: TextField(
           controller: _searchController,
           autofocus: false,
@@ -68,7 +89,6 @@ class _AthletesScreenState extends State<AthletesScreen> {
           style: const TextStyle(color: Colors.white, fontSize: 18),
         ),
         actions: [
-          // ADDED: A button to clear the search field.
           if (_searchQuery.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.clear),
@@ -78,68 +98,96 @@ class _AthletesScreenState extends State<AthletesScreen> {
             )
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: athletesCollection.orderBy('name').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong'));
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.person_off_outlined,
-                      size: 80, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.noAthletesYet,
-                    style: const TextStyle(fontSize: 22, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.noAthletesHint,
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final allAthletes = snapshot.data!.docs
-              .map((doc) => Athlete.fromFirestore(doc))
-              .toList();
-          
-          // ADDED: Filter the list of athletes based on the search query.
-          final filteredAthletes = _searchQuery.isEmpty
-              ? allAthletes
-              : allAthletes
-                  .where((athlete) => athlete.name
-                      .toLowerCase()
-                      .contains(_searchQuery.toLowerCase()))
-                  .toList();
-
-          return ListView.builder(
-            // Use the filtered list to build the UI.
-            itemCount: filteredAthletes.length,
-            itemBuilder: (context, index) {
-              final athlete = filteredAthletes[index];
-              return ListTile(
-                leading:
-                    CircleAvatar(child: Text(athlete.name.substring(0, 1))),
-                title: Text(athlete.name),
-                subtitle: Text('${l10n.birthYear}: ${athlete.birthYear}'),
-                onTap: () {
-                  // TODO: Navigate to athlete details/times screen
-                },
-              );
+      body: Column(
+        children: [
+          SwitchListTile(
+            title: Text(l10n.showInactive),
+            value: _showInactive,
+            onChanged: (bool value) {
+              setState(() {
+                _showInactive = value;
+              });
             },
-          );
-        },
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: athletesCollection.orderBy('name').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Something went wrong'));
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.person_off_outlined,
+                            size: 80, color: Colors.grey),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.noAthletesYet,
+                          style: const TextStyle(fontSize: 22, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.noAthletesHint,
+                          style: const TextStyle(fontSize: 16, color: Colors.grey),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final allAthletes = snapshot.data!.docs
+                    .map((doc) => Athlete.fromFirestore(doc))
+                    .toList();
+
+                final filteredAthletes = allAthletes.where((athlete) {
+                  final isStatusMatch = _showInactive || athlete.isActive;
+                  final isSearchMatch = _searchQuery.isEmpty ||
+                      athlete.name
+                          .toLowerCase()
+                          .contains(_searchQuery.toLowerCase());
+                  return isStatusMatch && isSearchMatch;
+                }).toList();
+
+                return ListView.builder(
+                  itemCount: filteredAthletes.length,
+                  itemBuilder: (context, index) {
+                    final athlete = filteredAthletes[index];
+                    return ListTile(
+                      leading:
+                          CircleAvatar(child: Text(athlete.name.substring(0, 1))),
+                      title: Text(athlete.name),
+                      subtitle: Text('${l10n.birthYear}: ${athlete.birthYear}'),
+                      // UPDATED: The trailing widget is now a Row to hold multiple icons.
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.note_alt_outlined),
+                            onPressed: () => _showNotesDialog(context, athlete),
+                          ),
+                          if (!athlete.isActive)
+                            const Icon(Icons.visibility_off_outlined,
+                                color: Colors.grey),
+                        ],
+                      ),
+                      onTap: () {
+                        // TODO: Navigate to athlete details/times screen
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

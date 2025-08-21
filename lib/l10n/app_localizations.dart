@@ -271,6 +271,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search athletes...'**
   String get searchAthletes;
+
+  /// No description provided for @showInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Inactive'**
+  String get showInactive;
+
+  /// No description provided for @notesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Athlete Notes'**
+  String get notesTitle;
+
+  /// No description provided for @noNotesForAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes for this athlete.'**
+  String get noNotesForAthlete;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
 }
 
 class _AppLocalizationsDelegate

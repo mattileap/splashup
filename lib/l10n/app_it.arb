@@ -28,5 +28,9 @@
   "notes": "Note",
   "noAthletesYet": "Nessun atleta.",
   "noAthletesHint": "Tocca il pulsante + per aggiungere il tuo primo atleta!",
-  "searchAthletes": "Cerca atleti..."
+  "searchAthletes": "Cerca atleti...",
+  "showInactive": "Mostra Inattivi",
+  "notesTitle": "Note Atleta",
+  "noNotesForAthlete": "Nessuna nota per questo atleta.",
+  "close": "Chiudi"
 }

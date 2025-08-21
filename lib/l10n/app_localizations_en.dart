@@ -94,4 +94,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchAthletes => 'Search athletes...';
+
+  @override
+  String get showInactive => 'Show Inactive';
+
+  @override
+  String get notesTitle => 'Athlete Notes';
+
+  @override
+  String get noNotesForAthlete => 'No notes for this athlete.';
+
+  @override
+  String get close => 'Close';
 }
