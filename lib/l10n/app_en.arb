@@ -64,5 +64,14 @@
   "race": "Race",
   "allTypes": "All Types",
   "personalBestsTitle": "Personal Bests",
-  "noBestsYet": "No personal bests recorded yet."
+  "noBestsYet": "No personal bests recorded yet.",
+  "settings": "Settings",
+  "appearance": "Appearance",
+  "theme": "Theme",
+  "light": "Light",
+  "dark": "Dark",
+  "system": "System",
+  "deleteAccount": "Delete Account",
+  "deleteAccountWarning": "This action is irreversible. All your teams, athletes, and records will be permanently deleted.",
+  "typeToDelete": "Type 'DELETE' to confirm"
 }

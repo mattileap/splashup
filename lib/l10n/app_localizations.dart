@@ -487,6 +487,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No personal bests recorded yet.'**
   String get noBestsYet;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get light;
+
+  /// No description provided for @dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get dark;
+
+  /// No description provided for @system.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get system;
+
+  /// No description provided for @deleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This action is irreversible. All your teams, athletes, and records will be permanently deleted.'**
+  String get deleteAccountWarning;
+
+  /// No description provided for @typeToDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Type \'DELETE\' to confirm'**
+  String get typeToDelete;
 }
 
 class _AppLocalizationsDelegate

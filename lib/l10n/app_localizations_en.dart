@@ -204,4 +204,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noBestsYet => 'No personal bests recorded yet.';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get light => 'Light';
+
+  @override
+  String get dark => 'Dark';
+
+  @override
+  String get system => 'System';
+
+  @override
+  String get deleteAccount => 'Delete Account';
+
+  @override
+  String get deleteAccountWarning =>
+      'This action is irreversible. All your teams, athletes, and records will be permanently deleted.';
+
+  @override
+  String get typeToDelete => 'Type \'DELETE\' to confirm';
 }

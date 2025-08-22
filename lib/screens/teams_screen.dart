@@ -4,7 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
 import '../services/auth_service.dart';
-import 'athletes_screen.dart'; // Import the new athletes screen
+import 'athletes_screen.dart';
+import 'settings_screen.dart';
 
 class TeamsScreen extends StatefulWidget {
   const TeamsScreen({super.key});
@@ -45,8 +46,8 @@ class _TeamsScreenState extends State<TeamsScreen> {
             ElevatedButton(
               style: ButtonStyle(
                 backgroundColor:
-                    WidgetStateProperty.all(Colors.blue.shade700),
-                foregroundColor: WidgetStateProperty.all(Colors.white),
+                    WidgetStateProperty.all(Theme.of(context).colorScheme.primary),
+                foregroundColor: WidgetStateProperty.all(Theme.of(context).colorScheme.onPrimary),
               ),
               child: Text(l10n.add),
               onPressed: () async {
@@ -54,7 +55,6 @@ class _TeamsScreenState extends State<TeamsScreen> {
                 if (newTeamName.isNotEmpty) {
                   await teamsCollection.add({'name': newTeamName});
                 }
-                // UPDATED: Check for 'mounted' right before using the context.
                 if (!mounted) return;
                 Navigator.of(context).pop();
               },
@@ -87,6 +87,14 @@ class _TeamsScreenState extends State<TeamsScreen> {
       appBar: AppBar(
         title: Text(l10n.myTeams),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -142,8 +150,9 @@ class _TeamsScreenState extends State<TeamsScreen> {
                   contentPadding: const EdgeInsets.symmetric(
                       vertical: 10.0, horizontal: 16.0),
                   leading: CircleAvatar(
-                    backgroundColor: Colors.blue.shade100,
-                    child: const Icon(Icons.group_work, color: Colors.blue),
+                    // UPDATED: Changed to use the primary theme color for more contrast.
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: Icon(Icons.group_work, color: Theme.of(context).colorScheme.onPrimary),
                   ),
                   title: Text(
                     team.name,
@@ -167,8 +176,6 @@ class _TeamsScreenState extends State<TeamsScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addTeam(teamsCollection),
         tooltip: l10n.addTeam,
-        backgroundColor: Colors.blue.shade700,
-        foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
     );

@@ -64,5 +64,14 @@
   "race": "Gara",
   "allTypes": "Tutti i Tipi",
   "personalBestsTitle": "Migliori Personali",
-  "noBestsYet": "Nessun record personale registrato."
+  "noBestsYet": "Nessun record personale registrato.",
+  "settings": "Impostazioni",
+  "appearance": "Aspetto",
+  "theme": "Tema",
+  "light": "Chiaro",
+  "dark": "Scuro",
+  "system": "Sistema",
+  "deleteAccount": "Elimina Account",
+  "deleteAccountWarning": "Questa azione è irreversibile. Tutte le tue squadre, atleti e record verranno eliminati permanentemente.",
+  "typeToDelete": "Scrivi 'DELETE' per confermare"
 }

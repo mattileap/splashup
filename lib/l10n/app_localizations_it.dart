@@ -207,4 +207,32 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get noBestsYet => 'Nessun record personale registrato.';
+
+  @override
+  String get settings => 'Impostazioni';
+
+  @override
+  String get appearance => 'Aspetto';
+
+  @override
+  String get theme => 'Tema';
+
+  @override
+  String get light => 'Chiaro';
+
+  @override
+  String get dark => 'Scuro';
+
+  @override
+  String get system => 'Sistema';
+
+  @override
+  String get deleteAccount => 'Elimina Account';
+
+  @override
+  String get deleteAccountWarning =>
+      'Questa azione è irreversibile. Tutte le tue squadre, atleti e record verranno eliminati permanentemente.';
+
+  @override
+  String get typeToDelete => 'Scrivi \'DELETE\' per confermare';
 }
