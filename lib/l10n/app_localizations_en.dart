@@ -232,4 +232,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get typeToDelete => 'Type \'DELETE\' to confirm';
+
+  @override
+  String get editTeam => 'Edit Team';
+
+  @override
+  String get deleteAthlete => 'Delete Athlete';
+
+  @override
+  String get deleteAthleteWarning =>
+      'This will permanently delete the athlete and all their recorded times. Would you like to deactivate them instead?';
+
+  @override
+  String get deactivate => 'Deactivate';
+
+  @override
+  String get deleteAnyway => 'Delete Anyway';
 }

@@ -235,4 +235,20 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get typeToDelete => 'Scrivi \'DELETE\' per confermare';
+
+  @override
+  String get editTeam => 'Modifica Squadra';
+
+  @override
+  String get deleteAthlete => 'Elimina Atleta';
+
+  @override
+  String get deleteAthleteWarning =>
+      'Questo eliminerà permanentemente l\'atleta e tutti i suoi tempi registrati. Vuoi invece disattivarlo?';
+
+  @override
+  String get deactivate => 'Disattiva';
+
+  @override
+  String get deleteAnyway => 'Elimina Comunque';
 }

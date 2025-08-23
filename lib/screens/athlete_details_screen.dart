@@ -101,6 +101,58 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
     );
   }
 
+  // ADDED: New function to handle the complex athlete deletion flow.
+  Future<void> _showDeleteAthleteDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    final navigator = Navigator.of(context);
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteAthlete),
+        content: Text(l10n.deleteAthleteWarning),
+        actions: [
+          TextButton(
+            onPressed: () => navigator.pop('cancel'),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => navigator.pop('deactivate'),
+            child: Text(l10n.deactivate),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => navigator.pop('delete'),
+            child: Text(l10n.deleteAnyway),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+
+    final athleteRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .collection('teams')
+        .doc(widget.team.id)
+        .collection('athletes')
+        .doc(widget.athlete.id);
+
+    if (result == 'deactivate') {
+      await athleteRef.update({'isActive': false});
+      navigator.pop(); // Go back to the athletes list
+    } else if (result == 'delete') {
+      // Delete all chronos first
+      final chronos = await athleteRef.collection('chronos').get();
+      for (final doc in chronos.docs) {
+        await doc.reference.delete();
+      }
+      // Then delete the athlete
+      await athleteRef.delete();
+      navigator.pop(); // Go back to the athletes list
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,6 +201,11 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                 ),
               );
             },
+          ),
+          // ADDED: Delete athlete button
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            onPressed: _showDeleteAthleteDialog,
           ),
         ],
       ),
@@ -223,7 +280,6 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       'IM': l10n.im,
     };
 
-    // ADDED: Map for gender translations
     final Map<String, String> genderDisplayNames = {
       'Male': l10n.male,
       'Female': l10n.female,
@@ -239,7 +295,6 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           children: [
             Text(athlete.name, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
-            // UPDATED: Use the translated gender string
             Text('${l10n.age}: $age • $translatedGender'),
             const SizedBox(height: 8),
             Text(l10n.favoriteStyles, style: Theme.of(context).textTheme.titleSmall),

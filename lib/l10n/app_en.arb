@@ -73,5 +73,10 @@
   "system": "System",
   "deleteAccount": "Delete Account",
   "deleteAccountWarning": "This action is irreversible. All your teams, athletes, and records will be permanently deleted.",
-  "typeToDelete": "Type 'DELETE' to confirm"
+  "typeToDelete": "Type 'DELETE' to confirm",
+  "editTeam": "Edit Team",
+  "deleteAthlete": "Delete Athlete",
+  "deleteAthleteWarning": "This will permanently delete the athlete and all their recorded times. Would you like to deactivate them instead?",
+  "deactivate": "Deactivate",
+  "deleteAnyway": "Delete Anyway"
 }

@@ -73,5 +73,10 @@
   "system": "Sistema",
   "deleteAccount": "Elimina Account",
   "deleteAccountWarning": "Questa azione è irreversibile. Tutte le tue squadre, atleti e record verranno eliminati permanentemente.",
-  "typeToDelete": "Scrivi 'DELETE' per confermare"
+  "typeToDelete": "Scrivi 'DELETE' per confermare",
+  "editTeam": "Modifica Squadra",
+  "deleteAthlete": "Elimina Atleta",
+  "deleteAthleteWarning": "Questo eliminerà permanentemente l'atleta e tutti i suoi tempi registrati. Vuoi invece disattivarlo?",
+  "deactivate": "Disattiva",
+  "deleteAnyway": "Elimina Comunque"
 }

@@ -17,6 +17,50 @@ class TeamsScreen extends StatefulWidget {
 class _TeamsScreenState extends State<TeamsScreen> {
   final AuthService _authService = AuthService();
 
+  Future<void> _editTeam(Team team) async {
+    final l10n = AppLocalizations.of(context)!;
+    final TextEditingController teamNameController =
+        TextEditingController(text: team.name);
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(l10n.editTeam),
+          content: TextField(
+            controller: teamNameController,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: l10n.teamName,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(l10n.cancel),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              child: Text(l10n.save),
+              onPressed: () async {
+                final newTeamName = teamNameController.text;
+                if (newTeamName.isNotEmpty) {
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(FirebaseAuth.instance.currentUser!.uid)
+                      .collection('teams')
+                      .doc(team.id)
+                      .update({'name': newTeamName});
+                }
+                if (mounted) Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // UPDATED: This is the full, correct implementation of the _addTeam function.
   Future<void> _addTeam(CollectionReference teamsCollection) async {
     if (FirebaseAuth.instance.currentUser == null) return;
 
@@ -55,8 +99,7 @@ class _TeamsScreenState extends State<TeamsScreen> {
                 if (newTeamName.isNotEmpty) {
                   await teamsCollection.add({'name': newTeamName});
                 }
-                if (!mounted) return;
-                Navigator.of(context).pop();
+                if (mounted) Navigator.of(context).pop();
               },
             ),
           ],
@@ -104,7 +147,7 @@ class _TeamsScreenState extends State<TeamsScreen> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: teamsCollection.snapshots(),
+        stream: teamsCollection.orderBy('name').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -150,7 +193,6 @@ class _TeamsScreenState extends State<TeamsScreen> {
                   contentPadding: const EdgeInsets.symmetric(
                       vertical: 10.0, horizontal: 16.0),
                   leading: CircleAvatar(
-                    // UPDATED: Changed to use the primary theme color for more contrast.
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     child: Icon(Icons.group_work, color: Theme.of(context).colorScheme.onPrimary),
                   ),
@@ -159,7 +201,16 @@ class _TeamsScreenState extends State<TeamsScreen> {
                     style: const TextStyle(
                         fontWeight: FontWeight.bold, fontSize: 18),
                   ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.grey),
+                        onPressed: () => _editTeam(team),
+                      ),
+                      const Icon(Icons.arrow_forward_ios, size: 16),
+                    ],
+                  ),
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(

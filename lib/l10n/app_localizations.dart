@@ -541,6 +541,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type \'DELETE\' to confirm'**
   String get typeToDelete;
+
+  /// No description provided for @editTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Team'**
+  String get editTeam;
+
+  /// No description provided for @deleteAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Athlete'**
+  String get deleteAthlete;
+
+  /// No description provided for @deleteAthleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete the athlete and all their recorded times. Would you like to deactivate them instead?'**
+  String get deleteAthleteWarning;
+
+  /// No description provided for @deactivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate'**
+  String get deactivate;
+
+  /// No description provided for @deleteAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Anyway'**
+  String get deleteAnyway;
 }
 
 class _AppLocalizationsDelegate
