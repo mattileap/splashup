@@ -248,4 +248,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAnyway => 'Delete Anyway';
+
+  @override
+  String get dataManagement => 'Data Management';
+
+  @override
+  String get moveAthletes => 'Move Athletes';
+
+  @override
+  String get moveAthletesDescription => 'Move athletes between teams.';
+
+  @override
+  String get moveSingleAthlete => 'Move a single athlete';
+
+  @override
+  String get moveAthletesByYear => 'Move athletes by birth year';
+
+  @override
+  String get moveAllAthletes => 'Move all athletes from a team';
+
+  @override
+  String get sourceTeam => 'Source Team';
+
+  @override
+  String get destinationTeam => 'Destination Team';
+
+  @override
+  String get selectAthlete => 'Select Athlete';
+
+  @override
+  String get noAthletesInTeam => 'No athletes in this team.';
+
+  @override
+  String get move => 'Move';
+
+  @override
+  String get selectTeamsFirst =>
+      'Please select source and destination teams first.';
+
+  @override
+  String get moveConfirmation =>
+      'Are you sure you want to move the selected athlete(s)?';
+
+  @override
+  String get moveSuccess => 'Athletes moved successfully.';
+
+  @override
+  String get selectBirthYear => 'Select Birth Year';
+
+  @override
+  String get noYearsInTeam => 'No athletes with birth years found.';
 }

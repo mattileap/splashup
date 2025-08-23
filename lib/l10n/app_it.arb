@@ -78,5 +78,21 @@
   "deleteAthlete": "Elimina Atleta",
   "deleteAthleteWarning": "Questo eliminerà permanentemente l'atleta e tutti i suoi tempi registrati. Vuoi invece disattivarlo?",
   "deactivate": "Disattiva",
-  "deleteAnyway": "Elimina Comunque"
+  "deleteAnyway": "Elimina Comunque",
+  "dataManagement": "Gestione Dati",
+  "moveAthletes": "Sposta Atleti",
+  "moveAthletesDescription": "Sposta atleti tra le squadre.",
+  "moveSingleAthlete": "Sposta un singolo atleta",
+  "moveAthletesByYear": "Sposta atleti per anno di nascita",
+  "moveAllAthletes": "Sposta tutti gli atleti di una squadra",
+  "sourceTeam": "Squadra di Partenza",
+  "destinationTeam": "Squadra di Destinazione",
+  "selectAthlete": "Seleziona Atleta",
+  "noAthletesInTeam": "Nessun atleta in questa squadra.",
+  "move": "Sposta",
+  "selectTeamsFirst": "Seleziona prima la squadra di partenza e di destinazione.",
+  "moveConfirmation": "Sei sicuro di voler spostare gli atleti selezionati?",
+  "moveSuccess": "Atleti spostati con successo.",
+  "selectBirthYear": "Seleziona Anno di Nascita",
+  "noYearsInTeam": "Nessun atleta con anno di nascita trovato."
 }

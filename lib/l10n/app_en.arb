@@ -78,5 +78,21 @@
   "deleteAthlete": "Delete Athlete",
   "deleteAthleteWarning": "This will permanently delete the athlete and all their recorded times. Would you like to deactivate them instead?",
   "deactivate": "Deactivate",
-  "deleteAnyway": "Delete Anyway"
+  "deleteAnyway": "Delete Anyway",
+  "dataManagement": "Data Management",
+  "moveAthletes": "Move Athletes",
+  "moveAthletesDescription": "Move athletes between teams.",
+  "moveSingleAthlete": "Move a single athlete",
+  "moveAthletesByYear": "Move athletes by birth year",
+  "moveAllAthletes": "Move all athletes from a team",
+  "sourceTeam": "Source Team",
+  "destinationTeam": "Destination Team",
+  "selectAthlete": "Select Athlete",
+  "noAthletesInTeam": "No athletes in this team.",
+  "move": "Move",
+  "selectTeamsFirst": "Please select source and destination teams first.",
+  "moveConfirmation": "Are you sure you want to move the selected athlete(s)?",
+  "moveSuccess": "Athletes moved successfully.",
+  "selectBirthYear": "Select Birth Year",
+  "noYearsInTeam": "No athletes with birth years found."
 }

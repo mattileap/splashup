@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../l10n/app_localizations.dart';
 import '../services/auth_service.dart';
 import '../services/theme_service.dart';
+import 'move_athletes_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,6 +15,39 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  // ADDED: State to hold the number of teams.
+  int _teamCount = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTeamCount();
+  }
+
+  // ADDED: Function to get the number of teams from Firestore.
+  Future<void> _fetchTeamCount() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('teams')
+        .count()
+        .get();
+    
+    if (mounted) {
+      setState(() {
+        _teamCount = snapshot.count ?? 0;
+        _isLoading = false;
+      });
+    }
+  }
+
+  // RESTORED: This function was missing from the previous version.
   Future<void> _showDeleteConfirmationDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -20,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // User must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setState) {
@@ -45,7 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         },
                         validator: (value) {
                           if (value != 'DELETE') {
-                            return ''; // Return empty string for no visible error
+                            return '';
                           }
                           return null;
                         },
@@ -79,10 +115,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ? () async {
                               final navigator = Navigator.of(context);
                               final messenger = ScaffoldMessenger.of(context);
-
                               try {
                                 await authService.deleteAccountAndData();
-                                // UPDATED: Pop all screens until we get back to the root (AuthWrapper).
                                 navigator.popUntil((route) => route.isFirst);
                               } catch (e) {
                                 navigator.pop();
@@ -144,6 +178,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }
               },
             ),
+          ),
+          const Divider(),
+          ListTile(
+            title: Text(l10n.dataManagement,
+                style: Theme.of(context).textTheme.titleSmall),
+          ),
+          // UPDATED: This ListTile is now disabled if there are fewer than 2 teams.
+          ListTile(
+            enabled: _teamCount >= 2,
+            leading: const Icon(Icons.sync_alt),
+            title: Text(l10n.moveAthletes),
+            subtitle: Text(
+              _teamCount < 2 
+              ? "You need at least two teams to use this feature." 
+              : l10n.moveAthletesDescription
+            ),
+            onTap: _teamCount >= 2 ? () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const MoveAthletesScreen()),
+              );
+            } : null,
           ),
           const Divider(),
           ListTile(

@@ -571,6 +571,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete Anyway'**
   String get deleteAnyway;
+
+  /// No description provided for @dataManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Management'**
+  String get dataManagement;
+
+  /// No description provided for @moveAthletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Move Athletes'**
+  String get moveAthletes;
+
+  /// No description provided for @moveAthletesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Move athletes between teams.'**
+  String get moveAthletesDescription;
+
+  /// No description provided for @moveSingleAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Move a single athlete'**
+  String get moveSingleAthlete;
+
+  /// No description provided for @moveAthletesByYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Move athletes by birth year'**
+  String get moveAthletesByYear;
+
+  /// No description provided for @moveAllAthletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Move all athletes from a team'**
+  String get moveAllAthletes;
+
+  /// No description provided for @sourceTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Source Team'**
+  String get sourceTeam;
+
+  /// No description provided for @destinationTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination Team'**
+  String get destinationTeam;
+
+  /// No description provided for @selectAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Athlete'**
+  String get selectAthlete;
+
+  /// No description provided for @noAthletesInTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'No athletes in this team.'**
+  String get noAthletesInTeam;
+
+  /// No description provided for @move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get move;
+
+  /// No description provided for @selectTeamsFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select source and destination teams first.'**
+  String get selectTeamsFirst;
+
+  /// No description provided for @moveConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to move the selected athlete(s)?'**
+  String get moveConfirmation;
+
+  /// No description provided for @moveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Athletes moved successfully.'**
+  String get moveSuccess;
+
+  /// No description provided for @selectBirthYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Birth Year'**
+  String get selectBirthYear;
+
+  /// No description provided for @noYearsInTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'No athletes with birth years found.'**
+  String get noYearsInTeam;
 }
 
 class _AppLocalizationsDelegate

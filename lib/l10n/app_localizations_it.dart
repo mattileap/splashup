@@ -251,4 +251,54 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get deleteAnyway => 'Elimina Comunque';
+
+  @override
+  String get dataManagement => 'Gestione Dati';
+
+  @override
+  String get moveAthletes => 'Sposta Atleti';
+
+  @override
+  String get moveAthletesDescription => 'Sposta atleti tra le squadre.';
+
+  @override
+  String get moveSingleAthlete => 'Sposta un singolo atleta';
+
+  @override
+  String get moveAthletesByYear => 'Sposta atleti per anno di nascita';
+
+  @override
+  String get moveAllAthletes => 'Sposta tutti gli atleti di una squadra';
+
+  @override
+  String get sourceTeam => 'Squadra di Partenza';
+
+  @override
+  String get destinationTeam => 'Squadra di Destinazione';
+
+  @override
+  String get selectAthlete => 'Seleziona Atleta';
+
+  @override
+  String get noAthletesInTeam => 'Nessun atleta in questa squadra.';
+
+  @override
+  String get move => 'Sposta';
+
+  @override
+  String get selectTeamsFirst =>
+      'Seleziona prima la squadra di partenza e di destinazione.';
+
+  @override
+  String get moveConfirmation =>
+      'Sei sicuro di voler spostare gli atleti selezionati?';
+
+  @override
+  String get moveSuccess => 'Atleti spostati con successo.';
+
+  @override
+  String get selectBirthYear => 'Seleziona Anno di Nascita';
+
+  @override
+  String get noYearsInTeam => 'Nessun atleta con anno di nascita trovato.';
 }
