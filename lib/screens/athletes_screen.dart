@@ -78,25 +78,37 @@ class _AthletesScreenState extends State<AthletesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          autofocus: false,
-          decoration: InputDecoration(
-            hintText: l10n.searchAthletes,
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+        // UPDATED: The title is now the team name.
+        title: Text(widget.team.name),
+        // UPDATED: The search bar is now in the 'bottom' property of the AppBar.
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: l10n.searchAthletes,
+                prefixIcon: const Icon(Icons.search),
+                // Add a clear button to the search bar
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
           ),
-          style: const TextStyle(color: Colors.white, fontSize: 18),
         ),
-        actions: [
-          if (_searchQuery.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: () {
-                _searchController.clear();
-              },
-            )
-        ],
       ),
       body: Column(
         children: [
@@ -177,7 +189,6 @@ class _AthletesScreenState extends State<AthletesScreen> {
                                 color: Colors.grey),
                         ],
                       ),
-                      // UPDATED: Navigate to the new details screen.
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(

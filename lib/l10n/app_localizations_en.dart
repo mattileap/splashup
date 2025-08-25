@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamName => 'Team Name';
 
   @override
-  String get teamNameHint => 'e.g., Varsity Girls';
+  String get teamNameHint => 'e.g., Varsity Girls - Category';
 
   @override
   String get cancel => 'Cancel';
@@ -298,4 +298,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noYearsInTeam => 'No athletes with birth years found.';
+
+  @override
+  String get deleteTeam => 'Delete Team';
+
+  @override
+  String get deleteTeamDescription =>
+      'Permanently delete a team and its athletes.';
+
+  @override
+  String get selectTeamToDelete => 'Select Team to Delete';
+
+  @override
+  String get deleteTeamWarning =>
+      'This will permanently delete the team and all its athletes. What would you like to do?';
+
+  @override
+  String get moveAthletesOption => 'Move Athletes First';
+
+  @override
+  String get deleteTeamConfirmation =>
+      'This action is irreversible. To confirm, please type DELETE below.';
 }

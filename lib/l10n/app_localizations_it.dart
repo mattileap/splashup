@@ -21,7 +21,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get teamName => 'Nome Squadra';
 
   @override
-  String get teamNameHint => 'es. Nome Squadra';
+  String get teamNameHint => 'es. Nome Squadra - Categoria';
 
   @override
   String get cancel => 'Annulla';
@@ -301,4 +301,25 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get noYearsInTeam => 'Nessun atleta con anno di nascita trovato.';
+
+  @override
+  String get deleteTeam => 'Elimina Squadra';
+
+  @override
+  String get deleteTeamDescription =>
+      'Elimina permanentemente una squadra e i suoi atleti.';
+
+  @override
+  String get selectTeamToDelete => 'Seleziona Squadra da Eliminare';
+
+  @override
+  String get deleteTeamWarning =>
+      'Questo eliminerà permanentemente la squadra e tutti i suoi atleti. Cosa vorresti fare?';
+
+  @override
+  String get moveAthletesOption => 'Prima Sposta Atleti';
+
+  @override
+  String get deleteTeamConfirmation =>
+      'Questa azione è irreversibile. Per confermare, scrivi DELETE qui sotto.';
 }

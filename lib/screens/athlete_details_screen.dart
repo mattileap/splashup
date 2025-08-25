@@ -101,7 +101,6 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
     );
   }
 
-  // ADDED: New function to handle the complex athlete deletion flow.
   Future<void> _showDeleteAthleteDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);
@@ -141,16 +140,14 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
 
     if (result == 'deactivate') {
       await athleteRef.update({'isActive': false});
-      navigator.pop(); // Go back to the athletes list
+      navigator.pop();
     } else if (result == 'delete') {
-      // Delete all chronos first
       final chronos = await athleteRef.collection('chronos').get();
       for (final doc in chronos.docs) {
         await doc.reference.delete();
       }
-      // Then delete the athlete
       await athleteRef.delete();
-      navigator.pop(); // Go back to the athletes list
+      navigator.pop();
     }
   }
 
@@ -176,7 +173,17 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.athlete.name),
+        // UPDATED: The title is now a Column to include the team name.
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.athlete.name),
+            Text(
+              widget.team.name,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.emoji_events_outlined),
@@ -202,7 +209,6 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
               );
             },
           ),
-          // ADDED: Delete athlete button
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
             onPressed: _showDeleteAthleteDialog,

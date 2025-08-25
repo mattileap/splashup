@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../l10n/app_localizations.dart';
+import '../models/team_model.dart'; // Import Team model
 import '../services/auth_service.dart';
 import '../services/theme_service.dart';
 import 'move_athletes_screen.dart';
@@ -15,7 +16,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // ADDED: State to hold the number of teams.
   int _teamCount = 0;
   bool _isLoading = true;
 
@@ -25,11 +25,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _fetchTeamCount();
   }
 
-  // ADDED: Function to get the number of teams from Firestore.
   Future<void> _fetchTeamCount() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
       return;
     }
     final snapshot = await FirebaseFirestore.instance
@@ -47,7 +46,105 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // RESTORED: This function was missing from the previous version.
+  // ADDED: New function to handle the entire team deletion flow.
+  Future<void> _showDeleteTeamDialog() async {
+    final l10n = AppLocalizations.of(context)!;
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final teamsCollection = FirebaseFirestore.instance.collection('users').doc(userId).collection('teams');
+
+    // Step 1: Select the team to delete.
+    final teamToDelete = await showDialog<Team>(
+      context: context,
+      builder: (context) {
+        return StreamBuilder<QuerySnapshot>(
+          stream: teamsCollection.orderBy('name').snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+            final teams = snapshot.data!.docs.map((doc) => Team.fromFirestore(doc)).toList();
+            return SimpleDialog(
+              title: Text(l10n.selectTeamToDelete),
+              children: teams.map((team) => SimpleDialogOption(
+                onPressed: () => navigator.pop(team),
+                child: Text(team.name),
+              )).toList(),
+            );
+          },
+        );
+      },
+    );
+
+    if (teamToDelete == null || !mounted) return;
+
+    // Step 2: Ask whether to move athletes or delete anyway.
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteTeam),
+        content: Text(l10n.deleteTeamWarning),
+        actions: [
+          TextButton(onPressed: () => navigator.pop('cancel'), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => navigator.pop('move'), child: Text(l10n.moveAthletesOption)),
+          ElevatedButton(onPressed: () => navigator.pop('delete'), child: Text(l10n.deleteAnyway)),
+        ],
+      ),
+    );
+
+    if (choice == 'move') {
+      navigator.push(MaterialPageRoute(
+        builder: (context) => MoveAthletesScreen(initialSourceTeam: teamToDelete),
+      ));
+    } else if (choice == 'delete') {
+      // Step 3: Final confirmation with text input.
+      final confirmationController = TextEditingController();
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.deleteTeam),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(l10n.deleteTeamConfirmation),
+              TextField(controller: confirmationController, decoration: const InputDecoration(labelText: 'DELETE')),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => navigator.pop(false), child: Text(l10n.cancel)),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                if (confirmationController.text == 'DELETE') {
+                  navigator.pop(true);
+                }
+              },
+              child: Text(l10n.delete),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        // Perform the deletion
+        final teamRef = teamsCollection.doc(teamToDelete.id);
+        final athletesSnapshot = await teamRef.collection('athletes').get();
+        final batch = FirebaseFirestore.instance.batch();
+
+        for (final athleteDoc in athletesSnapshot.docs) {
+          final chronosSnapshot = await athleteDoc.reference.collection('chronos').get();
+          for (final chronoDoc in chronosSnapshot.docs) {
+            batch.delete(chronoDoc.reference);
+          }
+          batch.delete(athleteDoc.reference);
+        }
+        batch.delete(teamRef);
+        await batch.commit();
+        messenger.showSnackBar(SnackBar(content: Text('"${teamToDelete.name}" was deleted.')));
+      }
+    }
+  }
+  
+  // ... (delete account dialog remains the same)
   Future<void> _showDeleteConfirmationDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -184,7 +281,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Text(l10n.dataManagement,
                 style: Theme.of(context).textTheme.titleSmall),
           ),
-          // UPDATED: This ListTile is now disabled if there are fewer than 2 teams.
           ListTile(
             enabled: _teamCount >= 2,
             leading: const Icon(Icons.sync_alt),
@@ -200,6 +296,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             } : null,
           ),
+          
+          // ADDED: New ListTile for deleting a team.
+          ListTile(
+            enabled: _teamCount > 0,
+            leading: const Icon(Icons.group_remove_outlined),
+            title: Text(l10n.deleteTeam),
+            subtitle: Text(l10n.deleteTeamDescription),
+            onTap: _showDeleteTeamDialog,
+          ),
+
           const Divider(),
           ListTile(
             leading: const Icon(Icons.delete_forever, color: Colors.red),

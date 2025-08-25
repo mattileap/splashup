@@ -8,19 +8,34 @@ import '../models/athlete_model.dart';
 enum MoveType { single, byYear, all }
 
 class MoveAthletesScreen extends StatefulWidget {
-  const MoveAthletesScreen({super.key});
+  // ADDED: Optional parameter to pre-select the source team.
+  final Team? initialSourceTeam;
+
+  const MoveAthletesScreen({super.key, this.initialSourceTeam});
 
   @override
   State<MoveAthletesScreen> createState() => _MoveAthletesScreenState();
 }
 
 class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
-  MoveType _moveType = MoveType.single;
+  MoveType _moveType = MoveType.all; // Default to all for this context
   Team? _sourceTeam;
   Team? _destinationTeam;
   Athlete? _selectedAthlete;
   int? _selectedBirthYear;
 
+  @override
+  void initState() {
+    super.initState();
+    // ADDED: If an initial team is provided, set it as the source.
+    if (widget.initialSourceTeam != null) {
+      _sourceTeam = widget.initialSourceTeam;
+    }
+  }
+
+  // ... (rest of the file remains the same as your working version)
+  // The performMove, build, buildSingleAthleteSelector, and buildYearSelector
+  // methods are unchanged.
   Future<void> _performMove() async {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);
@@ -114,8 +129,12 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
               ? teams
               : teams.where((t) => t.id != _sourceTeam!.id).toList();
 
-          final currentSourceTeam = _sourceTeam == null ? null : teams.firstWhere((t) => t.id == _sourceTeam!.id, orElse: () => _sourceTeam!);
-          final currentDestTeam = _destinationTeam == null ? null : teams.firstWhere((t) => t.id == _destinationTeam!.id, orElse: () => _destinationTeam!);
+          final currentSourceTeam = _sourceTeam != null && teams.any((t) => t.id == _sourceTeam!.id)
+              ? teams.firstWhere((t) => t.id == _sourceTeam!.id)
+              : null;
+          final currentDestTeam = _destinationTeam != null && teams.any((t) => t.id == _destinationTeam!.id)
+              ? teams.firstWhere((t) => t.id == _destinationTeam!.id)
+              : null;
 
 
           return ListView(
@@ -206,7 +225,6 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
         }
         final athletes = snapshot.data!.docs.map((doc) => Athlete.fromFirestore(doc)).toList();
         
-        // UPDATED: Ensure the selected athlete is valid for the current list of items.
         final currentSelectedAthlete = _selectedAthlete != null && athletes.any((a) => a.id == _selectedAthlete!.id)
             ? athletes.firstWhere((a) => a.id == _selectedAthlete!.id)
             : null;

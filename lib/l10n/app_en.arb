@@ -4,7 +4,7 @@
   "addTeam": "Add Team",
   "addNewTeam": "Add New Team",
   "teamName": "Team Name",
-  "teamNameHint": "e.g., Varsity Girls",
+  "teamNameHint": "e.g., Varsity Girls - Category",
   "cancel": "Cancel",
   "add": "Add",
   "noTeamsYet": "No teams yet.",
@@ -94,5 +94,11 @@
   "moveConfirmation": "Are you sure you want to move the selected athlete(s)?",
   "moveSuccess": "Athletes moved successfully.",
   "selectBirthYear": "Select Birth Year",
-  "noYearsInTeam": "No athletes with birth years found."
+  "noYearsInTeam": "No athletes with birth years found.",
+  "deleteTeam": "Delete Team",
+  "deleteTeamDescription": "Permanently delete a team and its athletes.",
+  "selectTeamToDelete": "Select Team to Delete",
+  "deleteTeamWarning": "This will permanently delete the team and all its athletes. What would you like to do?",
+  "moveAthletesOption": "Move Athletes First",
+  "deleteTeamConfirmation": "This action is irreversible. To confirm, please type DELETE below."
 }

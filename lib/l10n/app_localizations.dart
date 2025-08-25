@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @teamNameHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g., Varsity Girls'**
+  /// **'e.g., Varsity Girls - Category'**
   String get teamNameHint;
 
   /// No description provided for @cancel.
@@ -667,6 +667,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No athletes with birth years found.'**
   String get noYearsInTeam;
+
+  /// No description provided for @deleteTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Team'**
+  String get deleteTeam;
+
+  /// No description provided for @deleteTeamDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete a team and its athletes.'**
+  String get deleteTeamDescription;
+
+  /// No description provided for @selectTeamToDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Team to Delete'**
+  String get selectTeamToDelete;
+
+  /// No description provided for @deleteTeamWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete the team and all its athletes. What would you like to do?'**
+  String get deleteTeamWarning;
+
+  /// No description provided for @moveAthletesOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Move Athletes First'**
+  String get moveAthletesOption;
+
+  /// No description provided for @deleteTeamConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This action is irreversible. To confirm, please type DELETE below.'**
+  String get deleteTeamConfirmation;
 }
 
 class _AppLocalizationsDelegate

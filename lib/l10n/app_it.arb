@@ -4,7 +4,7 @@
   "addTeam": "Aggiungi Squadra",
   "addNewTeam": "Aggiungi Nuova Squadra",
   "teamName": "Nome Squadra",
-  "teamNameHint": "es. Nome Squadra",
+  "teamNameHint": "es. Nome Squadra - Categoria",
   "cancel": "Annulla",
   "add": "Aggiungi",
   "noTeamsYet": "Nessuna squadra.",
@@ -94,5 +94,11 @@
   "moveConfirmation": "Sei sicuro di voler spostare gli atleti selezionati?",
   "moveSuccess": "Atleti spostati con successo.",
   "selectBirthYear": "Seleziona Anno di Nascita",
-  "noYearsInTeam": "Nessun atleta con anno di nascita trovato."
+  "noYearsInTeam": "Nessun atleta con anno di nascita trovato.",
+  "deleteTeam": "Elimina Squadra",
+  "deleteTeamDescription": "Elimina permanentemente una squadra e i suoi atleti.",
+  "selectTeamToDelete": "Seleziona Squadra da Eliminare",
+  "deleteTeamWarning": "Questo eliminerà permanentemente la squadra e tutti i suoi atleti. Cosa vorresti fare?",
+  "moveAthletesOption": "Prima Sposta Atleti",
+  "deleteTeamConfirmation": "Questa azione è irreversibile. Per confermare, scrivi DELETE qui sotto."
 }
