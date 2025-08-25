@@ -18,7 +18,7 @@ class MoveAthletesScreen extends StatefulWidget {
 }
 
 class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
-  MoveType _moveType = MoveType.all; // Default to all for this context
+  MoveType _moveType = MoveType.single;
   Team? _sourceTeam;
   Team? _destinationTeam;
   Athlete? _selectedAthlete;
@@ -30,12 +30,10 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     // ADDED: If an initial team is provided, set it as the source.
     if (widget.initialSourceTeam != null) {
       _sourceTeam = widget.initialSourceTeam;
+      _moveType = MoveType.all; // Default to moving all athletes in this context.
     }
   }
 
-  // ... (rest of the file remains the same as your working version)
-  // The performMove, build, buildSingleAthleteSelector, and buildYearSelector
-  // methods are unchanged.
   Future<void> _performMove() async {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);

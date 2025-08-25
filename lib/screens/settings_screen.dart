@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../l10n/app_localizations.dart';
-import '../models/team_model.dart'; // Import Team model
+import '../models/team_model.dart';
 import '../services/auth_service.dart';
 import '../services/theme_service.dart';
 import 'move_athletes_screen.dart';
@@ -144,7 +144,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
   
-  // ... (delete account dialog remains the same)
   Future<void> _showDeleteConfirmationDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final authService = Provider.of<AuthService>(context, listen: false);
