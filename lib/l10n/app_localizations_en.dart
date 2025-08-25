@@ -319,4 +319,54 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get deleteTeamConfirmation =>
       'This action is irreversible. To confirm, please type DELETE below.';
+
+  @override
+  String get dataCleanup => 'Data Cleanup';
+
+  @override
+  String get deactivateInactiveAthletes => 'Deactivate Inactive Athletes';
+
+  @override
+  String get deactivateInactiveDescription =>
+      'Automatically set athletes to \'Inactive\' if they have no new times recorded.';
+
+  @override
+  String get deactivateAfter => 'Deactivate after';
+
+  @override
+  String get months => 'months';
+
+  @override
+  String get run => 'Run';
+
+  @override
+  String get deactivationConfirmation =>
+      'This will check all active athletes. If their last recorded time is older than the selected period, they will be set to \'Inactive\'. Are you sure you want to proceed?';
+
+  @override
+  String deactivationComplete(Object count) {
+    return 'Cleanup complete. $count athlete(s) were deactivated.';
+  }
+
+  @override
+  String get deleteInactiveAthletes => 'Delete Inactive Athletes';
+
+  @override
+  String get deleteInactiveDescription =>
+      'Permanently delete athletes who have been inactive for a long time.';
+
+  @override
+  String get deleteAfter => 'Delete after';
+
+  @override
+  String get years => 'years';
+
+  @override
+  String get deletionConfirmation =>
+      'This will permanently delete all athletes who have been inactive for more than the selected period. This action cannot be undone. Are you sure?';
+
+  @override
+  String deletionComplete(Object count) {
+    return 'Cleanup complete. $count athlete(s) were deleted.';
+  }
 }

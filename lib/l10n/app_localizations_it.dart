@@ -322,4 +322,54 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get deleteTeamConfirmation =>
       'Questa azione è irreversibile. Per confermare, scrivi DELETE qui sotto.';
+
+  @override
+  String get dataCleanup => 'Pulizia Dati';
+
+  @override
+  String get deactivateInactiveAthletes => 'Disattiva Atleti Inattivi';
+
+  @override
+  String get deactivateInactiveDescription =>
+      'Imposta automaticamente gli atleti come \'Inattivi\' se non hanno nuovi tempi registrati.';
+
+  @override
+  String get deactivateAfter => 'Disattiva dopo';
+
+  @override
+  String get months => 'mesi';
+
+  @override
+  String get run => 'Esegui';
+
+  @override
+  String get deactivationConfirmation =>
+      'Questo controllerà tutti gli atleti attivi. Se il loro ultimo tempo registrato è più vecchio del periodo selezionato, verranno impostati come \'Inattivi\'. Sei sicuro di voler procedere?';
+
+  @override
+  String deactivationComplete(Object count) {
+    return 'Pulizia completata. $count atleta(i) sono stati disattivati.';
+  }
+
+  @override
+  String get deleteInactiveAthletes => 'Elimina Atleti Inattivi';
+
+  @override
+  String get deleteInactiveDescription =>
+      'Elimina permanentemente gli atleti che sono inattivi da molto tempo.';
+
+  @override
+  String get deleteAfter => 'Elimina dopo';
+
+  @override
+  String get years => 'anni';
+
+  @override
+  String get deletionConfirmation =>
+      'Questo eliminerà permanentemente tutti gli atleti che sono stati inattivi per più del periodo selezionato. Questa azione non può essere annullata. Sei sicuro?';
+
+  @override
+  String deletionComplete(Object count) {
+    return 'Pulizia completata. $count atleta(i) sono stati eliminati.';
+  }
 }

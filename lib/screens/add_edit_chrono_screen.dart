@@ -140,7 +140,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
     }
 
     return PopScope(
-      canPop: false,
+      canPop: !_isDirty,
       onPopInvoked: (didPop) async {
         if (didPop) return;
         final shouldPop = await _canPop();
@@ -160,10 +160,28 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
-              // ... Date Picker ...
-              // ADDED: New Dropdown for Chrono Type
+              ListTile(
+                title: Text(l10n.date),
+                subtitle: Text(DateFormat.yMMMd().format(_selectedDate)),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2101),
+                  );
+                  if (pickedDate != null && pickedDate != _selectedDate) {
+                    setState(() {
+                      _selectedDate = pickedDate;
+                      _markDirty(true);
+                    });
+                  }
+                },
+              ),
               DropdownButtonFormField<String>(
-                value: _chronoType,
+                // UPDATED: Replaced 'value' with 'initialValue'
+                initialValue: _chronoType,
                 decoration: InputDecoration(labelText: l10n.chronoType),
                 items: typeDisplayNames.keys
                     .map((t) => DropdownMenuItem(value: t, child: Text(typeDisplayNames[t]!)))
@@ -174,7 +192,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                 }),
               ),
               DropdownButtonFormField<int>(
-                value: _poolLength,
+                // UPDATED: Replaced 'value' with 'initialValue'
+                initialValue: _poolLength,
                 decoration: InputDecoration(labelText: l10n.poolLength),
                 items: [25, 50]
                     .map((len) => DropdownMenuItem(value: len, child: Text('$len m')))
@@ -185,7 +204,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                 }),
               ),
               DropdownButtonFormField<int>(
-                value: _distance,
+                // UPDATED: Replaced 'value' with 'initialValue'
+                initialValue: _distance,
                 decoration: InputDecoration(labelText: l10n.distance),
                 items: distanceOptions
                     .map((dist) => DropdownMenuItem(value: dist, child: Text('$dist m')))
@@ -197,7 +217,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                  validator: (v) => v == null ? 'Required' : null,
               ),
               DropdownButtonFormField<String>(
-                value: _style,
+                // UPDATED: Replaced 'value' with 'initialValue'
+                initialValue: _style,
                 decoration: InputDecoration(labelText: l10n.style),
                 items: styleDisplayNames.keys
                     .map((s) => DropdownMenuItem(value: s, child: Text(styleDisplayNames[s]!)))

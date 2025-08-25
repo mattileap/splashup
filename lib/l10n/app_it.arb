@@ -100,5 +100,19 @@
   "selectTeamToDelete": "Seleziona Squadra da Eliminare",
   "deleteTeamWarning": "Questo eliminerà permanentemente la squadra e tutti i suoi atleti. Cosa vorresti fare?",
   "moveAthletesOption": "Prima Sposta Atleti",
-  "deleteTeamConfirmation": "Questa azione è irreversibile. Per confermare, scrivi DELETE qui sotto."
+  "deleteTeamConfirmation": "Questa azione è irreversibile. Per confermare, scrivi DELETE qui sotto.",
+  "dataCleanup": "Pulizia Dati",
+  "deactivateInactiveAthletes": "Disattiva Atleti Inattivi",
+  "deactivateInactiveDescription": "Imposta automaticamente gli atleti come 'Inattivi' se non hanno nuovi tempi registrati.",
+  "deactivateAfter": "Disattiva dopo",
+  "months": "mesi",
+  "run": "Esegui",
+  "deactivationConfirmation": "Questo controllerà tutti gli atleti attivi. Se il loro ultimo tempo registrato è più vecchio del periodo selezionato, verranno impostati come 'Inattivi'. Sei sicuro di voler procedere?",
+  "deactivationComplete": "Pulizia completata. {count} atleta(i) sono stati disattivati.",
+  "deleteInactiveAthletes": "Elimina Atleti Inattivi",
+  "deleteInactiveDescription": "Elimina permanentemente gli atleti che sono inattivi da molto tempo.",
+  "deleteAfter": "Elimina dopo",
+  "years": "anni",
+  "deletionConfirmation": "Questo eliminerà permanentemente tutti gli atleti che sono stati inattivi per più del periodo selezionato. Questa azione non può essere annullata. Sei sicuro?",
+  "deletionComplete": "Pulizia completata. {count} atleta(i) sono stati eliminati."
 }

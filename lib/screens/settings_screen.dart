@@ -17,7 +17,8 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   int _teamCount = 0;
-  bool _isLoading = true;
+  int _selectedMonths = 12;
+  int _selectedYears = 2;
 
   @override
   void initState() {
@@ -28,7 +29,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _fetchTeamCount() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
-      if (mounted) setState(() => _isLoading = false);
       return;
     }
     final snapshot = await FirebaseFirestore.instance
@@ -37,16 +37,133 @@ class _SettingsScreenState extends State<SettingsScreen> {
         .collection('teams')
         .count()
         .get();
-    
+
     if (mounted) {
       setState(() {
         _teamCount = snapshot.count ?? 0;
-        _isLoading = false;
       });
     }
   }
 
-  // ADDED: New function to handle the entire team deletion flow.
+  Future<void> _runDeactivation() async {
+    final l10n = AppLocalizations.of(context)!;
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deactivateInactiveAthletes),
+        content: Text(l10n.deactivationConfirmation),
+        actions: [
+          TextButton(onPressed: () => navigator.pop(false), child: Text(l10n.cancel)),
+          ElevatedButton(onPressed: () => navigator.pop(true), child: Text(l10n.run)),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final cutoffDate = DateTime.now().subtract(Duration(days: _selectedMonths * 30));
+    int deactivatedCount = 0;
+
+    final batch = FirebaseFirestore.instance.batch();
+    final teamsSnapshot = await FirebaseFirestore.instance.collection('users').doc(userId).collection('teams').get();
+
+    for (final teamDoc in teamsSnapshot.docs) {
+      final athletesSnapshot = await teamDoc.reference.collection('athletes').where('isActive', isEqualTo: true).get();
+      for (final athleteDoc in athletesSnapshot.docs) {
+        final lastChronoSnapshot = await athleteDoc.reference
+            .collection('chronos')
+            .orderBy('date', descending: true)
+            .limit(1)
+            .get();
+
+        if (lastChronoSnapshot.docs.isEmpty) {
+          continue;
+        }
+
+        final lastChronoDate = (lastChronoSnapshot.docs.first.data()['date'] as Timestamp).toDate();
+        if (lastChronoDate.isBefore(cutoffDate)) {
+          batch.update(athleteDoc.reference, {'isActive': false});
+          deactivatedCount++;
+        }
+      }
+    }
+
+    await batch.commit();
+    if (mounted) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.deactivationComplete(deactivatedCount))));
+    }
+  }
+
+  Future<void> _runDeletion() async {
+    final l10n = AppLocalizations.of(context)!;
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteInactiveAthletes),
+        content: Text(l10n.deletionConfirmation),
+        actions: [
+          TextButton(onPressed: () => navigator.pop(false), child: Text(l10n.cancel)),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => navigator.pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !mounted) return;
+
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final cutoffDate = DateTime.now().subtract(Duration(days: _selectedYears * 365));
+    int deletedCount = 0;
+
+    final batch = FirebaseFirestore.instance.batch();
+    final teamsSnapshot = await FirebaseFirestore.instance.collection('users').doc(userId).collection('teams').get();
+
+    for (final teamDoc in teamsSnapshot.docs) {
+      final athletesSnapshot = await teamDoc.reference.collection('athletes').where('isActive', isEqualTo: false).get();
+      for (final athleteDoc in athletesSnapshot.docs) {
+        final lastChronoSnapshot = await athleteDoc.reference
+            .collection('chronos')
+            .orderBy('date', descending: true)
+            .limit(1)
+            .get();
+
+        bool shouldDelete = false;
+        if (lastChronoSnapshot.docs.isEmpty) {
+          shouldDelete = true;
+        } else {
+          final lastChronoDate = (lastChronoSnapshot.docs.first.data()['date'] as Timestamp).toDate();
+          if (lastChronoDate.isBefore(cutoffDate)) {
+            shouldDelete = true;
+          }
+        }
+
+        if (shouldDelete) {
+          final chronosToDelete = await athleteDoc.reference.collection('chronos').get();
+          for (final chronoDoc in chronosToDelete.docs) {
+            batch.delete(chronoDoc.reference);
+          }
+          batch.delete(athleteDoc.reference);
+          deletedCount++;
+        }
+      }
+    }
+
+    await batch.commit();
+    if (mounted) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.deletionComplete(deletedCount))));
+    }
+  }
+  
   Future<void> _showDeleteTeamDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);
@@ -54,7 +171,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final userId = FirebaseAuth.instance.currentUser!.uid;
     final teamsCollection = FirebaseFirestore.instance.collection('users').doc(userId).collection('teams');
 
-    // Step 1: Select the team to delete.
     final teamToDelete = await showDialog<Team>(
       context: context,
       builder: (context) {
@@ -77,7 +193,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (teamToDelete == null || !mounted) return;
 
-    // Step 2: Ask whether to move athletes or delete anyway.
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -92,7 +207,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (choice == 'move') {
-      // UPDATED: Pass the new flag to the MoveAthletesScreen.
+      if (!mounted) return;
       navigator.push(MaterialPageRoute(
         builder: (context) => MoveAthletesScreen(
           initialSourceTeam: teamToDelete,
@@ -101,6 +216,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ));
     } else if (choice == 'delete') {
       // Step 3: Final confirmation with text input.
+      if (!mounted) return;
       final confirmationController = TextEditingController();
       final confirmed = await showDialog<bool>(
         context: context,
@@ -143,11 +259,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
         batch.delete(teamRef);
         await batch.commit();
-        messenger.showSnackBar(SnackBar(content: Text('"${teamToDelete.name}" was deleted.')));
+        if (mounted) {
+          messenger.showSnackBar(SnackBar(content: Text('"${teamToDelete.name}" was deleted.')));
+        }
       }
     }
   }
-  
+
   Future<void> _showDeleteConfirmationDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -217,8 +335,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               final messenger = ScaffoldMessenger.of(context);
                               try {
                                 await authService.deleteAccountAndData();
+                                if (!mounted) return;
                                 navigator.popUntil((route) => route.isFirst);
                               } catch (e) {
+                                if (!mounted) return;
                                 navigator.pop();
                                 messenger.showSnackBar(
                                   const SnackBar(content: Text("Failed to delete account. Please try again.")),
@@ -307,6 +427,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Text(l10n.deleteTeam),
             subtitle: Text(l10n.deleteTeamDescription),
             onTap: _showDeleteTeamDialog,
+          ),
+
+          const Divider(),
+          // ADDED: New Data Cleanup section
+          ListTile(
+            title: Text(l10n.dataCleanup,
+                style: Theme.of(context).textTheme.titleSmall),
+          ),
+          ListTile(
+            leading: const Icon(Icons.cleaning_services_outlined),
+            title: Text(l10n.deactivateInactiveAthletes),
+            subtitle: Text(l10n.deactivateInactiveDescription),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(l10n.deactivateAfter),
+                DropdownButton<int>(
+                  value: _selectedMonths,
+                  items: [3, 6, 12, 18, 24].map((months) {
+                    return DropdownMenuItem(
+                      value: months,
+                      child: Text('$months ${l10n.months}'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedMonths = value);
+                    }
+                  },
+                ),
+                ElevatedButton(
+                  onPressed: _runDeactivation,
+                  child: Text(l10n.run),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+          // ADDED: New UI for the deletion feature.
+          ListTile(
+            leading: const Icon(Icons.person_remove_outlined),
+            title: Text(l10n.deleteInactiveAthletes),
+            subtitle: Text(l10n.deleteInactiveDescription),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(l10n.deleteAfter),
+                DropdownButton<int>(
+                  value: _selectedYears,
+                  items: [1, 2, 3, 5].map((years) {
+                    return DropdownMenuItem(
+                      value: years,
+                      child: Text('$years ${l10n.years}'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedYears = value);
+                    }
+                  },
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.8)),
+                  onPressed: _runDeletion,
+                  child: Text(l10n.run),
+                ),
+              ],
+            ),
           ),
 
           const Divider(),

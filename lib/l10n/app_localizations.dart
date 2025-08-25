@@ -703,6 +703,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This action is irreversible. To confirm, please type DELETE below.'**
   String get deleteTeamConfirmation;
+
+  /// No description provided for @dataCleanup.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Cleanup'**
+  String get dataCleanup;
+
+  /// No description provided for @deactivateInactiveAthletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate Inactive Athletes'**
+  String get deactivateInactiveAthletes;
+
+  /// No description provided for @deactivateInactiveDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically set athletes to \'Inactive\' if they have no new times recorded.'**
+  String get deactivateInactiveDescription;
+
+  /// No description provided for @deactivateAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivate after'**
+  String get deactivateAfter;
+
+  /// No description provided for @months.
+  ///
+  /// In en, this message translates to:
+  /// **'months'**
+  String get months;
+
+  /// No description provided for @run.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get run;
+
+  /// No description provided for @deactivationConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This will check all active athletes. If their last recorded time is older than the selected period, they will be set to \'Inactive\'. Are you sure you want to proceed?'**
+  String get deactivationConfirmation;
+
+  /// No description provided for @deactivationComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleanup complete. {count} athlete(s) were deactivated.'**
+  String deactivationComplete(Object count);
+
+  /// No description provided for @deleteInactiveAthletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Inactive Athletes'**
+  String get deleteInactiveAthletes;
+
+  /// No description provided for @deleteInactiveDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete athletes who have been inactive for a long time.'**
+  String get deleteInactiveDescription;
+
+  /// No description provided for @deleteAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete after'**
+  String get deleteAfter;
+
+  /// No description provided for @years.
+  ///
+  /// In en, this message translates to:
+  /// **'years'**
+  String get years;
+
+  /// No description provided for @deletionConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete all athletes who have been inactive for more than the selected period. This action cannot be undone. Are you sure?'**
+  String get deletionConfirmation;
+
+  /// No description provided for @deletionComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Cleanup complete. {count} athlete(s) were deleted.'**
+  String deletionComplete(Object count);
 }
 
 class _AppLocalizationsDelegate

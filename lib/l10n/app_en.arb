@@ -100,5 +100,19 @@
   "selectTeamToDelete": "Select Team to Delete",
   "deleteTeamWarning": "This will permanently delete the team and all its athletes. What would you like to do?",
   "moveAthletesOption": "Move Athletes First",
-  "deleteTeamConfirmation": "This action is irreversible. To confirm, please type DELETE below."
+  "deleteTeamConfirmation": "This action is irreversible. To confirm, please type DELETE below.",
+  "dataCleanup": "Data Cleanup",
+  "deactivateInactiveAthletes": "Deactivate Inactive Athletes",
+  "deactivateInactiveDescription": "Automatically set athletes to 'Inactive' if they have no new times recorded.",
+  "deactivateAfter": "Deactivate after",
+  "months": "months",
+  "run": "Run",
+  "deactivationConfirmation": "This will check all active athletes. If their last recorded time is older than the selected period, they will be set to 'Inactive'. Are you sure you want to proceed?",
+  "deactivationComplete": "Cleanup complete. {count} athlete(s) were deactivated.",
+  "deleteInactiveAthletes": "Delete Inactive Athletes",
+  "deleteInactiveDescription": "Permanently delete athletes who have been inactive for a long time.",
+  "deleteAfter": "Delete after",
+  "years": "years",
+  "deletionConfirmation": "This will permanently delete all athletes who have been inactive for more than the selected period. This action cannot be undone. Are you sure?",
+  "deletionComplete": "Cleanup complete. {count} athlete(s) were deleted."
 }
