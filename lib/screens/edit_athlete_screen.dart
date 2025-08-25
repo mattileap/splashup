@@ -98,6 +98,7 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
       return true;
     }
     final l10n = AppLocalizations.of(context)!;
+    final navigator = Navigator.of(context); // Store the navigator
     final shouldPop = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -105,11 +106,11 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
         content: Text(l10n.discardChangesWarning),
         actions: <Widget>[
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => navigator.pop(false),
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => navigator.pop(true),
             child: Text(l10n.discard),
           ),
         ],

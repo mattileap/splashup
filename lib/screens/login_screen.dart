@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart'; // Import the auth service
+import 'package:flutter_svg/flutter_svg.dart'; // 1. Import the package
+import '../services/auth_service.dart'; 
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -13,7 +14,14 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.pool, size: 100, color: Colors.blue),
+            //const Icon(Icons.pool, size: 100, color: Colors.blue),
+            // 2. Use the SvgPicture widget
+            SvgPicture.asset(
+              'assets/images/SplashUp_Icon.svg', // Use the path to your SVG
+              height: 100,
+              width: 100,
+              colorFilter: ColorFilter.mode(Colors.blue, BlendMode.srcIn), // Optional: to color your SVG
+),
             const SizedBox(height: 20),
             Text(
               'Welcome to SplashUp',

@@ -150,7 +150,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
             padding: const EdgeInsets.all(16.0),
             children: [
               DropdownButtonFormField<MoveType>(
-                value: _moveType,
+                initialValue: _moveType,
                 decoration: const InputDecoration(labelText: 'Move Type'),
                 items: [
                   DropdownMenuItem(value: MoveType.single, child: Text(l10n.moveSingleAthlete)),
@@ -166,7 +166,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
               const SizedBox(height: 16),
 
               DropdownButtonFormField<Team>(
-                value: currentSourceTeam,
+                initialValue: currentSourceTeam,
                 decoration: InputDecoration(labelText: l10n.sourceTeam),
                 items: teams.map((t) => DropdownMenuItem(value: t, child: Text(t.name))).toList(),
                 onChanged: (value) => setState(() {
@@ -179,7 +179,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
                 }),
               ),
               DropdownButtonFormField<Team>(
-                value: currentDestTeam,
+                initialValue: currentDestTeam,
                 decoration: InputDecoration(labelText: l10n.destinationTeam),
                 items: destinationTeams.map((t) => DropdownMenuItem(value: t, child: Text(t.name))).toList(),
                 onChanged: (value) => setState(() => _destinationTeam = value),
@@ -239,7 +239,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
             : null;
 
         return DropdownButtonFormField<Athlete>(
-          value: currentSelectedAthlete,
+          initialValue: currentSelectedAthlete,
           decoration: InputDecoration(labelText: l10n.selectAthlete),
           items: athletes.map((a) => DropdownMenuItem(value: a, child: Text(a.name))).toList(),
           onChanged: (value) => setState(() => _selectedAthlete = value),
@@ -289,7 +289,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
             : null;
 
         return DropdownButtonFormField<int>(
-          value: currentSelectedYear,
+          initialValue: currentSelectedYear,
           decoration: InputDecoration(labelText: l10n.selectBirthYear),
           items: uniqueYears.map((y) => DropdownMenuItem(value: y, child: Text(y.toString()))).toList(),
           onChanged: (value) => setState(() => _selectedBirthYear = value),

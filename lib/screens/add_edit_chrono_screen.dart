@@ -21,7 +21,7 @@ class AddEditChronoScreen extends StatefulWidget {
 class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   final _formKey = GlobalKey<FormState>();
   late DateTime _selectedDate;
-  int _poolLength = 50;
+  int _poolLength = 25;
   String _style = 'Freestyle';
   int? _distance;
   String _chronoType = 'Training'; // ADDED: State for the new dropdown

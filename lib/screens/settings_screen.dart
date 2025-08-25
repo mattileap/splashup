@@ -325,7 +325,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             if (states.contains(WidgetState.disabled)) {
                               return Colors.grey;
                             }
-                            return Colors.red;
+                            return Colors.red.withAlpha(200); // Softer red
                           },
                         ),
                       ),
@@ -496,7 +496,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.8)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withAlpha(200)), // Softer red
                   onPressed: _runDeletion,
                   child: Text(l10n.run),
                 ),

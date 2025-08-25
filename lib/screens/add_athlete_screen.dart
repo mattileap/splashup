@@ -64,6 +64,8 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
 
     if (!formIsDirty) return true;
 
+    // Store the navigator before the await
+    final navigator = Navigator.of(context);
     final l10n = AppLocalizations.of(context)!;
     final shouldPop = await showDialog<bool>(
       context: context,
@@ -72,11 +74,11 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
         content: Text(l10n.discardChangesWarning),
         actions: <Widget>[
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => navigator.pop(false),
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => navigator.pop(true),
             child: Text(l10n.discard),
           ),
         ],
@@ -123,8 +125,10 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
       onPopInvoked: (didPop) async {
         if (didPop) return;
         final shouldPop = await _canPop();
-        if (shouldPop && mounted) {
-          Navigator.of(context).pop();
+        // Store the navigator before the await
+        final navigator = Navigator.of(context);
+        if (shouldPop) {
+          navigator.pop();
         }
       },
       child: Scaffold(
@@ -149,7 +153,8 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
                     value!.isEmpty ? 'Please enter a name' : null,
               ),
               DropdownButtonFormField<int>(
-                value: _selectedBirthYear,
+                // UPDATED: Replaced 'value' with 'initialValue'
+                initialValue: _selectedBirthYear,
                 decoration: InputDecoration(labelText: l10n.birthYear),
                 items: _birthYearOptions.map((year) {
                   return DropdownMenuItem(

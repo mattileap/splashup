@@ -22,6 +22,9 @@ class _TeamsScreenState extends State<TeamsScreen> {
     final TextEditingController teamNameController =
         TextEditingController(text: team.name);
 
+    // Store the Navigator for use after the await
+    final navigator = Navigator.of(context);
+
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -51,7 +54,8 @@ class _TeamsScreenState extends State<TeamsScreen> {
                       .doc(team.id)
                       .update({'name': newTeamName});
                 }
-                if (mounted) Navigator.of(context).pop();
+                // Use the stored navigator
+                if (mounted) navigator.pop();
               },
             ),
           ],
@@ -66,6 +70,8 @@ class _TeamsScreenState extends State<TeamsScreen> {
 
     final l10n = AppLocalizations.of(context)!;
     final TextEditingController teamNameController = TextEditingController();
+    // Store the Navigator for use after the await
+    final navigator = Navigator.of(context);
 
     await showDialog(
       context: context,
@@ -99,7 +105,8 @@ class _TeamsScreenState extends State<TeamsScreen> {
                 if (newTeamName.isNotEmpty) {
                   await teamsCollection.add({'name': newTeamName});
                 }
-                if (mounted) Navigator.of(context).pop();
+                // Use the stored navigator
+                if (mounted) navigator.pop();
               },
             ),
           ],
