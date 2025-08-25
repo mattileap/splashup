@@ -92,8 +92,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (choice == 'move') {
+      // UPDATED: Pass the new flag to the MoveAthletesScreen.
       navigator.push(MaterialPageRoute(
-        builder: (context) => MoveAthletesScreen(initialSourceTeam: teamToDelete),
+        builder: (context) => MoveAthletesScreen(
+          initialSourceTeam: teamToDelete,
+          deleteSourceTeamOnSuccess: true,
+        ),
       ));
     } else if (choice == 'delete') {
       // Step 3: Final confirmation with text input.

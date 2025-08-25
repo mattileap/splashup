@@ -8,10 +8,15 @@ import '../models/athlete_model.dart';
 enum MoveType { single, byYear, all }
 
 class MoveAthletesScreen extends StatefulWidget {
-  // ADDED: Optional parameter to pre-select the source team.
   final Team? initialSourceTeam;
+  // ADDED: New parameter to control deletion after moving.
+  final bool deleteSourceTeamOnSuccess;
 
-  const MoveAthletesScreen({super.key, this.initialSourceTeam});
+  const MoveAthletesScreen({
+    super.key,
+    this.initialSourceTeam,
+    this.deleteSourceTeamOnSuccess = false, // Defaults to false
+  });
 
   @override
   State<MoveAthletesScreen> createState() => _MoveAthletesScreenState();
@@ -27,10 +32,9 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
   @override
   void initState() {
     super.initState();
-    // ADDED: If an initial team is provided, set it as the source.
     if (widget.initialSourceTeam != null) {
       _sourceTeam = widget.initialSourceTeam;
-      _moveType = MoveType.all; // Default to moving all athletes in this context.
+      _moveType = MoveType.all;
     }
   }
 
@@ -102,7 +106,14 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
 
     await batch.commit();
 
-    messenger.showSnackBar(SnackBar(content: Text(l10n.moveSuccess)));
+    // UPDATED: Conditionally delete the source team after the move.
+    if (widget.deleteSourceTeamOnSuccess) {
+      await sourceTeamRef.delete();
+      messenger.showSnackBar(SnackBar(content: Text('"${_sourceTeam!.name}" was also deleted.')));
+    } else {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.moveSuccess)));
+    }
+    
     navigator.pop();
   }
 
@@ -130,8 +141,8 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
           final currentSourceTeam = _sourceTeam != null && teams.any((t) => t.id == _sourceTeam!.id)
               ? teams.firstWhere((t) => t.id == _sourceTeam!.id)
               : null;
-          final currentDestTeam = _destinationTeam != null && teams.any((t) => t.id == _destinationTeam!.id)
-              ? teams.firstWhere((t) => t.id == _destinationTeam!.id)
+          final currentDestTeam = _destinationTeam != null && destinationTeams.any((t) => t.id == _destinationTeam!.id)
+              ? destinationTeams.firstWhere((t) => t.id == _destinationTeam!.id)
               : null;
 
 
