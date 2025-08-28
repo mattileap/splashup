@@ -297,6 +297,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectBirthYear => 'Select Birth Year';
 
   @override
+  String get selectSourceTeamFirst => 'Select a source team first';
+
+  @override
   String get noYearsInTeam => 'No athletes with birth years found.';
 
   @override
@@ -369,4 +372,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String deletionComplete(Object count) {
     return 'Cleanup complete. $count athlete(s) were deleted.';
   }
+
+  @override
+  String get googleSignIn => 'Sign in with Google';
 }

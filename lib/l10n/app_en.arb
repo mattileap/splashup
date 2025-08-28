@@ -94,6 +94,7 @@
   "moveConfirmation": "Are you sure you want to move the selected athlete(s)?",
   "moveSuccess": "Athletes moved successfully.",
   "selectBirthYear": "Select Birth Year",
+  "selectSourceTeamFirst": "Select a source team first",
   "noYearsInTeam": "No athletes with birth years found.",
   "deleteTeam": "Delete Team",
   "deleteTeamDescription": "Permanently delete a team and its athletes.",
@@ -114,5 +115,6 @@
   "deleteAfter": "Delete after",
   "years": "years",
   "deletionConfirmation": "This will permanently delete all athletes who have been inactive for more than the selected period. This action cannot be undone. Are you sure?",
-  "deletionComplete": "Cleanup complete. {count} athlete(s) were deleted."
+  "deletionComplete": "Cleanup complete. {count} athlete(s) were deleted.",
+  "googleSignIn": "Sign in with Google"
 }

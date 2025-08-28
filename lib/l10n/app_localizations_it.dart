@@ -300,6 +300,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get selectBirthYear => 'Seleziona Anno di Nascita';
 
   @override
+  String get selectSourceTeamFirst => 'Seleziona prima la squadra di partenza';
+
+  @override
   String get noYearsInTeam => 'Nessun atleta con anno di nascita trovato.';
 
   @override
@@ -372,4 +375,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String deletionComplete(Object count) {
     return 'Pulizia completata. $count atleta(i) sono stati eliminati.';
   }
+
+  @override
+  String get googleSignIn => 'Accedi con Google';
 }

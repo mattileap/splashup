@@ -209,7 +209,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     if (_sourceTeam == null) {
       return ListTile(
         title: Text(l10n.selectAthlete),
-        subtitle: const Text("Select a source team first"),
+        subtitle: Text(l10n.selectSourceTeamFirst),
         enabled: false,
       );
     }
@@ -252,7 +252,8 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     if (_sourceTeam == null) {
       return ListTile(
         title: Text(l10n.selectBirthYear),
-        subtitle: const Text("Select a source team first"),
+        //subtitle: const Text("Select a source team first"),
+        subtitle: Text(l10n.selectSourceTeamFirst),
         enabled: false,
       );
     }

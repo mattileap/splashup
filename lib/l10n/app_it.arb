@@ -94,6 +94,7 @@
   "moveConfirmation": "Sei sicuro di voler spostare gli atleti selezionati?",
   "moveSuccess": "Atleti spostati con successo.",
   "selectBirthYear": "Seleziona Anno di Nascita",
+  "selectSourceTeamFirst": "Seleziona prima la squadra di partenza",
   "noYearsInTeam": "Nessun atleta con anno di nascita trovato.",
   "deleteTeam": "Elimina Squadra",
   "deleteTeamDescription": "Elimina permanentemente una squadra e i suoi atleti.",
@@ -114,5 +115,6 @@
   "deleteAfter": "Elimina dopo",
   "years": "anni",
   "deletionConfirmation": "Questo eliminerà permanentemente tutti gli atleti che sono stati inattivi per più del periodo selezionato. Questa azione non può essere annullata. Sei sicuro?",
-  "deletionComplete": "Pulizia completata. {count} atleta(i) sono stati eliminati."
+  "deletionComplete": "Pulizia completata. {count} atleta(i) sono stati eliminati.",
+  "googleSignIn": "Accedi con Google"
 }

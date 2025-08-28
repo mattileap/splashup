@@ -662,6 +662,12 @@ abstract class AppLocalizations {
   /// **'Select Birth Year'**
   String get selectBirthYear;
 
+  /// No description provided for @selectSourceTeamFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a source team first'**
+  String get selectSourceTeamFirst;
+
   /// No description provided for @noYearsInTeam.
   ///
   /// In en, this message translates to:
@@ -787,6 +793,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cleanup complete. {count} athlete(s) were deleted.'**
   String deletionComplete(Object count);
+
+  /// No description provided for @googleSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get googleSignIn;
 }
 
 class _AppLocalizationsDelegate
