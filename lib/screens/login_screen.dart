@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart'; // 1. Import the package
-import '../services/auth_service.dart';
-import '../l10n/app_localizations.dart';
+import '../services/auth_service.dart'; 
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});

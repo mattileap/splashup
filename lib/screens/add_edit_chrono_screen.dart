@@ -3,15 +3,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import '../models/chrono_model.dart';
+import '../models/team_model.dart'; // Import the Team model
 
+/// A screen that provides a form for both adding a new chrono record and
+/// editing an existing one.
 class AddEditChronoScreen extends StatefulWidget {
+  // The Firestore collection where the chrono will be saved or updated.
   final CollectionReference chronoCollection;
+  // An optional existing chrono. If provided, the screen is in "edit" mode.
   final Chrono? existingChrono;
+  // ADDED: The team is now required to get the default pool length.
+  final Team team;
 
   const AddEditChronoScreen({
     super.key,
     required this.chronoCollection,
     this.existingChrono,
+    required this.team, // ADDED
   });
 
   @override
@@ -19,38 +27,49 @@ class AddEditChronoScreen extends StatefulWidget {
 }
 
 class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
+  // A global key for the form to handle validation.
   final _formKey = GlobalKey<FormState>();
+
+  // State variables to hold the form data.
   late DateTime _selectedDate;
-  int _poolLength = 25;
+  late int _poolLength; // No longer initialized here
   String _style = 'Freestyle';
   int? _distance;
-  String _chronoType = 'Training'; // ADDED: State for the new dropdown
+  String _chronoType = 'Training';
   final _finalTimeController = TextEditingController();
   final _notesController = TextEditingController();
 
+  // A getter to easily check if the screen is in editing mode.
   bool get isEditing => widget.existingChrono != null;
+  // A flag to track if the user has made any changes to the form.
   bool _isDirty = false;
 
   @override
   void initState() {
     super.initState();
+    // If we are editing, pre-fill the form with the existing chrono's data.
     if (isEditing) {
       final chrono = widget.existingChrono!;
       _selectedDate = chrono.date;
       _poolLength = chrono.poolLength;
       _style = chrono.style;
       _distance = chrono.distance;
-      _chronoType = chrono.type; // ADDED
+      _chronoType = chrono.type;
       _finalTimeController.text = chrono.finalTime;
       _notesController.text = chrono.notes;
     } else {
+      // If adding a new chrono, set default values.
       _selectedDate = DateTime.now();
+      // UPDATED: Use the team's default pool length when adding a new chrono.
+      _poolLength = widget.team.poolLength;
       _distance = 50;
     }
+    // Add listeners to text fields to detect changes.
     _finalTimeController.addListener(() => _markDirty(true));
     _notesController.addListener(() => _markDirty(true));
   }
   
+  /// Sets the `_isDirty` flag to true when the form is modified.
   void _markDirty(bool isDirty) {
     if (_isDirty != isDirty) {
       setState(() {
@@ -61,13 +80,15 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
 
   @override
   void dispose() {
+    // Clean up the controllers when the widget is removed from the tree.
     _finalTimeController.dispose();
     _notesController.dispose();
     super.dispose();
   }
 
+  /// Shows a confirmation dialog if there are unsaved changes.
   Future<bool> _canPop() async {
-    if (!_isDirty) return true;
+    if (!_isDirty) return true; // Allow navigation if no changes were made.
 
     final l10n = AppLocalizations.of(context)!;
     final shouldPop = await showDialog<bool>(
@@ -77,11 +98,11 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
         content: Text(l10n.discardChangesWarning),
         actions: <Widget>[
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => Navigator.of(context).pop(false), // Don't pop
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => Navigator.of(context).pop(true), // Pop
             child: Text(l10n.discard),
           ),
         ],
@@ -90,9 +111,11 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
     return shouldPop ?? false;
   }
 
-
+  /// Validates and saves the form data to Firestore.
   Future<void> _saveChrono() async {
+    // First, check if the form is valid.
     if (_formKey.currentState!.validate()) {
+      // Create a map of the data to be saved.
       final data = {
         'date': Timestamp.fromDate(_selectedDate),
         'poolLength': _poolLength,
@@ -100,15 +123,17 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
         'style': _style,
         'finalTime': _finalTimeController.text,
         'notes': _notesController.text,
-        'type': _chronoType, // ADDED
+        'type': _chronoType,
       };
 
+      // If editing, update the existing document. Otherwise, add a new one.
       if (isEditing) {
         await widget.chronoCollection.doc(widget.existingChrono!.id).update(data);
       } else {
         await widget.chronoCollection.add(data);
       }
 
+      // Close the screen after saving.
       if (mounted) Navigator.of(context).pop();
     }
   }
@@ -117,6 +142,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    // Maps for translating database keys into display names.
     final Map<String, String> styleDisplayNames = {
       'Freestyle': l10n.freestyle,
       'Butterfly': l10n.butterfly,
@@ -124,21 +150,22 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       'Breaststroke': l10n.breaststroke,
       'IM': l10n.im,
     };
-    
-    // ADDED: Map for chrono type translations
     final Map<String, String> typeDisplayNames = {
       'Training': l10n.training,
       'Race': l10n.race,
     };
 
+    // Dynamically generate the list of available distances.
     final List<int> distanceOptions = [50, 100, 200, 400, 800, 1500];
     if (_poolLength == 25) {
       distanceOptions.insert(0, 25);
     }
+    // Reset distance selection if it becomes invalid after changing pool length.
     if (!distanceOptions.contains(_distance)) {
       _distance = 50;
     }
 
+    // Use PopScope to intercept back navigation and check for unsaved changes.
     return PopScope(
       canPop: !_isDirty,
       onPopInvoked: (didPop) async {
@@ -160,6 +187,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: [
+              // A ListTile that acts as a button to open the date picker.
               ListTile(
                 title: Text(l10n.date),
                 subtitle: Text(DateFormat.yMMMd().format(_selectedDate)),
@@ -179,8 +207,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                   }
                 },
               ),
+              // Dropdown for selecting the chrono type (Race or Training).
               DropdownButtonFormField<String>(
-                // UPDATED: Replaced 'value' with 'initialValue'
                 initialValue: _chronoType,
                 decoration: InputDecoration(labelText: l10n.chronoType),
                 items: typeDisplayNames.keys
@@ -191,8 +219,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                   _markDirty(true);
                 }),
               ),
+              // Dropdown for selecting the pool length.
               DropdownButtonFormField<int>(
-                // UPDATED: Replaced 'value' with 'initialValue'
                 initialValue: _poolLength,
                 decoration: InputDecoration(labelText: l10n.poolLength),
                 items: [25, 50]
@@ -203,8 +231,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                   _markDirty(true);
                 }),
               ),
+              // Dropdown for selecting the distance.
               DropdownButtonFormField<int>(
-                // UPDATED: Replaced 'value' with 'initialValue'
                 initialValue: _distance,
                 decoration: InputDecoration(labelText: l10n.distance),
                 items: distanceOptions
@@ -216,8 +244,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                 }),
                  validator: (v) => v == null ? 'Required' : null,
               ),
+              // Dropdown for selecting the swimming style.
               DropdownButtonFormField<String>(
-                // UPDATED: Replaced 'value' with 'initialValue'
                 initialValue: _style,
                 decoration: InputDecoration(labelText: l10n.style),
                 items: styleDisplayNames.keys
@@ -228,12 +256,14 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                   _markDirty(true);
                 }),
               ),
+              // Text field for the final time.
               TextFormField(
                 controller: _finalTimeController,
                 decoration: InputDecoration(
                     labelText: l10n.finalTime, hintText: l10n.finalTimeHint),
                 validator: (v) => v!.isEmpty ? 'Required' : null,
               ),
+              // Text field for notes.
               TextFormField(
                 controller: _notesController,
                 decoration: InputDecoration(labelText: l10n.notes),

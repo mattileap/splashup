@@ -128,6 +128,18 @@ abstract class AppLocalizations {
   /// **'e.g., Varsity Girls - Category'**
   String get teamNameHint;
 
+  /// No description provided for @pool.
+  ///
+  /// In en, this message translates to:
+  /// **'Pool'**
+  String get pool;
+
+  /// No description provided for @poolLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Pool Length'**
+  String get poolLength;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
@@ -343,12 +355,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get date;
-
-  /// No description provided for @poolLength.
-  ///
-  /// In en, this message translates to:
-  /// **'Pool Length'**
-  String get poolLength;
 
   /// No description provided for @distance.
   ///

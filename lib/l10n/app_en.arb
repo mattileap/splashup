@@ -5,6 +5,8 @@
   "addNewTeam": "Add New Team",
   "teamName": "Team Name",
   "teamNameHint": "e.g., Varsity Girls - Category",
+  "pool": "Pool",
+  "poolLength": "Pool Length (meters)",
   "cancel": "Cancel",
   "add": "Add",
   "noTeamsYet": "No teams yet.",

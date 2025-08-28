@@ -24,6 +24,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get teamNameHint => 'es. Nome Squadra - Categoria';
 
   @override
+  String get pool => 'Vasca';
+
+  @override
+  String get poolLength => 'Lunghezza Vasca';
+
+  @override
   String get cancel => 'Annulla';
 
   @override
@@ -133,9 +139,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get date => 'Data';
-
-  @override
-  String get poolLength => 'Lunghezza Vasca';
 
   @override
   String get distance => 'Distanza (metri)';

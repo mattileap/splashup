@@ -9,6 +9,8 @@ import '../models/team_model.dart';
 import 'add_edit_chrono_screen.dart';
 import 'edit_athlete_screen.dart';
 
+/// Displays the details for a single athlete, including their personal information
+/// and a filterable list of all their recorded times (chronos).
 class AthleteDetailsScreen extends StatefulWidget {
   final Team team;
   final Athlete athlete;
@@ -24,27 +26,31 @@ class AthleteDetailsScreen extends StatefulWidget {
 }
 
 class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
+  // State variables to hold the current filter selections.
   int? _selectedDistance;
   String? _selectedStyle;
   String? _selectedType;
 
+  /// Parses a time string (e.g., "01:23.45") into a Duration object for easy comparison.
   Duration _parseTime(String time) {
     try {
       final parts = time.split(RegExp(r'[:.]'));
-      if (parts.length != 3) return const Duration(days: 999);
+      if (parts.length != 3) return const Duration(days: 999); // Invalid format, sort last
       final minutes = int.parse(parts[0]);
       final seconds = int.parse(parts[1]);
       final hundredths = int.parse(parts[2]);
       return Duration(minutes: minutes, seconds: seconds, milliseconds: hundredths * 10);
     } catch (e) {
-      return const Duration(days: 999);
+      return const Duration(days: 999); // Handle parsing errors gracefully
     }
   }
 
+  /// Calculates and displays the athlete's personal best times in a dialog.
   void _showPersonalBestsDialog(BuildContext context, List<Chrono> allChronos, AppLocalizations l10n) {
+    // A map to hold the best time for each unique event (e.g., "50-Freestyle").
     final personalBests = <String, Chrono>{};
 
-    final Map<String, String> styleDisplayNames = {
+    final styleDisplayNames = {
       'Freestyle': l10n.freestyle,
       'Butterfly': l10n.butterfly,
       'Backstroke': l10n.backstroke,
@@ -52,6 +58,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       'IM': l10n.im,
     };
 
+    // Iterate through all chronos to find the best time for each event.
     for (final chrono in allChronos) {
       final key = '${chrono.distance}-${chrono.style}';
       final existingBest = personalBests[key];
@@ -61,12 +68,11 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       }
     }
 
+    // Sort the best times first by distance, then by style.
     final sortedBests = personalBests.values.toList()
       ..sort((a, b) {
         int distanceCompare = a.distance.compareTo(b.distance);
-        if (distanceCompare != 0) {
-          return distanceCompare;
-        }
+        if (distanceCompare != 0) return distanceCompare;
         return a.style.compareTo(b.style);
       });
 
@@ -101,10 +107,36 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
     );
   }
 
+  /// Displays the athlete's notes in a simple dialog.
+  void _showAthleteNotesDialog(BuildContext context, Athlete athlete, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(l10n.notesTitle),
+          content: Text(
+            athlete.notes.isNotEmpty ? athlete.notes : l10n.noNotesForAthlete,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(l10n.close),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  /// Handles the multi-step process for deleting an athlete.
   Future<void> _showDeleteAthleteDialog() async {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);
 
+    // Show a dialog with options: Cancel, Deactivate, or Delete.
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -128,7 +160,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       ),
     );
 
-    if (!mounted) return;
+    if (!mounted || result == 'cancel' || result == null) return;
 
     final athleteRef = FirebaseFirestore.instance
         .collection('users')
@@ -140,14 +172,16 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
 
     if (result == 'deactivate') {
       await athleteRef.update({'isActive': false});
-      navigator.pop();
+      navigator.pop(); // Go back to the athletes list
     } else if (result == 'delete') {
+      // Delete all sub-collections (chronos) first.
       final chronos = await athleteRef.collection('chronos').get();
       for (final doc in chronos.docs) {
         await doc.reference.delete();
       }
+      // Then delete the athlete document itself.
       await athleteRef.delete();
-      navigator.pop();
+      navigator.pop(); // Go back to the athletes list
     }
   }
 
@@ -155,13 +189,13 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final String? userId = FirebaseAuth.instance.currentUser?.uid;
-    final int currentYear = DateTime.now().year;
-    final int age = currentYear - widget.athlete.birthYear;
+    final int age = DateTime.now().year - widget.athlete.birthYear;
 
     if (userId == null) {
       return const Scaffold(body: Center(child: Text("User not logged in")));
     }
 
+    // Reference to the 'chronos' sub-collection for this specific athlete.
     final chronoCollection = FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
@@ -185,6 +219,13 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           ],
         ),
         actions: [
+          // Button to show the athlete's notes.
+          IconButton(
+            icon: const Icon(Icons.note_alt_outlined),
+            tooltip: l10n.notes,
+            onPressed: () => _showAthleteNotesDialog(context, widget.athlete, l10n),
+          ),
+          // Button to show the athlete's personal bests.
           IconButton(
             icon: const Icon(Icons.emoji_events_outlined),
             tooltip: l10n.personalBestsTitle,
@@ -196,6 +237,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                });
             },
           ),
+          // Button to edit the athlete.
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
@@ -209,6 +251,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
               );
             },
           ),
+          // Button to delete the athlete.
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
             onPressed: _showDeleteAthleteDialog,
@@ -217,7 +260,9 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       ),
       body: Column(
         children: [
+          // Header card with athlete's personal information.
           _buildAthleteHeader(context, widget.athlete, age, l10n),
+          // The rest of the screen is a scrollable list of chronos.
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: chronoCollection.orderBy('date', descending: true).snapshots(),
@@ -235,6 +280,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                     .map((doc) => Chrono.fromFirestore(doc))
                     .toList();
 
+                // Apply the filters selected by the user.
                 final filteredChronos = allChronos.where((chrono) {
                   final distanceMatch = _selectedDistance == null || chrono.distance == _selectedDistance;
                   final styleMatch = _selectedStyle == null || chrono.style == _selectedStyle;
@@ -242,6 +288,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                   return distanceMatch && styleMatch && typeMatch;
                 }).toList();
 
+                // The main content area, including the filter bar and the list.
                 return Column(
                   children: [
                     _buildFilterBar(context, allChronos, l10n),
@@ -270,13 +317,14 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
         onPressed: () {
           Navigator.of(context).push(MaterialPageRoute(
               builder: (context) =>
-                  AddEditChronoScreen(chronoCollection: chronoCollection)));
+                  AddEditChronoScreen(chronoCollection: chronoCollection, team: widget.team)));
         },
         child: const Icon(Icons.add),
       ),
     );
   }
 
+  /// Builds the non-scrolling header card with athlete details.
   Widget _buildAthleteHeader(BuildContext context, Athlete athlete, int age, AppLocalizations l10n) {
     final Map<String, String> styleDisplayNames = {
       'Freestyle': l10n.freestyle,
@@ -317,6 +365,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
     );
   }
 
+  /// Builds the filter bar with dropdowns for distance, style, and type.
   Widget _buildFilterBar(BuildContext context, List<Chrono> allChronos, AppLocalizations l10n) {
     final uniqueDistances = allChronos.map((c) => c.distance).toSet().toList()..sort();
     final uniqueStyles = allChronos.map((c) => c.style).toSet().toList()..sort();
@@ -378,7 +427,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
     );
   }
 
-
+  /// Builds a single card for a chrono entry in the list.
   Widget _buildChronoCard(BuildContext context, Chrono chrono, CollectionReference chronoCollection, AppLocalizations l10n) {
     final Map<String, String> typeDisplayNames = {
       'Training': l10n.training,
@@ -411,6 +460,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                     builder: (context) => AddEditChronoScreen(
                         chronoCollection: chronoCollection,
                         existingChrono: chrono,
+                        team: widget.team,
                     )));
               },
             ),

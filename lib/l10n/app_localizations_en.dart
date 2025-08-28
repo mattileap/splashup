@@ -24,6 +24,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamNameHint => 'e.g., Varsity Girls - Category';
 
   @override
+  String get pool => 'Pool';
+
+  @override
+  String get poolLength => 'Pool Length';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -130,9 +136,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get date => 'Date';
-
-  @override
-  String get poolLength => 'Pool Length';
 
   @override
   String get distance => 'Distance (meters)';

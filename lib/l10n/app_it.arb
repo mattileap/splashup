@@ -5,6 +5,8 @@
   "addNewTeam": "Aggiungi Nuova Squadra",
   "teamName": "Nome Squadra",
   "teamNameHint": "es. Nome Squadra - Categoria",
+  "pool": "Vasca",
+  "poolLength": "Lunghezza Vasca",
   "cancel": "Annulla",
   "add": "Aggiungi",
   "noTeamsYet": "Nessuna squadra.",
