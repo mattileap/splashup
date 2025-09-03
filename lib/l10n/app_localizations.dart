@@ -134,12 +134,6 @@ abstract class AppLocalizations {
   /// **'Pool'**
   String get pool;
 
-  /// No description provided for @poolLength.
-  ///
-  /// In en, this message translates to:
-  /// **'Pool Length'**
-  String get poolLength;
-
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
@@ -355,6 +349,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get date;
+
+  /// No description provided for @poolLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Pool Length'**
+  String get poolLength;
 
   /// No description provided for @distance.
   ///
@@ -805,6 +805,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in with Google'**
   String get googleSignIn;
+
+  /// No description provided for @stopwatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopwatch'**
+  String get stopwatch;
+
+  /// No description provided for @lap.
+  ///
+  /// In en, this message translates to:
+  /// **'Lap'**
+  String get lap;
+
+  /// No description provided for @laps.
+  ///
+  /// In en, this message translates to:
+  /// **'Laps'**
+  String get laps;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get start;
+
+  /// No description provided for @stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get stop;
+
+  /// No description provided for @saveTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Time'**
+  String get saveTime;
 }
 
 class _AppLocalizationsDelegate

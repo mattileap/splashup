@@ -6,7 +6,6 @@
   "teamName": "Team Name",
   "teamNameHint": "e.g., Varsity Girls - Category",
   "pool": "Pool",
-  "poolLength": "Pool Length (meters)",
   "cancel": "Cancel",
   "add": "Add",
   "noTeamsYet": "No teams yet.",
@@ -118,5 +117,12 @@
   "years": "years",
   "deletionConfirmation": "This will permanently delete all athletes who have been inactive for more than the selected period. This action cannot be undone. Are you sure?",
   "deletionComplete": "Cleanup complete. {count} athlete(s) were deleted.",
-  "googleSignIn": "Sign in with Google"
+  "googleSignIn": "Sign in with Google",
+  "stopwatch": "Stopwatch",
+  "lap": "Lap",
+  "laps": "Laps",
+  "reset": "Reset",
+  "start": "Start",
+  "stop": "Stop",
+  "saveTime": "Save Time"
 }

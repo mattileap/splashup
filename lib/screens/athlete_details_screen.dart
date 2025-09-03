@@ -8,6 +8,7 @@ import '../models/chrono_model.dart';
 import '../models/team_model.dart';
 import 'add_edit_chrono_screen.dart';
 import 'edit_athlete_screen.dart';
+import 'stopwatch_screen.dart'; // Import the new stopwatch screen
 
 /// Displays the details for a single athlete, including their personal information
 /// and a filterable list of all their recorded times (chronos).
@@ -235,6 +236,21 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                   final allChronos = snapshot.docs.map((doc) => Chrono.fromFirestore(doc)).toList();
                  _showPersonalBestsDialog(context, allChronos, l10n);
                });
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.timer_outlined),
+            tooltip: l10n.stopwatch,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => StopwatchScreen(
+                    team: widget.team,
+                    athlete: widget.athlete,
+                    chronoCollection: chronoCollection,
+                  ),
+                ),
+              );
             },
           ),
           // Button to edit the athlete.

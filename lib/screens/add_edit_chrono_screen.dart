@@ -14,12 +14,17 @@ class AddEditChronoScreen extends StatefulWidget {
   final Chrono? existingChrono;
   // ADDED: The team is now required to get the default pool length.
   final Team team;
+  // ADDED: New optional parameters to receive data from the stopwatch.
+  final String? initialTime;
+  final String? initialNotes;
 
   const AddEditChronoScreen({
     super.key,
     required this.chronoCollection,
-    this.existingChrono,
     required this.team, // ADDED
+    this.existingChrono,
+    this.initialTime, // ADDED
+    this.initialNotes, // ADDED
   });
 
   @override
@@ -63,6 +68,9 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       // UPDATED: Use the team's default pool length when adding a new chrono.
       _poolLength = widget.team.poolLength;
       _distance = 50;
+      // UPDATED: If initial data is passed from stopwatch, use it.
+      _finalTimeController.text = widget.initialTime ?? '';
+      _notesController.text = widget.initialNotes ?? '';
     }
     // Add listeners to text fields to detect changes.
     _finalTimeController.addListener(() => _markDirty(true));

@@ -27,9 +27,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pool => 'Vasca';
 
   @override
-  String get poolLength => 'Lunghezza Vasca';
-
-  @override
   String get cancel => 'Annulla';
 
   @override
@@ -139,6 +136,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get date => 'Data';
+
+  @override
+  String get poolLength => 'Lunghezza Vasca';
 
   @override
   String get distance => 'Distanza (metri)';
@@ -381,4 +381,25 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get googleSignIn => 'Accedi con Google';
+
+  @override
+  String get stopwatch => 'Cronometro';
+
+  @override
+  String get lap => 'Giro';
+
+  @override
+  String get laps => 'Giri';
+
+  @override
+  String get reset => 'Azzera';
+
+  @override
+  String get start => 'Avvia';
+
+  @override
+  String get stop => 'Ferma';
+
+  @override
+  String get saveTime => 'Salva Tempo';
 }

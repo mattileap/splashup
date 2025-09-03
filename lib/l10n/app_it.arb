@@ -6,7 +6,6 @@
   "teamName": "Nome Squadra",
   "teamNameHint": "es. Nome Squadra - Categoria",
   "pool": "Vasca",
-  "poolLength": "Lunghezza Vasca",
   "cancel": "Annulla",
   "add": "Aggiungi",
   "noTeamsYet": "Nessuna squadra.",
@@ -118,5 +117,12 @@
   "years": "anni",
   "deletionConfirmation": "Questo eliminerà permanentemente tutti gli atleti che sono stati inattivi per più del periodo selezionato. Questa azione non può essere annullata. Sei sicuro?",
   "deletionComplete": "Pulizia completata. {count} atleta(i) sono stati eliminati.",
-  "googleSignIn": "Accedi con Google"
+  "googleSignIn": "Accedi con Google",
+  "stopwatch": "Cronometro",
+  "lap": "Giro",
+  "laps": "Giri",
+  "reset": "Azzera",
+  "start": "Avvia",
+  "stop": "Ferma",
+  "saveTime": "Salva Tempo"
 }

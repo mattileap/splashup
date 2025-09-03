@@ -27,9 +27,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pool => 'Pool';
 
   @override
-  String get poolLength => 'Pool Length';
-
-  @override
   String get cancel => 'Cancel';
 
   @override
@@ -136,6 +133,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get date => 'Date';
+
+  @override
+  String get poolLength => 'Pool Length';
 
   @override
   String get distance => 'Distance (meters)';
@@ -378,4 +378,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get googleSignIn => 'Sign in with Google';
+
+  @override
+  String get stopwatch => 'Stopwatch';
+
+  @override
+  String get lap => 'Lap';
+
+  @override
+  String get laps => 'Laps';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get start => 'Start';
+
+  @override
+  String get stop => 'Stop';
+
+  @override
+  String get saveTime => 'Save Time';
 }
