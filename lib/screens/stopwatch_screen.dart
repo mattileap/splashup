@@ -30,38 +30,13 @@ class StopwatchScreen extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text(l10n.stopwatch),
-              actions: [
-                // Show a save button only when the timer is stopped but not at zero.
-                if (!stopwatchService.isRunning && stopwatchService.elapsed > Duration.zero)
-                  IconButton(
-                    icon: const Icon(Icons.save),
-                    onPressed: () {
-                      final finalTime = StopwatchService.formatDuration(stopwatchService.elapsed);
-                      String notes = '';
-                      for(int i = 0; i < stopwatchService.laps.length; i++) {
-                        notes += 'Lap ${i+1}: ${StopwatchService.formatDuration(stopwatchService.laps[i])}\n';
-                      }
-
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => AddEditChronoScreen(
-                            chronoCollection: chronoCollection,
-                            team: team,
-                            // Pass a pre-filled Chrono object
-                            // Pass the stopwatch data to pre-fill the form
-                            initialTime: finalTime,
-                            initialNotes: notes,
-                          ),
-                        ),
-                      );
-                    },
-                  )
-              ],
+              // REMOVED: The save button in the AppBar is no longer needed.
             ),
             body: Column(
               children: [
                 _buildTimerDisplay(context, stopwatchService),
-                _buildControls(context, stopwatchService, l10n),
+                // UPDATED: Pass the necessary data down to the controls widget.
+                _buildControls(context, stopwatchService, l10n, chronoCollection, team),
                 _buildLapList(context, stopwatchService, l10n),
               ],
             ),
@@ -81,7 +56,8 @@ class StopwatchScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildControls(BuildContext context, StopwatchService stopwatch, AppLocalizations l10n) {
+  // UPDATED: The controls widget now handles the navigation.
+  Widget _buildControls(BuildContext context, StopwatchService stopwatch, AppLocalizations l10n, CollectionReference chronoCollection, Team team) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -91,7 +67,34 @@ class StopwatchScreen extends StatelessWidget {
         ),
         const SizedBox(width: 20),
         ElevatedButton(
-          onPressed: stopwatch.isRunning ? stopwatch.stop : stopwatch.start,
+          // UPDATED: The onPressed logic is now more complex.
+          onPressed: () {
+            if (stopwatch.isRunning) {
+              // If the timer is running, stop it first.
+              stopwatch.stop();
+
+              // Then, immediately prepare the data and navigate.
+              final finalTime = StopwatchService.formatDuration(stopwatch.elapsed);
+              String notes = '';
+              for (int i = 0; i < stopwatch.laps.length; i++) {
+                notes += '${l10n.lap} ${i + 1}: ${StopwatchService.formatDuration(stopwatch.laps[i])}\n';
+              }
+
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => AddEditChronoScreen(
+                    chronoCollection: chronoCollection,
+                    team: team,
+                    initialTime: finalTime,
+                    initialNotes: notes,
+                  ),
+                ),
+              );
+            } else {
+              // If the timer is stopped, start it.
+              stopwatch.start();
+            }
+          },
           child: Text(stopwatch.isRunning ? l10n.stop : l10n.start),
         ),
         const SizedBox(width: 20),
@@ -107,11 +110,12 @@ class StopwatchScreen extends StatelessWidget {
     return Expanded(
       child: ListView.builder(
         itemCount: stopwatch.laps.length,
-        itemBuilder: (context, index) {
-          final lap = stopwatch.laps[index];
+        itemBuilder: (context, index) {          
+          // Use reversed to show the latest lap at the top.
+          final reversedIndex = stopwatch.laps.length - 1 - index;
           return ListTile(
-            leading: Text('${l10n.lap} ${index + 1}'),
-            trailing: Text(StopwatchService.formatDuration(lap)),
+            leading: Text('${l10n.lap} ${reversedIndex + 1}'),
+            trailing: Text(StopwatchService.formatDuration(stopwatch.laps[reversedIndex])),
           );
         },
       ),

@@ -14,17 +14,17 @@ class AddEditChronoScreen extends StatefulWidget {
   final Chrono? existingChrono;
   // ADDED: The team is now required to get the default pool length.
   final Team team;
-  // ADDED: New optional parameters to receive data from the stopwatch.
+  // Parameters for receiving data from the stopwatch.
   final String? initialTime;
   final String? initialNotes;
 
   const AddEditChronoScreen({
     super.key,
     required this.chronoCollection,
-    required this.team, // ADDED
+    required this.team,
     this.existingChrono,
-    this.initialTime, // ADDED
-    this.initialNotes, // ADDED
+    this.initialTime,
+    this.initialNotes,
   });
 
   @override
@@ -71,8 +71,14 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       // UPDATED: If initial data is passed from stopwatch, use it.
       _finalTimeController.text = widget.initialTime ?? '';
       _notesController.text = widget.initialNotes ?? '';
+
+      // UPDATED: If we received data from the stopwatch, consider the form "dirty"
+      // so the user gets a warning if they try to go back without saving.
+      if (widget.initialTime != null || (widget.initialNotes != null && widget.initialNotes!.isNotEmpty)) {
+        _isDirty = true;
+      }
     }
-    // Add listeners to text fields to detect changes.
+    // These listeners will set the dirty flag if the user makes any manual edits.
     _finalTimeController.addListener(() => _markDirty(true));
     _notesController.addListener(() => _markDirty(true));
   }
@@ -123,6 +129,11 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   Future<void> _saveChrono() async {
     // First, check if the form is valid.
     if (_formKey.currentState!.validate()) {
+      
+      setState(() {
+        _isDirty = false; // Mark as not dirty before popping to avoid double warning.
+      });
+
       // Create a map of the data to be saved.
       final data = {
         'date': Timestamp.fromDate(_selectedDate),
