@@ -124,5 +124,7 @@
   "reset": "Reset",
   "start": "Start",
   "stop": "Stop",
-  "saveTime": "Save Time"
+  "saveTime": "Save Time",
+  "chronoNotesTitle": "Time Notes",
+  "noNotesForChrono": "No notes for this time record."
 }

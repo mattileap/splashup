@@ -124,5 +124,7 @@
   "reset": "Azzera",
   "start": "Avvia",
   "stop": "Ferma",
-  "saveTime": "Salva Tempo"
+  "saveTime": "Salva Tempo",
+  "chronoNotesTitle": "Note del Tempo",
+  "noNotesForChrono": "Nessuna nota per questo tempo."
 }

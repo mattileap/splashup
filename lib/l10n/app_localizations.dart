@@ -847,6 +847,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Time'**
   String get saveTime;
+
+  /// No description provided for @chronoNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Notes'**
+  String get chronoNotesTitle;
+
+  /// No description provided for @noNotesForChrono.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes for this time record.'**
+  String get noNotesForChrono;
 }
 
 class _AppLocalizationsDelegate

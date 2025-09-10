@@ -402,4 +402,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get saveTime => 'Salva Tempo';
+
+  @override
+  String get chronoNotesTitle => 'Note del Tempo';
+
+  @override
+  String get noNotesForChrono => 'Nessuna nota per questo tempo.';
 }

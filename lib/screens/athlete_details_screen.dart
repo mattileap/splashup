@@ -121,9 +121,26 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           actions: <Widget>[
             TextButton(
               child: Text(l10n.close),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ADDED: New function to show notes for a specific chrono.
+  void _showChronoNotesDialog(BuildContext context, Chrono chrono, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(l10n.chronoNotesTitle),
+          content: Text(chrono.notes), // No need for an empty check, this is only shown if notes exist.
+          actions: <Widget>[
+            TextButton(
+              child: Text(l10n.close),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         );
@@ -173,7 +190,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
 
     if (result == 'deactivate') {
       await athleteRef.update({'isActive': false});
-      navigator.pop(); // Go back to the athletes list
+      if(mounted) navigator.pop(); // Go back to the athletes list
     } else if (result == 'delete') {
       // Delete all sub-collections (chronos) first.
       final chronos = await athleteRef.collection('chronos').get();
@@ -182,7 +199,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       }
       // Then delete the athlete document itself.
       await athleteRef.delete();
-      navigator.pop(); // Go back to the athletes list
+      if(mounted) navigator.pop(); // Go back to the athletes list
     }
   }
 
@@ -190,7 +207,6 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final String? userId = FirebaseAuth.instance.currentUser?.uid;
-    final int age = DateTime.now().year - widget.athlete.birthYear;
 
     if (userId == null) {
       return const Scaffold(body: Center(child: Text("User not logged in")));
@@ -208,17 +224,8 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        // UPDATED: The title is now a Column to include the team name.
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.athlete.name),
-            Text(
-              widget.team.name,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
-            ),
-          ],
-        ),
+        // UPDATED: AppBar title is now simpler.
+        title: Text(l10n.athleteDetails),
         actions: [
           // Button to show the athlete's notes.
           IconButton(
@@ -277,7 +284,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       body: Column(
         children: [
           // Header card with athlete's personal information.
-          _buildAthleteHeader(context, widget.athlete, age, l10n),
+          _buildAthleteHeader(context, widget.athlete, widget.team, l10n),
           // The rest of the screen is a scrollable list of chronos.
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
@@ -292,10 +299,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                   );
                 }
 
-                final allChronos = snapshot.data!.docs
-                    .map((doc) => Chrono.fromFirestore(doc))
-                    .toList();
-
+                final allChronos = snapshot.data!.docs.map((doc) => Chrono.fromFirestore(doc)).toList();
                 // Apply the filters selected by the user.
                 final filteredChronos = allChronos.where((chrono) {
                   final distanceMatch = _selectedDistance == null || chrono.distance == _selectedDistance;
@@ -341,7 +345,8 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
   }
 
   /// Builds the non-scrolling header card with athlete details.
-  Widget _buildAthleteHeader(BuildContext context, Athlete athlete, int age, AppLocalizations l10n) {
+  Widget _buildAthleteHeader(BuildContext context, Athlete athlete, Team team, AppLocalizations l10n) {
+    final int age = DateTime.now().year - athlete.birthYear;
     final Map<String, String> styleDisplayNames = {
       'Freestyle': l10n.freestyle,
       'Butterfly': l10n.butterfly,
@@ -364,6 +369,9 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(athlete.name, style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 4),
+            // UPDATED: Team name added here.
+            Text(team.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600)),
             const SizedBox(height: 8),
             Text('${l10n.age}: $age • $translatedGender'),
             const SizedBox(height: 8),
@@ -469,6 +477,13 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // UPDATED: Conditionally show the notes button.
+            if (chrono.notes.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.note_alt_outlined, color: Colors.grey),
+                tooltip: l10n.notes,
+                onPressed: () => _showChronoNotesDialog(context, chrono, l10n),
+              ),
             IconButton(
               icon: const Icon(Icons.edit, color: Colors.grey),
               onPressed: () {
