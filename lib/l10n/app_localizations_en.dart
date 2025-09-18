@@ -262,6 +262,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moveAthletesDescription => 'Move athletes between teams.';
 
   @override
+  String get moveAthletesDeny =>
+      'You need at least two teams to use this feature.';
+
+  @override
   String get moveSingleAthlete => 'Move a single athlete';
 
   @override

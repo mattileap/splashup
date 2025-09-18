@@ -83,6 +83,7 @@
   "dataManagement": "Data Management",
   "moveAthletes": "Move Athletes",
   "moveAthletesDescription": "Move athletes between teams.",
+  "moveAthletesDeny": "You need at least two teams to use this feature.",
   "moveSingleAthlete": "Move a single athlete",
   "moveAthletesByYear": "Move athletes by birth year",
   "moveAllAthletes": "Move all athletes from a team",

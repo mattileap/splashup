@@ -596,6 +596,12 @@ abstract class AppLocalizations {
   /// **'Move athletes between teams.'**
   String get moveAthletesDescription;
 
+  /// No description provided for @moveAthletesDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'You need at least two teams to use this feature.'**
+  String get moveAthletesDeny;
+
   /// No description provided for @moveSingleAthlete.
   ///
   /// In en, this message translates to:

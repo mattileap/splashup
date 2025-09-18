@@ -83,6 +83,7 @@
   "dataManagement": "Gestione Dati",
   "moveAthletes": "Sposta Atleti",
   "moveAthletesDescription": "Sposta atleti tra le squadre.",
+  "moveAthletesDeny": "Hai bisogno di almeno due squadre per utilizzare questa funzionalità.",
   "moveSingleAthlete": "Sposta un singolo atleta",
   "moveAthletesByYear": "Sposta atleti per anno di nascita",
   "moveAllAthletes": "Sposta tutti gli atleti di una squadra",

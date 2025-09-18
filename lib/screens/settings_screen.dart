@@ -410,7 +410,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Text(l10n.moveAthletes),
             subtitle: Text(
               _teamCount < 2 
-              ? "You need at least two teams to use this feature." 
+              ? l10n.moveAthletesDeny
               : l10n.moveAthletesDescription
             ),
             onTap: _teamCount >= 2 ? () {

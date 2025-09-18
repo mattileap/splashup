@@ -45,3 +45,16 @@ android {
 flutter {
     source = "../.."
 }
+  
+ // ADD THIS BLOCK to customize the APK output name.
+ // It iterates through all build variants (like debug, release)
+ // and sets a custom name for the output file.
+android.applicationVariants.all {
+ val variant = this
+ variant.outputs.all {
+ // 'this' refers to the output variant (e.g., apk)
+  val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+ // Construct the new name, e.g., "splashup-v1.0.0.apk"
+  outputImpl.outputFileName = "splashup-v${variant.versionName}.apk"
+ }
+}
