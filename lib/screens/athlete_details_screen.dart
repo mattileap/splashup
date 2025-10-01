@@ -237,12 +237,29 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           IconButton(
             icon: const Icon(Icons.emoji_events_outlined),
             tooltip: l10n.personalBestsTitle,
-            onPressed: () {
-               chronoCollection.get().then((snapshot) {
-                  if (!mounted) return;
-                  final allChronos = snapshot.docs.map((doc) => Chrono.fromFirestore(doc)).toList();
-                 _showPersonalBestsDialog(context, allChronos, l10n);
-               });
+            onPressed: () async {
+              // FIXED: Most explicit approach - check mounted at every step
+              if (!mounted) return;
+              
+              final currentContext = context;
+              final currentL10n = l10n;
+              
+              try {
+                final snapshot = await chronoCollection.get();
+                
+                // Critical: check mounted again before using any saved context
+                if (!mounted) return;
+                
+                final allChronos = snapshot.docs.map((doc) => Chrono.fromFirestore(doc)).toList();
+                
+                // Final mounted check before calling method with context
+                if (mounted && currentContext.mounted) {
+                  _showPersonalBestsDialog(currentContext, allChronos, currentL10n);
+                }
+              } catch (e) {
+                // Handle potential errors silently
+                print('Error loading personal bests: $e');
+              }
             },
           ),
           IconButton(

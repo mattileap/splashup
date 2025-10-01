@@ -97,20 +97,24 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
     if (!_isDirty) {
       return true;
     }
-    final l10n = AppLocalizations.of(context)!;
-    final navigator = Navigator.of(context); // Store the navigator
+    
+    // FIXED: Store context and l10n before async operations
+    if (!mounted) return true;
+    final currentContext = context;
+    final l10n = AppLocalizations.of(currentContext)!;
+    
     final shouldPop = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: currentContext,
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.unsavedChanges),
         content: Text(l10n.discardChangesWarning),
         actions: <Widget>[
           TextButton(
-            onPressed: () => navigator.pop(false),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => navigator.pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(l10n.discard),
           ),
         ],
@@ -118,7 +122,6 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
     );
     return shouldPop ?? false;
   }
-
 
   Future<void> _updateAthlete() async {
     if (_formKey.currentState!.validate()) {
@@ -165,14 +168,19 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
       'Breaststroke': l10n.breaststroke,
     };
 
-    // UPDATED: Replaced deprecated WillPopScope with PopScope.
     return PopScope(
       canPop: !_isDirty,
-      onPopInvoked: (didPop) async {
+      // FIXED: Replaced deprecated onPopInvoked with onPopInvokedWithResult
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        
+        // FIXED: Store navigator before async operation
+        final navigator = Navigator.of(context);
         final shouldPop = await _canPop();
+        
+        // FIXED: Use stored navigator reference instead of context
         if (shouldPop && mounted) {
-          Navigator.of(context).pop();
+          navigator.pop();
         }
       },
       child: Scaffold(

@@ -104,19 +104,23 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   Future<bool> _canPop() async {
     if (!_isDirty) return true; // Allow navigation if no changes were made.
 
-    final l10n = AppLocalizations.of(context)!;
+    // FIXED: Store context and l10n before async operations
+    if (!mounted) return true;
+    final currentContext = context;
+    final l10n = AppLocalizations.of(currentContext)!;
+    
     final shouldPop = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: currentContext,
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.unsavedChanges),
         content: Text(l10n.discardChangesWarning),
         actions: <Widget>[
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false), // Don't pop
+            onPressed: () => Navigator.of(dialogContext).pop(false), // Don't pop
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(true), // Pop
+            onPressed: () => Navigator.of(dialogContext).pop(true), // Pop
             child: Text(l10n.discard),
           ),
         ],
@@ -187,11 +191,17 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
     // Use PopScope to intercept back navigation and check for unsaved changes.
     return PopScope(
       canPop: !_isDirty,
-      onPopInvoked: (didPop) async {
+      // FIXED: Replaced deprecated onPopInvoked with onPopInvokedWithResult
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        
+        // FIXED: Store navigator before async operation
+        final navigator = Navigator.of(context);
         final shouldPop = await _canPop();
+        
+        // FIXED: Use stored navigator reference instead of context
         if (shouldPop && mounted) {
-          Navigator.of(context).pop();
+          navigator.pop();
         }
       },
       child: Scaffold(

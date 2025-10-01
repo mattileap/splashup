@@ -64,21 +64,23 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
 
     if (!formIsDirty) return true;
 
-    // Store the navigator before the await
-    final navigator = Navigator.of(context);
-    final l10n = AppLocalizations.of(context)!;
+    // FIXED: Store context and l10n before async operations
+    if (!mounted) return true;
+    final currentContext = context;
+    final l10n = AppLocalizations.of(currentContext)!;
+
     final shouldPop = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: currentContext,
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.unsavedChanges),
         content: Text(l10n.discardChangesWarning),
         actions: <Widget>[
           TextButton(
-            onPressed: () => navigator.pop(false),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => navigator.pop(true),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(l10n.discard),
           ),
         ],
@@ -104,6 +106,7 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
         'createdAt': Timestamp.now(),
       });
 
+      // FIXED: Guard with mounted check before using Navigator
       if (mounted) {
         Navigator.of(context).pop();
       }
@@ -122,12 +125,17 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
 
     return PopScope(
       canPop: false, // We handle it manually
-      onPopInvoked: (didPop) async {
+      // FIXED: Replaced deprecated onPopInvoked with onPopInvokedWithResult
+      // FIXED: Store context before async operation and use dialogContext in builder
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        final shouldPop = await _canPop();
-        // Store the navigator before the await
+        
+        // Store context before any async operations
         final navigator = Navigator.of(context);
-        if (shouldPop) {
+        final shouldPop = await _canPop();
+        // FIXED: Guard with mounted check before using Navigator
+        // FIXED: Use mounted check and store navigator reference        
+        if (shouldPop && mounted) {
           navigator.pop();
         }
       },
