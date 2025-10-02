@@ -149,15 +149,20 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
         'type': _chronoType,
       };
 
-      // If editing, update the existing document. Otherwise, add a new one.
-      if (isEditing) {
-        await widget.chronoCollection.doc(widget.existingChrono!.id).update(data);
-      } else {
-        await widget.chronoCollection.add(data);
-      }
-
-      // Close the screen after saving.
+      // Close the screen first
       if (mounted) Navigator.of(context).pop();
+
+      // Then perform Firestore operation (works offline with persistence)
+      // If editing, update the existing document. Otherwise, add a new one.      
+      try {
+        if (isEditing) {
+          await widget.chronoCollection.doc(widget.existingChrono!.id).update(data);
+        } else {
+          await widget.chronoCollection.add(data);
+        }
+      } catch (e) {
+        debugPrint('Error saving chrono: $e');
+      }
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -65,11 +66,11 @@ class AuthService {
       return userCredential.user;
       
     } on GoogleSignInException catch (e) {
-      print('Google Sign-In error: ${e.code.name} - ${e.description}');
+      debugPrint('Google Sign-In error: ${e.code.name} - ${e.description}');
       _currentGoogleUser = null; // Reset stato in caso di errore
       return null;
     } catch (e) {
-      print('Error during Google Sign-In: $e');
+      debugPrint('Error during Google Sign-In: $e');
       _currentGoogleUser = null; // Reset stato in caso di errore
       return null;
     }
@@ -113,7 +114,7 @@ class AuthService {
       
       return null;
     } catch (e) {
-      print('Silent sign-in failed: $e');
+      debugPrint('Silent sign-in failed: $e');
       _currentGoogleUser = null;
       return null;
     }
@@ -126,7 +127,7 @@ class AuthService {
       await _auth.signOut();
       _currentGoogleUser = null; // Reset stato manuale
     } catch (e) {
-      print('Error during sign out: $e');
+      debugPrint('Error during sign out: $e');
     }
   }
 
@@ -162,7 +163,7 @@ class AuthService {
       await signOut();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
-        print('Re-authentication required. Prompting user to sign in again.');
+        debugPrint('Re-authentication required. Prompting user to sign in again.');
         
         try {
           // FIXED: Usa il nuovo pattern v7.x per la re-autenticazione
@@ -200,21 +201,21 @@ class AuthService {
             throw Exception('User is null after re-authentication.');
           }
           
-          print('Re-authentication successful. Retrying account deletion.');
+          debugPrint('Re-authentication successful. Retrying account deletion.');
           await _deleteFirestoreData(user.uid);
           await user.delete();
           await signOut();
           
         } catch (reauthError) {
-          print("Error during re-authentication: $reauthError");
+          debugPrint("Error during re-authentication: $reauthError");
           rethrow;
         }
       } else {
-        print("Error deleting account: $e");
+        debugPrint("Error deleting account: $e");
         rethrow;
       }
     } catch (e) {
-      print("An unexpected error occurred: $e");
+      debugPrint("An unexpected error occurred: $e");
       rethrow;
     }
   }
@@ -236,7 +237,7 @@ class AuthService {
       
       return authorization?.accessToken;
     } catch (e) {
-      print('Failed to get access token for scopes: $e');
+      debugPrint('Failed to get access token for scopes: $e');
       return null;
     }
   }

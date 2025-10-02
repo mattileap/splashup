@@ -91,12 +91,13 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
 
   Future<void> _saveAthlete() async {
     if (_formKey.currentState!.validate()) {
+      // FIXED: Close screen immediately, then save to Firestore
       final selectedStyles = _preferredStyles.entries
           .where((entry) => entry.value)
           .map((entry) => entry.key)
           .toList();
 
-      await widget.athletesCollection.add({
+      final athleteData = {
         'name': _nameController.text,
         'birthYear': _selectedBirthYear,
         'gender': _gender,
@@ -104,11 +105,19 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
         'isActive': _isActive,
         'notes': _notesController.text,
         'createdAt': Timestamp.now(),
-      });
+      };
 
       // FIXED: Guard with mounted check before using Navigator
+      // Close the screen first
       if (mounted) {
         Navigator.of(context).pop();
+      }
+
+      // Then save to Firestore (works offline with persistence)
+      try {
+        await widget.athletesCollection.add(athleteData);
+      } catch (e) {
+        debugPrint('Error saving athlete: $e');
       }
     }
   }
@@ -125,16 +134,15 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
 
     return PopScope(
       canPop: false, // We handle it manually
-      // FIXED: Replaced deprecated onPopInvoked with onPopInvokedWithResult
-      // FIXED: Store context before async operation and use dialogContext in builder
+      // FIXED: Store context before async operation and use it safely
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         
         // Store context before any async operations
         final navigator = Navigator.of(context);
         final shouldPop = await _canPop();
-        // FIXED: Guard with mounted check before using Navigator
-        // FIXED: Use mounted check and store navigator reference        
+        // FIXED: Guard with mounted check before using Navigator       
+        // Now we can safely use the stored navigator reference
         if (shouldPop && mounted) {
           navigator.pop();
         }

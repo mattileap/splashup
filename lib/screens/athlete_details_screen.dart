@@ -258,7 +258,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                 }
               } catch (e) {
                 // Handle potential errors silently
-                print('Error loading personal bests: $e');
+                debugPrint('Error loading personal bests: $e');
               }
             },
           ),

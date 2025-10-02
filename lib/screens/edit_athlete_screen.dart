@@ -125,6 +125,7 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
 
   Future<void> _updateAthlete() async {
     if (_formKey.currentState!.validate()) {
+      // FIXED: Mark as not dirty and close screen immediately
       setState(() {
         _isDirty = false;
       });
@@ -142,17 +143,25 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
           .collection('athletes')
           .doc(widget.athlete.id);
 
-      await athleteRef.update({
+      final updateData = {
         'name': _nameController.text,
         'birthYear': _selectedBirthYear,
         'gender': _gender,
         'preferredStyles': selectedStyles,
         'isActive': _isActive,
         'notes': _notesController.text,
-      });
+      };
 
+      // Close the screen first
       if (mounted) {
         Navigator.of(context).pop();
+      }
+
+      // Then update Firestore (works offline with persistence)
+      try {
+        await athleteRef.update(updateData);
+      } catch (e) {
+        debugPrint('Error updating athlete: $e');
       }
     }
   }

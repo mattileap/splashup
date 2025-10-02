@@ -25,23 +25,21 @@ class _TeamsScreenState extends State<TeamsScreen> {
     final teamNameController = TextEditingController(text: team.name);
     // Use a local variable to manage the state of the dropdown inside the dialog.
     int poolLength = team.poolLength;
-    // Store the Navigator for use after the await
-    final navigator = Navigator.of(context);
 
-    await showDialog(
+    final result = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         // Use a StatefulBuilder to allow the dialog's content to update state independently.
         return StatefulBuilder(
           builder: (context, setState) {
-        return AlertDialog(
-          title: Text(l10n.editTeam),
+            return AlertDialog(
+              title: Text(l10n.editTeam),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-            controller: teamNameController,
-            autofocus: true,
+                    controller: teamNameController,
+                    autofocus: true,
                     decoration: InputDecoration(labelText: l10n.teamName),
                   ),
                   // Dropdown to select the team's default pool length.
@@ -52,37 +50,45 @@ class _TeamsScreenState extends State<TeamsScreen> {
                         .map((len) => DropdownMenuItem(value: len, child: Text('$len m')))
                         .toList(),
                     onChanged: (value) => setState(() => poolLength = value!),
-            ),
+                  ),
                 ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(l10n.cancel),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            ElevatedButton(
-              child: Text(l10n.save),
-              onPressed: () async {
-                final newTeamName = teamNameController.text;
-                if (newTeamName.isNotEmpty) {
-                      // Update both the name and the poolLength in Firestore.
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(FirebaseAuth.instance.currentUser!.uid)
-                      .collection('teams')
-                      .doc(team.id)
-                          .update({'name': newTeamName, 'poolLength': poolLength});
-                }
-                // Use the stored navigator
-                if (mounted) navigator.pop();
-              },
-            ),
-          ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text(l10n.cancel),
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                ),
+                ElevatedButton(
+                  child: Text(l10n.save),
+                  onPressed: () {
+                    // FIXED: Pop immediately, then perform Firestore operation
+                    Navigator.of(dialogContext).pop(true);
+                  },
+                ),
+              ],
             );
           },
         );
       },
     );
+
+    // FIXED: Perform Firestore operation AFTER dialog is closed
+    if (result == true) {
+      final newTeamName = teamNameController.text;
+      if (newTeamName.isNotEmpty) {
+        try {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .collection('teams')
+              .doc(team.id)
+              .update({'name': newTeamName, 'poolLength': poolLength});
+        } catch (e) {
+          // Handle errors gracefully (optional: show a snackbar)
+          debugPrint('Error updating team: $e');
+        }
+      }
+    }
   }
 
   /// Displays a dialog to add a new team to the user's collection.
@@ -92,26 +98,24 @@ class _TeamsScreenState extends State<TeamsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final teamNameController = TextEditingController();
     int poolLength = 25; // Default to 25m for new teams.
-    // Store the Navigator for use after the await
-    final navigator = Navigator.of(context);
 
-    await showDialog(
+    final result = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return StatefulBuilder(
           builder: (context, setState) {
-        return AlertDialog(
-          title: Text(l10n.addNewTeam),
+            return AlertDialog(
+              title: Text(l10n.addNewTeam),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-            controller: teamNameController,
-            autofocus: true,
-            decoration: InputDecoration(
-              labelText: l10n.teamName,
-              hintText: l10n.teamNameHint,
-            ),
+                    controller: teamNameController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: l10n.teamName,
+                      hintText: l10n.teamNameHint,
+                    ),
                   ),
                   DropdownButtonFormField<int>(
                     initialValue: poolLength,
@@ -122,39 +126,48 @@ class _TeamsScreenState extends State<TeamsScreen> {
                     onChanged: (value) => setState(() => poolLength = value!),
                   ),
                 ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(l10n.cancel),
-                  onPressed: () => Navigator.of(context).pop(),
-            ),
-            ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor:
-                    WidgetStateProperty.all(Theme.of(context).colorScheme.primary),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text(l10n.cancel),
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                ),
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.all(Theme.of(context).colorScheme.primary),
                     foregroundColor:
                         WidgetStateProperty.all(Theme.of(context).colorScheme.onPrimary),
-              ),
-              child: Text(l10n.add),
-              onPressed: () async {
-                final newTeamName = teamNameController.text;
-                if (newTeamName.isNotEmpty) {
-                      // Add the new team with its name and default pool length.
-                      await teamsCollection.add({
-                        'name': newTeamName,
-                        'poolLength': poolLength,
-                      });
-                }
-                // Use the stored navigator
-                if (mounted) navigator.pop();
-              },
-            ),
-          ],
+                  ),
+                  child: Text(l10n.add),
+                  onPressed: () {
+                    // FIXED: Pop immediately, then perform Firestore operation
+                    Navigator.of(dialogContext).pop(true);
+                  },
+                ),
+              ],
             );
           },
         );
       },
     );
+
+    // FIXED: Perform Firestore operation AFTER dialog is closed
+    if (result == true) {
+      final newTeamName = teamNameController.text;
+      if (newTeamName.isNotEmpty) {
+        try {
+          //Add new team with its default pool lenght
+          await teamsCollection.add({
+            'name': newTeamName,
+            'poolLength': poolLength,
+          });
+        } catch (e) {
+          // Handle errors gracefully (optional: show a snackbar)
+          debugPrint('Error adding team: $e');
+        }
+      }
+    }
   }
 
   @override
