@@ -409,4 +409,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noNotesForChrono => 'No notes for this time record.';
+
+  @override
+  String get splits => 'Splits';
+
+  @override
+  String get splitDistance => 'Split Distance';
+
+  @override
+  String get noSplitsYet => 'No splits added yet';
+
+  @override
+  String get splitTimeHint => 'MM:SS.ss';
+
+  @override
+  String splitTimeInvalidError(Object index) {
+    return 'Split $index: please enter a valid cumulative time';
+  }
+
+  @override
+  String splitDistanceMultiple(Object number, Object poolLength) {
+    return 'Split $number: distance must be a multiple of $poolLength m';
+  }
+
+  @override
+  String splitDistanceExceeds(
+    Object number,
+    Object splitDistance,
+    Object totalDistance,
+  ) {
+    return 'Split $number: distance ($splitDistance m) exceeds total distance ($totalDistance m)';
+  }
+
+  @override
+  String splitDistanceOrder(Object number) {
+    return 'Split $number: distances must be in ascending order';
+  }
+
+  @override
+  String splitTimeOrder(Object number) {
+    return 'Split $number: times must be in ascending order';
+  }
+
+  @override
+  String get segment => 'Segment';
+
+  @override
+  String get cumulative => 'Cumulative';
+
+  @override
+  String get invalidTimeFormat => 'Invalid time format';
 }

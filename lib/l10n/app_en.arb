@@ -112,12 +112,22 @@
   "run": "Run",
   "deactivationConfirmation": "This will check all active athletes. If their last recorded time is older than the selected period, they will be set to 'Inactive'. Are you sure you want to proceed?",
   "deactivationComplete": "Cleanup complete. {count} athlete(s) were deactivated.",
+  "@deactivationComplete": {
+    "placeholders": {
+        "count": {}
+    }
+  },  
   "deleteInactiveAthletes": "Delete Inactive Athletes",
   "deleteInactiveDescription": "Permanently delete athletes who have been inactive for a long time.",
   "deleteAfter": "Delete after",
   "years": "years",
   "deletionConfirmation": "This will permanently delete all athletes who have been inactive for more than the selected period. This action cannot be undone. Are you sure?",
   "deletionComplete": "Cleanup complete. {count} athlete(s) were deleted.",
+  "@deletionComplete": {
+    "placeholders": {
+        "count": {}
+    }
+  },
   "googleSignIn": "Sign in with Google",
   "stopwatch": "Stopwatch",
   "lap": "Lap",
@@ -127,5 +137,45 @@
   "stop": "Stop",
   "saveTime": "Save Time",
   "chronoNotesTitle": "Time Notes",
-  "noNotesForChrono": "No notes for this time record."
+  "noNotesForChrono": "No notes for this time record.",
+  "splits": "Splits",
+  "splitDistance": "Split Distance",
+  "noSplitsYet": "No splits added yet",
+  "splitTimeHint": "MM:SS.ss",
+  "splitTimeInvalidError": "Split {index}: please enter a valid cumulative time",
+  "@splitTimeInvalidError": {
+    "placeholders": {
+        "index": {}
+    }
+  },
+  "splitDistanceMultiple": "Split {number}: distance must be a multiple of {poolLength} m",
+  "@splitDistanceMultiple": {
+    "placeholders": {
+        "number": {},
+        "poolLength": {}
+    }
+  },
+  "splitDistanceExceeds": "Split {number}: distance ({splitDistance} m) exceeds total distance ({totalDistance} m)",
+  "@splitDistanceExceeds": {
+    "placeholders": {
+        "number": {},
+        "splitDistance": {},
+        "totalDistance": {}
+    }
+  },
+  "splitDistanceOrder": "Split {number}: distances must be in ascending order",
+  "@splitDistanceOrder": {
+    "placeholders": {
+        "number": {}
+    }
+  },
+  "splitTimeOrder": "Split {number}: times must be in ascending order",
+  "@splitTimeOrder": {
+    "placeholders": {
+        "number": {}
+    }
+  },
+  "segment": "Segment",
+  "cumulative": "Cumulative",
+  "invalidTimeFormat": "Invalid time format"
 }

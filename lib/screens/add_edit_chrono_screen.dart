@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import '../models/chrono_model.dart';
-import '../models/team_model.dart'; // Import the Team model
+import '../models/team_model.dart';
 
 /// A screen that provides a form for both adding a new chrono record and
 /// editing an existing one.
@@ -16,6 +16,8 @@ class AddEditChronoScreen extends StatefulWidget {
   final Team team;
   // Parameters for receiving data from the stopwatch.
   final String? initialTime;
+  final int? initialTimeMs;
+  final List<ChronoSplit>? initialSplits;
   final String? initialNotes;
 
   const AddEditChronoScreen({
@@ -24,6 +26,8 @@ class AddEditChronoScreen extends StatefulWidget {
     required this.team,
     this.existingChrono,
     this.initialTime,
+    this.initialTimeMs,
+    this.initialSplits,
     this.initialNotes,
   });
 
@@ -37,13 +41,19 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
 
   // State variables to hold the form data.
   late DateTime _selectedDate;
-  late int _poolLength; // No longer initialized here
+  late int _poolLength;
   String _style = 'Freestyle';
   int? _distance;
   String _chronoType = 'Training';
   final _finalTimeController = TextEditingController();
   final _notesController = TextEditingController();
 
+  // NEW: Split management
+  List<ChronoSplit> _splits = [];
+  late List<TextEditingController> _splitControllers;
+  // NEW: Error tracking for each split field
+  Map<int, String?> _splitErrors = {};
+  int? _finalTimeMs;
   // A getter to easily check if the screen is in editing mode.
   bool get isEditing => widget.existingChrono != null;
   // A flag to track if the user has made any changes to the form.
@@ -52,7 +62,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   @override
   void initState() {
     super.initState();
-    // If we are editing, pre-fill the form with the existing chrono's data.
+    _splitControllers = [];
+
     if (isEditing) {
       final chrono = widget.existingChrono!;
       _selectedDate = chrono.date;
@@ -62,28 +73,67 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       _chronoType = chrono.type;
       _finalTimeController.text = chrono.finalTime;
       _notesController.text = chrono.notes;
+      _finalTimeMs = chrono.finalTimeMs;
+      // Carica i parziali esistenti
+      _splits = List.from(chrono.splits);
     } else {
       // If adding a new chrono, set default values.
       _selectedDate = DateTime.now();
-      // UPDATED: Use the team's default pool length when adding a new chrono.
+      // Use the team's default pool length when adding a new chrono.
       _poolLength = widget.team.poolLength;
-      _distance = 50;
+      _distance = 100; // Un valore di default ragionevole
       // UPDATED: If initial data is passed from stopwatch, use it.
       _finalTimeController.text = widget.initialTime ?? '';
       _notesController.text = widget.initialNotes ?? '';
+      _finalTimeMs = widget.initialTimeMs;
 
-      // UPDATED: If we received data from the stopwatch, consider the form "dirty"
-      // so the user gets a warning if they try to go back without saving.
+      // *** LOGICA DI CORREZIONE CHIAVE ***
+      if (widget.initialSplits != null && widget.initialSplits!.isNotEmpty) {
+        // Calcola la distanza in base ai parziali ricevuti
+        _distance = widget.initialSplits!.length * _poolLength;
+        _splits = _assignDistancesToSplits(widget.initialSplits!);
+        _isDirty = true;
+      } else {
+        _distance = 100; // Valore di default solo se non ci sono parziali
+      }
+
       if (widget.initialTime != null || (widget.initialNotes != null && widget.initialNotes!.isNotEmpty)) {
         _isDirty = true;
       }
     }
-    // These listeners will set the dirty flag if the user makes any manual edits.
-    _finalTimeController.addListener(() => _markDirty(true));
+    
+    // Genera la tabella e i controller immediatamente, senza aspettare il primo frame.
+    // Questo assicura che `_splits` e `_splitControllers` siano sempre sincronizzati.
+    _generateSplitsTemplate();
+    
+    _finalTimeController.addListener(_onFinalTimeChanged);
     _notesController.addListener(() => _markDirty(true));
   }
   
-  /// Sets the `_isDirty` flag to true when the form is modified.
+  // CORRETTO: Assegna le distanze corrette ai parziali in ingresso
+  List<ChronoSplit> _assignDistancesToSplits(List<ChronoSplit> splits) {
+    return splits.asMap().entries.map((entry) {
+      final index = entry.key;
+      final split = entry.value;
+      return ChronoSplit(
+        distance: _poolLength * (index + 1),
+        time: split.time,
+        splitTime: split.splitTime,
+      );
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    _finalTimeController.removeListener(_onFinalTimeChanged);
+    _finalTimeController.dispose();
+    _notesController.dispose();
+    for (var controller in _splitControllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
   void _markDirty(bool isDirty) {
     if (_isDirty != isDirty) {
       setState(() {
@@ -92,19 +142,10 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    // Clean up the controllers when the widget is removed from the tree.
-    _finalTimeController.dispose();
-    _notesController.dispose();
-    super.dispose();
-  }
-
-  /// Shows a confirmation dialog if there are unsaved changes.
   Future<bool> _canPop() async {
     if (!_isDirty) return true; // Allow navigation if no changes were made.
 
-    // FIXED: Store context and l10n before async operations
+    // Store context and l10n before async operations
     if (!mounted) return true;
     final currentContext = context;
     final l10n = AppLocalizations.of(currentContext)!;
@@ -115,18 +156,151 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
         title: Text(l10n.unsavedChanges),
         content: Text(l10n.discardChangesWarning),
         actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false), // Don't pop
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true), // Pop
-            child: Text(l10n.discard),
-          ),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(l10n.discard)),
         ],
       ),
     );
     return shouldPop ?? false;
+  }
+
+  void _onFinalTimeChanged() {
+    _finalTimeMs = Chrono.parseTimeToMilliseconds(_finalTimeController.text);
+    _updateLastSplitWithFinalTime();
+    _recalculateAndRefreshSplits();
+    _markDirty(true);
+  }
+
+  void _updateLastSplitWithFinalTime() {
+    if (_splits.isNotEmpty) {
+      final lastSplit = _splits.last;
+      _splits[_splits.length - 1] = ChronoSplit(
+        distance: lastSplit.distance,
+        time: _finalTimeMs,
+      );
+    }
+  }
+  
+  void _generateSplitsTemplate() {
+    for (var controller in _splitControllers) {
+      controller.dispose();
+    }
+    _splitControllers.clear();
+    _splitErrors.clear();
+    
+    final newSplits = <ChronoSplit>[];
+    if (_distance == null || _distance! <= 0) {
+      setState(() {
+        _splits = newSplits;
+      });
+      return;
+    }
+
+    final numberOfSplits = (_distance! / _poolLength).ceil();
+    for (int i = 1; i <= numberOfSplits; i++) {
+      final splitDistance = i * _poolLength;
+      
+      final existingSplit = _splits.firstWhere(
+        (s) => s.distance == splitDistance,
+        orElse: () => ChronoSplit(distance: splitDistance),
+      );
+      
+      newSplits.add(existingSplit);
+      
+      final controller = TextEditingController(
+        text: existingSplit.time != null ? Chrono.formatMillisecondsToTime(existingSplit.time!) : '',
+      );
+      _splitControllers.add(controller);
+    }
+
+    _splits = newSplits;
+    _updateLastSplitWithFinalTime();
+    _recalculateAndRefreshSplits();
+  }
+
+  void _updateSplitTime(int index, String value) {
+    // Clear error for this field
+    setState(() {
+      _splitErrors[index] = null;
+    });
+
+    final timeMs = Chrono.parseTimeToMilliseconds(value);
+    
+    // Validate format
+    if (value.isNotEmpty && timeMs == null) {
+      setState(() {
+        _splitErrors[index] = AppLocalizations.of(context)!.invalidTimeFormat;
+      });
+      return;
+    }
+    
+    // Check if time is less than next valid split
+    if (index < _splits.length - 1) {
+      final nextValidSplit = _splits.skip(index + 1).firstWhere(
+        (s) => s.time != null, 
+        orElse: () => ChronoSplit(distance: 0, time: null)
+      );
+      if (nextValidSplit.time != null && timeMs != null && timeMs >= nextValidSplit.time!) {
+        setState(() {
+          _splitErrors[index] = AppLocalizations.of(context)!.splitTimeOrder(index + 2);
+        });
+        _splitControllers[index].text = _splits[index].time != null 
+          ? Chrono.formatMillisecondsToTime(_splits[index].time!) 
+          : '';
+        return;
+      }
+    }
+    
+    _splits[index] = ChronoSplit(distance: _splits[index].distance, time: timeMs);
+    _recalculateAndRefreshSplits();
+    _markDirty(true);
+  }
+
+  /// **NUOVA FUNZIONE CENTRALIZZATA**
+  /// Ricalcola tutti i tempi dei segmenti e i cumulativi, e aggiorna il tempo finale se necessario.
+  void _recalculateAndRefreshSplits() {
+    setState(() {
+      for (int i = 0; i < _splits.length; i++) {
+        final currentTime = _splits[i].time;
+        
+        // FIXED: Trova l'ultimo split VALIDO precedente (non solo quello immediatamente prima)
+        int? previousTime;
+        for (int j = i - 1; j >= 0; j--) {
+          if (_splits[j].time != null) {
+            previousTime = _splits[j].time;
+            break;
+          }
+        }
+        previousTime ??= 0; // Se non c'è nessun tempo precedente, usa 0
+        
+        int? segmentTime;
+        if (currentTime != null) {
+          segmentTime = currentTime - previousTime;
+        }
+
+        _splits[i] = ChronoSplit(
+          distance: _splits[i].distance,
+          time: currentTime,
+          splitTime: segmentTime,
+        );
+
+        // OPTIMIZATION: Aggiorna solo se il testo è diverso
+        if (_splitControllers.length > i) {
+          final newText = currentTime != null ? Chrono.formatMillisecondsToTime(currentTime) : '';
+          if (_splitControllers[i].text != newText) {
+            _splitControllers[i].text = newText;
+          }
+        }
+      }
+    });
+  }
+
+  /// Shows error message
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
   }
 
   /// Validates and saves the form data to Firestore.
@@ -134,17 +308,34 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
     // First, check if the form is valid.
     if (_formKey.currentState!.validate()) {
       
-      setState(() {
-        _isDirty = false; // Mark as not dirty before popping to avoid double warning.
-      });
+      _finalTimeMs ??= Chrono.parseTimeToMilliseconds(_finalTimeController.text);
+      
+      final validSplits = _splits.where((s) => s.time != null && s.time! > 0).toList();
+      if (validSplits.isNotEmpty) {
+        // CORRETTO: Chiamata alla funzione di validazione ora esistente
+        final validationError = Chrono.validateSplits(
+          splits: validSplits,
+          totalDistance: _distance ?? 100,
+          poolLength: _poolLength,
+          l10n: AppLocalizations.of(context)!,
+        );
+        if (validationError != null) {
+          _showError(validationError);
+          return;
+        }
+      }
+      
+      setState(() { _isDirty = false; });
 
-      // Create a map of the data to be saved.
+      // Create a map of the data to be saved
       final data = {
         'date': Timestamp.fromDate(_selectedDate),
         'poolLength': _poolLength,
         'distance': _distance,
         'style': _style,
         'finalTime': _finalTimeController.text,
+        'finalTimeMs': _finalTimeMs,
+        'splits': validSplits.map((split) => split.toMap()).toList(),
         'notes': _notesController.text,
         'type': _chronoType,
       };
@@ -182,18 +373,17 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       'Training': l10n.training,
       'Race': l10n.race,
     };
-
-    // Dynamically generate the list of available distances.
-    final List<int> distanceOptions = [50, 100, 200, 400, 800, 1500];
+    
+    // *** LOGICA UNIFICATA E CORRETTA ***
+    final Set<int> distanceSet = {50, 100, 200, 400, 800, 1500};
     if (_poolLength == 25) {
-      distanceOptions.insert(0, 25);
+      distanceSet.add(25);
     }
-    // Reset distance selection if it becomes invalid after changing pool length.
-    if (!distanceOptions.contains(_distance)) {
-      _distance = 50;
+    if (_distance != null) {
+      distanceSet.add(_distance!);
     }
+    final List<int> distanceOptions = distanceSet.toList()..sort();
 
-    // Use PopScope to intercept back navigation and check for unsaved changes.
     return PopScope(
       canPop: !_isDirty,
       // FIXED: Replaced deprecated onPopInvoked with onPopInvokedWithResult
@@ -212,9 +402,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(isEditing ? l10n.editChrono : l10n.addChrono),
-          actions: [
-            IconButton(icon: const Icon(Icons.save), onPressed: _saveChrono),
-          ],
+          actions: [IconButton(icon: const Icon(Icons.save), onPressed: _saveChrono)],
         ),
         body: Form(
           key: _formKey,
@@ -245,9 +433,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
               DropdownButtonFormField<String>(
                 initialValue: _chronoType,
                 decoration: InputDecoration(labelText: l10n.chronoType),
-                items: typeDisplayNames.keys
-                    .map((t) => DropdownMenuItem(value: t, child: Text(typeDisplayNames[t]!)))
-                    .toList(),
+                items: typeDisplayNames.keys.map((t) => DropdownMenuItem(value: t, child: Text(typeDisplayNames[t]!))).toList(),
                 onChanged: (value) => setState(() {
                   _chronoType = value!;
                   _markDirty(true);
@@ -257,34 +443,34 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
               DropdownButtonFormField<int>(
                 initialValue: _poolLength,
                 decoration: InputDecoration(labelText: l10n.poolLength),
-                items: [25, 50]
-                    .map((len) => DropdownMenuItem(value: len, child: Text('$len m')))
-                    .toList(),
-                onChanged: (value) => setState(() {
-                  _poolLength = value!;
-                  _markDirty(true);
-                }),
+                items: [25, 50].map((len) => DropdownMenuItem(value: len, child: Text('$len m'))).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _poolLength = value!;
+                    _generateSplitsTemplate();
+                    _markDirty(true);
+                  });
+                },
               ),
               // Dropdown for selecting the distance.
               DropdownButtonFormField<int>(
                 initialValue: _distance,
                 decoration: InputDecoration(labelText: l10n.distance),
-                items: distanceOptions
-                    .map((dist) => DropdownMenuItem(value: dist, child: Text('$dist m')))
-                    .toList(),
-                onChanged: (value) => setState(() {
-                  _distance = value!;
-                  _markDirty(true);
-                }),
-                 validator: (v) => v == null ? 'Required' : null,
+                items: distanceOptions.map((dist) => DropdownMenuItem(value: dist, child: Text('$dist m'))).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _distance = value;
+                    _generateSplitsTemplate();
+                    _markDirty(true);
+                  });
+                },
+                validator: (v) => v == null ? 'Required' : null,
               ),
               // Dropdown for selecting the swimming style.
               DropdownButtonFormField<String>(
                 initialValue: _style,
                 decoration: InputDecoration(labelText: l10n.style),
-                items: styleDisplayNames.keys
-                    .map((s) => DropdownMenuItem(value: s, child: Text(styleDisplayNames[s]!)))
-                    .toList(),
+                items: styleDisplayNames.keys.map((s) => DropdownMenuItem(value: s, child: Text(styleDisplayNames[s]!))).toList(),
                 onChanged: (value) => setState(() {
                   _style = value!;
                   _markDirty(true);
@@ -293,11 +479,24 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
               // Text field for the final time.
               TextFormField(
                 controller: _finalTimeController,
-                decoration: InputDecoration(
-                    labelText: l10n.finalTime, hintText: l10n.finalTimeHint),
+                decoration: InputDecoration(labelText: l10n.finalTime, hintText: l10n.finalTimeHint),
                 validator: (v) => v!.isEmpty ? 'Required' : null,
               ),
-              // Text field for notes.
+              // NEW: Splits section
+              const SizedBox(height: 24),
+              Text(l10n.splits, style: Theme.of(context).textTheme.titleMedium),
+              if (_splits.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Text(
+                    l10n.noSplitsYet,
+                    style: TextStyle(color: Colors.grey[600], fontStyle: FontStyle.italic),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              else
+                _buildSplitsTable(l10n),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
                 decoration: InputDecoration(labelText: l10n.notes),
@@ -305,6 +504,91 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// NEW: Builds the editable splits table
+  Widget _buildSplitsTable(AppLocalizations l10n) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Table(
+          columnWidths: const {
+            0: FlexColumnWidth(2),
+            1: FlexColumnWidth(2),
+            2: FlexColumnWidth(3),
+          },
+          border: TableBorder.all(color: Colors.grey[300]!),
+          children: [
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey[200]),
+              children: [
+                _buildTableCell(l10n.distance, isHeader: true),
+                _buildTableCell(l10n.segment, isHeader: true),
+                _buildTableCell(l10n.cumulative, isHeader: true),
+              ],
+            ),
+            // Data rows
+            ..._splits.asMap().entries.map((entry) {
+              return _buildEditableSplitRow(entry.key, entry.value, l10n);
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  TableRow _buildEditableSplitRow(int index, ChronoSplit split, AppLocalizations l10n) {
+    final bool isLastSplit = index == _splits.length - 1;
+    final hasError = _splitErrors[index] != null;
+    
+    return TableRow(
+      key: ValueKey(split.distance),
+      children: [
+        _buildTableCell('${split.distance}m'),
+        _buildTableCell(split.formattedSplitTime),
+        Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: TextFormField(
+            controller: _splitControllers[index],
+            readOnly: isLastSplit,
+            textAlign: TextAlign.center,
+            decoration: InputDecoration(
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              hintText: l10n.splitTimeHint,
+              fillColor: isLastSplit ? Colors.grey[200] : null,
+              filled: isLastSplit,
+              // NEW: Visual error indicator
+              errorBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.red, width: 2),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.red, width: 2),
+              ),
+              errorText: hasError ? _splitErrors[index] : null,
+              errorStyle: const TextStyle(fontSize: 10),
+            ),
+            onChanged: (value) {
+              _updateSplitTime(index, value);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTableCell(String text, {bool isHeader = false}) {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
+          fontSize: isHeader ? 14 : 12,
         ),
       ),
     );

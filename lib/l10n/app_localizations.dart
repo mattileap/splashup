@@ -865,6 +865,82 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No notes for this time record.'**
   String get noNotesForChrono;
+
+  /// No description provided for @splits.
+  ///
+  /// In en, this message translates to:
+  /// **'Splits'**
+  String get splits;
+
+  /// No description provided for @splitDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Split Distance'**
+  String get splitDistance;
+
+  /// No description provided for @noSplitsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No splits added yet'**
+  String get noSplitsYet;
+
+  /// No description provided for @splitTimeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'MM:SS.ss'**
+  String get splitTimeHint;
+
+  /// No description provided for @splitTimeInvalidError.
+  ///
+  /// In en, this message translates to:
+  /// **'Split {index}: please enter a valid cumulative time'**
+  String splitTimeInvalidError(Object index);
+
+  /// No description provided for @splitDistanceMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Split {number}: distance must be a multiple of {poolLength} m'**
+  String splitDistanceMultiple(Object number, Object poolLength);
+
+  /// No description provided for @splitDistanceExceeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Split {number}: distance ({splitDistance} m) exceeds total distance ({totalDistance} m)'**
+  String splitDistanceExceeds(
+    Object number,
+    Object splitDistance,
+    Object totalDistance,
+  );
+
+  /// No description provided for @splitDistanceOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Split {number}: distances must be in ascending order'**
+  String splitDistanceOrder(Object number);
+
+  /// No description provided for @splitTimeOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Split {number}: times must be in ascending order'**
+  String splitTimeOrder(Object number);
+
+  /// No description provided for @segment.
+  ///
+  /// In en, this message translates to:
+  /// **'Segment'**
+  String get segment;
+
+  /// No description provided for @cumulative.
+  ///
+  /// In en, this message translates to:
+  /// **'Cumulative'**
+  String get cumulative;
+
+  /// No description provided for @invalidTimeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid time format'**
+  String get invalidTimeFormat;
 }
 
 class _AppLocalizationsDelegate

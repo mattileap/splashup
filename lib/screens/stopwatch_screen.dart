@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../services/stopwatch_service.dart';
+import '../models/chrono_model.dart';
 import 'add_edit_chrono_screen.dart';
 import '../models/team_model.dart';
 import '../models/athlete_model.dart';
@@ -30,12 +31,11 @@ class StopwatchScreen extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text(l10n.stopwatch),
-              // REMOVED: The save button in the AppBar is no longer needed.
             ),
             body: Column(
               children: [
                 _buildTimerDisplay(context, stopwatchService),
-                // UPDATED: Pass the necessary data down to the controls widget.
+                // Pass the necessary data down to the controls widget.
                 _buildControls(context, stopwatchService, l10n, chronoCollection, team),
                 _buildLapList(context, stopwatchService, l10n),
               ],
@@ -56,7 +56,7 @@ class StopwatchScreen extends StatelessWidget {
     );
   }
 
-  // UPDATED: The controls widget now handles the navigation.
+  // The controls widget now handles the navigation.
   Widget _buildControls(BuildContext context, StopwatchService stopwatch, AppLocalizations l10n, CollectionReference chronoCollection, Team team) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -67,18 +67,23 @@ class StopwatchScreen extends StatelessWidget {
         ),
         const SizedBox(width: 20),
         ElevatedButton(
-          // UPDATED: The onPressed logic is now more complex.
           onPressed: () {
             if (stopwatch.isRunning) {
               // If the timer is running, stop it first.
               stopwatch.stop();
 
-              // Then, immediately prepare the data and navigate.
-              final finalTime = StopwatchService.formatDuration(stopwatch.elapsed);
-              String notes = '';
-              for (int i = 0; i < stopwatch.laps.length; i++) {
-                notes += '${l10n.lap} ${i + 1}: ${StopwatchService.formatDuration(stopwatch.laps[i])}\n';
-              }
+              // Convert laps to ChronoSplit format              
+              // FIXED: Pass total elapsed time to calculate the final split
+              final List<ChronoSplit> splits = _convertLapsToSplits(
+                stopwatch.laps,
+                stopwatch.elapsed, // Pass total time
+              );
+              
+              // Calculate final time in milliseconds
+              final finalTimeMs = stopwatch.elapsed.inMilliseconds;
+              final finalTime = Chrono.formatMillisecondsToTime(finalTimeMs);
+
+              // *** NOTA: La creazione delle note automatiche è stata rimossa ***
 
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
@@ -86,7 +91,9 @@ class StopwatchScreen extends StatelessWidget {
                     chronoCollection: chronoCollection,
                     team: team,
                     initialTime: finalTime,
-                    initialNotes: notes,
+                    initialTimeMs: finalTimeMs,
+                    initialSplits: splits,
+                    initialNotes: '', // Passa una stringa vuota
                   ),
                 ),
               );
@@ -106,11 +113,53 @@ class StopwatchScreen extends StatelessWidget {
     );
   }
 
+  /// Converts lap durations to ChronoSplit format
+  /// IMPORTANT: Stopwatch laps are cumulative times, not segment times!
+  List<ChronoSplit> _convertLapsToSplits(List<Duration> laps, Duration totalTime) {
+    if (laps.isEmpty) {
+      return [
+        ChronoSplit(
+          distance: 0, // Will be set in add/edit screen
+          time: totalTime.inMilliseconds,
+          splitTime: totalTime.inMilliseconds,
+        ),
+      ];
+    }
+
+    final List<ChronoSplit> splits = [];
+
+    // FIXED: Laps are cumulative times, we need to calculate segments
+    for (int i = 0; i < laps.length; i++) {
+      final cumulativeTimeMs = laps[i].inMilliseconds;
+      // Calculate segment time by subtracting previous cumulative time
+      final previousTimeMs = i > 0 ? laps[i - 1].inMilliseconds : 0;
+      final segmentMs = cumulativeTimeMs - previousTimeMs;
+      splits.add(ChronoSplit(
+        distance: 0, // Distance will be set in the add/edit screen based on pool length
+        time: cumulativeTimeMs,
+        splitTime: segmentMs,
+      ));
+    }
+
+    // Add the final split (from last lap to stop button)
+    // This is the remaining time after the last lap
+    final lastLapTimeMs = laps.isNotEmpty ? laps.last.inMilliseconds : 0;
+    final finalSegmentMs = totalTime.inMilliseconds - lastLapTimeMs;
+    if (finalSegmentMs > 10) { // Small threshold to avoid tiny final splits
+      splits.add(ChronoSplit(
+        distance: 0,
+        time: totalTime.inMilliseconds,
+        splitTime: finalSegmentMs,
+      ));
+    }
+    return splits;
+  }
+
   Widget _buildLapList(BuildContext context, StopwatchService stopwatch, AppLocalizations l10n) {
     return Expanded(
       child: ListView.builder(
         itemCount: stopwatch.laps.length,
-        itemBuilder: (context, index) {          
+        itemBuilder: (context, index) {
           // Use reversed to show the latest lap at the top.
           final reversedIndex = stopwatch.laps.length - 1 - index;
           return ListTile(

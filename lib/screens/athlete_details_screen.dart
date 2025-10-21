@@ -31,6 +31,9 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
   int? _selectedDistance;
   String? _selectedStyle;
   String? _selectedType;
+  
+  // NEW: Track which chrono cards are expanded for splits
+  final Set<String> _expandedChronos = {};
 
   /// Parses a time string (e.g., "01:23.45") into a Duration object for easy comparison.
   Duration _parseTime(String time) {
@@ -483,55 +486,148 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       'IM': l10n.im,
     };
 
+    // NEW: Check if this card is expanded
+    final isExpanded = _expandedChronos.contains(chrono.id);
+    final validSplits = chrono.splits.where((s) => s.time != null && s.time! > 0).toList();
+    final hasSplits = validSplits.isNotEmpty;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: ListTile(
-        leading: CircleAvatar(
-          child: Text(chrono.distance.toString()),
-        ),
-        title: Text('${styleDisplayNames[chrono.style] ?? chrono.style} - ${chrono.finalTime}'),
-        subtitle: Text('${DateFormat.yMMMd().format(chrono.date)} • ${typeDisplayNames[chrono.type] ?? chrono.type}'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // UPDATED: Conditionally show the notes button.
-            if (chrono.notes.isNotEmpty)
-              IconButton(
-                icon: const Icon(Icons.note_alt_outlined, color: Colors.grey),
-                tooltip: l10n.notes,
-                onPressed: () => _showChronoNotesDialog(context, chrono, l10n),
-              ),
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.grey),
-              onPressed: () {
-                 Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => AddEditChronoScreen(
-                        chronoCollection: chronoCollection,
-                        existingChrono: chrono,
-                        team: widget.team,
-                    )));
-              },
+      child: Column(
+        children: [
+          ListTile(
+            leading: CircleAvatar(
+              child: Text(chrono.distance.toString()),
             ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.redAccent),
-              onPressed: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(l10n.deleteChronoTitle),
-                    content: Text(l10n.deleteConfirmation),
-                    actions: [
-                      TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.cancel)),
-                      TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.delete)),
+            title: Text('${styleDisplayNames[chrono.style] ?? chrono.style} - ${chrono.finalTime}'),
+            subtitle: Text('${DateFormat.yMMMd().format(chrono.date)} • ${typeDisplayNames[chrono.type] ?? chrono.type}'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // NEW: Show expand icon if there are splits
+                if (hasSplits)
+                  IconButton(
+                    icon: Icon(
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
+                      color: Colors.blue,
+                    ),
+                    tooltip: isExpanded ? 'Hide splits' : 'Show splits',
+                    onPressed: () {
+                      setState(() {
+                        if (isExpanded) {
+                          _expandedChronos.remove(chrono.id);
+                        } else {
+                          _expandedChronos.add(chrono.id);
+                        }
+                      });
+                    },
+                  ),
+                // UPDATED: Conditionally show the notes button.
+                if (chrono.notes.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.note_alt_outlined, color: Colors.grey),
+                    tooltip: l10n.notes,
+                    onPressed: () => _showChronoNotesDialog(context, chrono, l10n),
+                  ),
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.grey),
+                  onPressed: () {
+                     Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => AddEditChronoScreen(
+                            chronoCollection: chronoCollection,
+                            existingChrono: chrono,
+                            team: widget.team,
+                        )));
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(l10n.deleteChronoTitle),
+                        content: Text(l10n.deleteConfirmation),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l10n.cancel)),
+                          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(l10n.delete)),
+                        ],
+                      ),
+                    );
+                    if (confirm == true) {
+                      await chronoCollection.doc(chrono.id).delete();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+          // NEW: Expandable splits section
+          if (isExpanded && hasSplits)
+            _buildSplitsTable(context, validSplits, l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSplitsTable(BuildContext context, List<ChronoSplit> splits, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Text(l10n.splits, style: Theme.of(context).textTheme.titleMedium),
+          ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(2),
+                  1: FlexColumnWidth(2),
+                  2: FlexColumnWidth(3),
+                },
+                border: TableBorder.all(color: Colors.grey[300]!),
+                children: [
+                  TableRow(
+                    decoration: BoxDecoration(color: Colors.grey[200]),
+                    children: [
+                      _buildTableCell(l10n.distance, isHeader: true),
+                      _buildTableCell(l10n.segment, isHeader: true),
+                      _buildTableCell(l10n.cumulative, isHeader: true),
                     ],
                   ),
-                );
-                if (confirm == true) {
-                  await chronoCollection.doc(chrono.id).delete();
-                }
-              },
+                  ...splits.map((split) {
+                    return TableRow(
+                      children: [
+                        _buildTableCell('${split.distance}m'),
+                        _buildTableCell(split.formattedSplitTime),
+                        _buildTableCell(split.formattedTime),
+                      ],
+                    );
+                  }),
+                ],
+              ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// NEW: Helper to build table cells
+  Widget _buildTableCell(String text, {bool isHeader = false}) {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
+           fontSize: isHeader ? 14 : 12,
         ),
       ),
     );

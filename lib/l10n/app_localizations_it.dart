@@ -412,4 +412,54 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get noNotesForChrono => 'Nessuna nota per questo tempo.';
+
+  @override
+  String get splits => 'Tempi Parziali';
+
+  @override
+  String get splitDistance => 'Distanza Parziale';
+
+  @override
+  String get noSplitsYet => 'Nessun parziale aggiunto';
+
+  @override
+  String get splitTimeHint => 'MM:SS.ss';
+
+  @override
+  String splitTimeInvalidError(Object index) {
+    return 'Parziale $index: inserisci un tempo cumulativo valido';
+  }
+
+  @override
+  String splitDistanceMultiple(Object number, Object poolLength) {
+    return 'Parziale $number: la distanza deve essere multiplo di $poolLength m';
+  }
+
+  @override
+  String splitDistanceExceeds(
+    Object number,
+    Object splitDistance,
+    Object totalDistance,
+  ) {
+    return 'Parziale $number: la distanza ($splitDistance m) supera la distanza totale ($totalDistance m)';
+  }
+
+  @override
+  String splitDistanceOrder(Object number) {
+    return 'Parziale $number: le distanze devono essere in ordine crescente';
+  }
+
+  @override
+  String splitTimeOrder(Object number) {
+    return 'Parziale $number: i tempi devono essere in ordine crescente';
+  }
+
+  @override
+  String get segment => 'Parziale';
+
+  @override
+  String get cumulative => 'Cumulativo';
+
+  @override
+  String get invalidTimeFormat => 'Formato tempo non valido';
 }

@@ -112,12 +112,22 @@
   "run": "Esegui",
   "deactivationConfirmation": "Questo controllerà tutti gli atleti attivi. Se il loro ultimo tempo registrato è più vecchio del periodo selezionato, verranno impostati come 'Inattivi'. Sei sicuro di voler procedere?",
   "deactivationComplete": "Pulizia completata. {count} atleta(i) sono stati disattivati.",
+  "@deactivationComplete": {
+    "placeholders": {
+        "count": {}
+    }
+  },
   "deleteInactiveAthletes": "Elimina Atleti Inattivi",
   "deleteInactiveDescription": "Elimina permanentemente gli atleti che sono inattivi da molto tempo.",
   "deleteAfter": "Elimina dopo",
   "years": "anni",
   "deletionConfirmation": "Questo eliminerà permanentemente tutti gli atleti che sono stati inattivi per più del periodo selezionato. Questa azione non può essere annullata. Sei sicuro?",
   "deletionComplete": "Pulizia completata. {count} atleta(i) sono stati eliminati.",
+  "@deletionComplete": {
+    "placeholders": {
+        "count": {}
+    }
+  },
   "googleSignIn": "Accedi con Google",
   "stopwatch": "Cronometro",
   "lap": "Giro",
@@ -127,5 +137,45 @@
   "stop": "Ferma",
   "saveTime": "Salva Tempo",
   "chronoNotesTitle": "Note del Tempo",
-  "noNotesForChrono": "Nessuna nota per questo tempo."
+  "noNotesForChrono": "Nessuna nota per questo tempo.",
+  "splits": "Tempi Parziali",
+  "splitDistance": "Distanza Parziale",
+  "noSplitsYet": "Nessun parziale aggiunto",
+  "splitTimeHint": "MM:SS.ss",
+  "splitTimeInvalidError": "Parziale {index}: inserisci un tempo cumulativo valido",
+  "@splitTimeInvalidError": {
+    "placeholders": {
+        "index": {}
+    }
+  },
+  "splitDistanceMultiple": "Parziale {number}: la distanza deve essere multiplo di {poolLength} m",
+  "@splitDistanceMultiple": {
+    "placeholders": {
+        "number": {},
+        "poolLength": {}
+    }
+  },  
+  "splitDistanceExceeds": "Parziale {number}: la distanza ({splitDistance} m) supera la distanza totale ({totalDistance} m)",
+  "@splitDistanceExceeds": {
+    "placeholders": {
+        "number": {},
+        "splitDistance": {},
+        "totalDistance": {}
+    }
+  },  
+  "splitDistanceOrder": "Parziale {number}: le distanze devono essere in ordine crescente",
+  "@splitDistanceOrder": {
+    "placeholders": {
+        "number": {}
+    }
+  },
+  "splitTimeOrder": "Parziale {number}: i tempi devono essere in ordine crescente",
+  "@splitTimeOrder": {
+    "placeholders": {
+        "number": {}
+    }
+  },
+  "segment": "Parziale",
+  "cumulative": "Cumulativo",
+  "invalidTimeFormat": "Formato tempo non valido"
 }
