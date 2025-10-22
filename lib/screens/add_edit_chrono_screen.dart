@@ -1,9 +1,95 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import '../models/chrono_model.dart';
 import '../models/team_model.dart';
+
+/// Custom InputFormatter for sequential time input (MM:SS.cc)
+/// Digits shift left automatically, decimal point is ignored
+class TimeInputFormatter extends TextInputFormatter {
+  String _currentValue = '00:00.00';
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final newText = newValue.text;
+    final oldText = oldValue.text;
+
+    // Handle complete deletion (when field is cleared)
+    if (newText.isEmpty) {
+      _currentValue = '00:00.00';
+      return TextEditingValue(
+        text: _currentValue,
+        selection: TextSelection.collapsed(offset: _currentValue.length),
+      );
+    }
+
+    // If user is deleting (backspace)
+    if (newText.length < oldText.length) {
+      _handleBackspace();
+      return TextEditingValue(
+        text: _currentValue,
+        selection: TextSelection.collapsed(offset: _currentValue.length),
+      );
+    }
+
+    // Get the last character typed
+    final lastChar = newText[newText.length - 1];
+
+    // Ignore decimal point (we format automatically)
+    if (lastChar == '.') {
+      return TextEditingValue(
+        text: _currentValue,
+        selection: TextSelection.collapsed(offset: _currentValue.length),
+      );
+    }
+
+    // Handle digits 0-9 only
+    if (RegExp(r'[0-9]').hasMatch(lastChar)) {
+      _handleDigit(lastChar);
+      return TextEditingValue(
+        text: _currentValue,
+        selection: TextSelection.collapsed(offset: _currentValue.length),
+      );
+    }
+
+    // Ignore any other character
+    return TextEditingValue(
+      text: _currentValue,
+      selection: TextSelection.collapsed(offset: _currentValue.length),
+    );
+  }
+
+  void _handleDigit(String digit) {
+    // Remove formatting characters to get just the 6 digits
+    final numbers = _currentValue.replaceAll(RegExp(r'[:\.]'), '');
+    
+    // Shift left and add new digit at the end
+    final shifted = '${numbers.substring(1)}$digit';
+    
+    // Reformat as MM:SS.cc
+    _currentValue = '${shifted.substring(0, 2)}:${shifted.substring(2, 4)}.${shifted.substring(4, 6)}';
+  }
+
+  void _handleBackspace() {
+    // Remove formatting characters
+    final numbers = _currentValue.replaceAll(RegExp(r'[:\.]'), '');
+    
+    // Shift right and add 0 at the beginning
+    final shifted = '0${numbers.substring(0, 5)}';
+    
+    // Reformat as MM:SS.cc
+    _currentValue = '${shifted.substring(0, 2)}:${shifted.substring(2, 4)}.${shifted.substring(4, 6)}';
+  }
+
+  void reset() {
+    _currentValue = '00:00.00';
+  }
+}
 
 /// A screen that provides a form for both adding a new chrono record and
 /// editing an existing one.
@@ -47,12 +133,14 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   String _chronoType = 'Training';
   final _finalTimeController = TextEditingController();
   final _notesController = TextEditingController();
+  final _finalTimeFormatter = TimeInputFormatter();
 
   // NEW: Split management
   List<ChronoSplit> _splits = [];
   late List<TextEditingController> _splitControllers;
+  late List<TimeInputFormatter> _splitFormatters;
   // NEW: Error tracking for each split field
-  Map<int, String?> _splitErrors = {};
+  final Map<int, String?> _splitErrors = {};
   int? _finalTimeMs;
   // A getter to easily check if the screen is in editing mode.
   bool get isEditing => widget.existingChrono != null;
@@ -63,6 +151,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   void initState() {
     super.initState();
     _splitControllers = [];
+    _splitFormatters = [];
 
     if (isEditing) {
       final chrono = widget.existingChrono!;
@@ -186,6 +275,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       controller.dispose();
     }
     _splitControllers.clear();
+    _splitFormatters.clear();
     _splitErrors.clear();
     
     final newSplits = <ChronoSplit>[];
@@ -211,6 +301,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
         text: existingSplit.time != null ? Chrono.formatMillisecondsToTime(existingSplit.time!) : '',
       );
       _splitControllers.add(controller);
+      _splitFormatters.add(TimeInputFormatter());
     }
 
     _splits = newSplits;
@@ -360,6 +451,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
 
     // Maps for translating database keys into display names.
     final Map<String, String> styleDisplayNames = {
@@ -476,15 +568,28 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                   _markDirty(true);
                 }),
               ),
-              // Text field for the final time.
+              // Text field for the final time with sequential input
               TextFormField(
                 controller: _finalTimeController,
-                decoration: InputDecoration(labelText: l10n.finalTime, hintText: l10n.finalTimeHint),
+                decoration: InputDecoration(
+                  labelText: l10n.finalTime,
+                  hintText: l10n.finalTimeHint,
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear, size: 20),
+                    onPressed: () {
+                      _finalTimeController.clear();
+                      _finalTimeFormatter.reset();
+                      _markDirty(true);
+                    },
+                  ),
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [_finalTimeFormatter],
                 validator: (v) => v!.isEmpty ? 'Required' : null,
               ),
               // NEW: Splits section
               const SizedBox(height: 24),
-              Text(l10n.splits, style: Theme.of(context).textTheme.titleMedium),
+              Text(l10n.splits, style: theme.textTheme.titleMedium),
               if (_splits.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -495,7 +600,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                   ),
                 )
               else
-                _buildSplitsTable(l10n),
+                _buildSplitsTable(l10n, theme),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notesController,
@@ -510,7 +615,11 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   }
 
   /// NEW: Builds the editable splits table
-  Widget _buildSplitsTable(AppLocalizations l10n) {
+  Widget _buildSplitsTable(AppLocalizations l10n, ThemeData theme) {
+    // FIXED: Use theme colors for dark mode compatibility
+    final headerColor = theme.colorScheme.surfaceContainerHighest;
+    final borderColor = theme.dividerColor;
+    
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -520,19 +629,19 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
             1: FlexColumnWidth(2),
             2: FlexColumnWidth(3),
           },
-          border: TableBorder.all(color: Colors.grey[300]!),
+          border: TableBorder.all(color: borderColor),
           children: [
             TableRow(
-              decoration: BoxDecoration(color: Colors.grey[200]),
+              decoration: BoxDecoration(color: headerColor),
               children: [
-                _buildTableCell(l10n.distance, isHeader: true),
-                _buildTableCell(l10n.segment, isHeader: true),
-                _buildTableCell(l10n.cumulative, isHeader: true),
+                _buildTableCell(l10n.distance, isHeader: true, theme: theme),
+                _buildTableCell(l10n.segment, isHeader: true, theme: theme),
+                _buildTableCell(l10n.cumulative, isHeader: true, theme: theme),
               ],
             ),
             // Data rows
             ..._splits.asMap().entries.map((entry) {
-              return _buildEditableSplitRow(entry.key, entry.value, l10n);
+              return _buildEditableSplitRow(entry.key, entry.value, l10n, theme);
             }),
           ],
         ),
@@ -540,47 +649,69 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
     );
   }
 
-  TableRow _buildEditableSplitRow(int index, ChronoSplit split, AppLocalizations l10n) {
+  TableRow _buildEditableSplitRow(int index, ChronoSplit split, AppLocalizations l10n, ThemeData theme) {
     final bool isLastSplit = index == _splits.length - 1;
     final hasError = _splitErrors[index] != null;
+    // FIXED: Use theme color for read-only field
+    final readOnlyColor = theme.colorScheme.surfaceContainerHighest;
     
     return TableRow(
       key: ValueKey(split.distance),
       children: [
-        _buildTableCell('${split.distance}m'),
-        _buildTableCell(split.formattedSplitTime),
+        _buildTableCell('${split.distance}m', theme: theme),
+        _buildTableCell(split.formattedSplitTime, theme: theme),
         Padding(
           padding: const EdgeInsets.all(4.0),
-          child: TextFormField(
-            controller: _splitControllers[index],
-            readOnly: isLastSplit,
-            textAlign: TextAlign.center,
-            decoration: InputDecoration(
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              hintText: l10n.splitTimeHint,
-              fillColor: isLastSplit ? Colors.grey[200] : null,
-              filled: isLastSplit,
-              // NEW: Visual error indicator
-              errorBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.red, width: 2),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _splitControllers[index],
+                  readOnly: isLastSplit,
+                  textAlign: TextAlign.center,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: isLastSplit ? [] : [_splitFormatters[index]],
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    hintText: l10n.splitTimeHint,
+                    fillColor: isLastSplit ? readOnlyColor : null,
+                    filled: isLastSplit,
+                    // NEW: Visual error indicator
+                    errorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red, width: 2),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red, width: 2),
+                    ),
+                    errorText: hasError ? _splitErrors[index] : null,
+                    errorStyle: const TextStyle(fontSize: 10),
+                  ),
+                  onChanged: (value) {
+                    _updateSplitTime(index, value);
+                  },
+                ),
               ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.red, width: 2),
-              ),
-              errorText: hasError ? _splitErrors[index] : null,
-              errorStyle: const TextStyle(fontSize: 10),
-            ),
-            onChanged: (value) {
-              _updateSplitTime(index, value);
-            },
+              // NEW: Clear button for non-last splits
+              if (!isLastSplit)
+                IconButton(
+                  icon: const Icon(Icons.clear, size: 16),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    _splitControllers[index].clear();
+                    _splitFormatters[index].reset();
+                    _updateSplitTime(index, '');
+                  },
+                ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTableCell(String text, {bool isHeader = false}) {
+  Widget _buildTableCell(String text, {bool isHeader = false, required ThemeData theme}) {
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: Text(
@@ -589,6 +720,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
         style: TextStyle(
           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
           fontSize: isHeader ? 14 : 12,
+          // FIXED: Use theme text color for proper contrast
+          color: theme.textTheme.bodyMedium?.color,
         ),
       ),
     );

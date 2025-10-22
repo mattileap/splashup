@@ -571,6 +571,11 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
   }
 
   Widget _buildSplitsTable(BuildContext context, List<ChronoSplit> splits, AppLocalizations l10n) {
+    // FIXED: Use theme colors for dark mode compatibility
+    final theme = Theme.of(context);
+    final headerColor = theme.colorScheme.surfaceContainerHighest;
+    final borderColor = theme.dividerColor;
+    
     return Padding(
       padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
       child: Column(
@@ -579,7 +584,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           const Divider(),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text(l10n.splits, style: Theme.of(context).textTheme.titleMedium),
+            child: Text(l10n.splits, style: theme.textTheme.titleMedium),
           ),
           Card(
             child: Padding(
@@ -590,22 +595,22 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                   1: FlexColumnWidth(2),
                   2: FlexColumnWidth(3),
                 },
-                border: TableBorder.all(color: Colors.grey[300]!),
+                border: TableBorder.all(color: borderColor),
                 children: [
                   TableRow(
-                    decoration: BoxDecoration(color: Colors.grey[200]),
+                    decoration: BoxDecoration(color: headerColor),
                     children: [
-                      _buildTableCell(l10n.distance, isHeader: true),
-                      _buildTableCell(l10n.segment, isHeader: true),
-                      _buildTableCell(l10n.cumulative, isHeader: true),
+                      _buildTableCell(l10n.distance, isHeader: true, theme: theme),
+                      _buildTableCell(l10n.segment, isHeader: true, theme: theme),
+                      _buildTableCell(l10n.cumulative, isHeader: true, theme: theme),
                     ],
                   ),
                   ...splits.map((split) {
                     return TableRow(
                       children: [
-                        _buildTableCell('${split.distance}m'),
-                        _buildTableCell(split.formattedSplitTime),
-                        _buildTableCell(split.formattedTime),
+                        _buildTableCell('${split.distance}m', theme: theme),
+                        _buildTableCell(split.formattedSplitTime, theme: theme),
+                        _buildTableCell(split.formattedTime, theme: theme),
                       ],
                     );
                   }),
@@ -619,7 +624,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
   }
 
   /// NEW: Helper to build table cells
-  Widget _buildTableCell(String text, {bool isHeader = false}) {
+  Widget _buildTableCell(String text, {bool isHeader = false, required ThemeData theme}) {
     return Padding(
       padding: const EdgeInsets.all(12.0),
       child: Text(
@@ -627,7 +632,9 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
         textAlign: TextAlign.center,
         style: TextStyle(
           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-           fontSize: isHeader ? 14 : 12,
+          fontSize: isHeader ? 14 : 12,
+          // FIXED: Use theme text color for proper contrast
+          color: theme.textTheme.bodyMedium?.color,
         ),
       ),
     );
