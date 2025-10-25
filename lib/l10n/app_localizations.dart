@@ -941,6 +941,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid time format'**
   String get invalidTimeFormat;
+
+  /// No description provided for @splitAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Split Analysis'**
+  String get splitAnalysis;
+
+  /// No description provided for @filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get filters;
+
+  /// No description provided for @type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get type;
+
+  /// No description provided for @legend.
+  ///
+  /// In en, this message translates to:
+  /// **'Legend'**
+  String get legend;
+
+  /// No description provided for @noSplitData.
+  ///
+  /// In en, this message translates to:
+  /// **'No split data available'**
+  String get noSplitData;
+
+  /// No description provided for @tryDifferentFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Try selecting a different distance or style'**
+  String get tryDifferentFilter;
+
+  /// No description provided for @noVisibleLines.
+  ///
+  /// In en, this message translates to:
+  /// **'No visible lines. Enable at least one from the legend below.'**
+  String get noVisibleLines;
+
+  /// No description provided for @showRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Show records: {count}'**
+  String showRecords(Object count);
+
+  /// No description provided for @distanceMeters.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance (m)'**
+  String get distanceMeters;
+
+  /// No description provided for @timeSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Time (s)'**
+  String get timeSeconds;
 }
 
 class _AppLocalizationsDelegate

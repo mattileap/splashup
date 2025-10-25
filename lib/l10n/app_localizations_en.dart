@@ -459,4 +459,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invalidTimeFormat => 'Invalid time format';
+
+  @override
+  String get splitAnalysis => 'Split Analysis';
+
+  @override
+  String get filters => 'Filters';
+
+  @override
+  String get type => 'Type';
+
+  @override
+  String get legend => 'Legend';
+
+  @override
+  String get noSplitData => 'No split data available';
+
+  @override
+  String get tryDifferentFilter =>
+      'Try selecting a different distance or style';
+
+  @override
+  String get noVisibleLines =>
+      'No visible lines. Enable at least one from the legend below.';
+
+  @override
+  String showRecords(Object count) {
+    return 'Show records: $count';
+  }
+
+  @override
+  String get distanceMeters => 'Distance (m)';
+
+  @override
+  String get timeSeconds => 'Time (s)';
 }

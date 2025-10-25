@@ -177,5 +177,20 @@
   },
   "segment": "Parziale",
   "cumulative": "Cumulativo",
-  "invalidTimeFormat": "Formato tempo non valido"
+  "invalidTimeFormat": "Formato tempo non valido",
+  "splitAnalysis": "Analisi Parziali",
+  "filters": "Filtri",
+  "type": "Tipologia",
+  "legend": "Legenda",
+  "noSplitData": "Nessun dato parziale disponibile",
+  "tryDifferentFilter": "Prova a selezionare una distanza o uno stile diverso",
+  "noVisibleLines": "Nessuna linea visibile. Abilita almeno una dalla legenda qui sotto.",
+  "showRecords": "Mostra record: {count}",
+  "@showRecords": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "distanceMeters": "Distanza (m)",
+  "timeSeconds": "Tempo (s)"
 }

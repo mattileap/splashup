@@ -462,4 +462,38 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get invalidTimeFormat => 'Formato tempo non valido';
+
+  @override
+  String get splitAnalysis => 'Analisi Parziali';
+
+  @override
+  String get filters => 'Filtri';
+
+  @override
+  String get type => 'Tipologia';
+
+  @override
+  String get legend => 'Legenda';
+
+  @override
+  String get noSplitData => 'Nessun dato parziale disponibile';
+
+  @override
+  String get tryDifferentFilter =>
+      'Prova a selezionare una distanza o uno stile diverso';
+
+  @override
+  String get noVisibleLines =>
+      'Nessuna linea visibile. Abilita almeno una dalla legenda qui sotto.';
+
+  @override
+  String showRecords(Object count) {
+    return 'Mostra record: $count';
+  }
+
+  @override
+  String get distanceMeters => 'Distanza (m)';
+
+  @override
+  String get timeSeconds => 'Tempo (s)';
 }

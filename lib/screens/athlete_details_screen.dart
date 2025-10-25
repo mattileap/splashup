@@ -8,7 +8,17 @@ import '../models/chrono_model.dart';
 import '../models/team_model.dart';
 import 'add_edit_chrono_screen.dart';
 import 'edit_athlete_screen.dart';
-import 'stopwatch_screen.dart'; // Import the new stopwatch screen
+import 'stopwatch_screen.dart';
+import 'splits_chart_screen.dart'; // NEW
+
+/// Menu options for the athlete details screen
+enum AthleteMenuAction {
+  notes,
+  personalBests,
+  stopwatch,
+  splitAnalysis,  // NEW
+  // statistics,  // FUTURE
+}
 
 /// Displays the details for a single athlete, including their personal information
 /// and a filterable list of all their recorded times (chronos).
@@ -151,6 +161,79 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
     );
   }
 
+  /// NEW: Handles menu action selection
+  Future<void> _handleMenuAction(
+    AthleteMenuAction action,
+    CollectionReference chronoCollection,
+    AppLocalizations l10n,
+  ) async {
+    switch (action) {
+      case AthleteMenuAction.notes:
+        _showAthleteNotesDialog(context, widget.athlete, l10n);
+        break;
+        
+      case AthleteMenuAction.personalBests:
+        if (!mounted) return;
+        
+        final currentContext = context;
+        final currentL10n = l10n;
+        
+        try {
+          final snapshot = await chronoCollection.get();
+          
+          if (!mounted) return;
+          
+          final allChronos = snapshot.docs.map((doc) => Chrono.fromFirestore(doc)).toList();
+          
+          if (mounted && currentContext.mounted) {
+            _showPersonalBestsDialog(currentContext, allChronos, currentL10n);
+          }
+        } catch (e) {
+          debugPrint('Error loading personal bests: $e');
+        }
+        break;
+        
+      case AthleteMenuAction.stopwatch:
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => StopwatchScreen(
+              team: widget.team,
+              athlete: widget.athlete,
+              chronoCollection: chronoCollection,
+            ),
+          ),
+        );
+        break;
+        
+      case AthleteMenuAction.splitAnalysis:
+        if (!mounted) return;
+        
+        final currentContext = context;
+        
+        try {
+          final snapshot = await chronoCollection.get();
+          
+          if (!mounted) return;
+          
+          final allChronos = snapshot.docs.map((doc) => Chrono.fromFirestore(doc)).toList();
+          
+          if (mounted && currentContext.mounted) {
+            Navigator.of(currentContext).push(
+              MaterialPageRoute(
+                builder: (context) => SplitsChartScreen(
+                  team: widget.team,
+                  athlete: widget.athlete,
+                  allChronos: allChronos,
+                ),
+              ),
+            );
+          }
+        } catch (e) {
+          debugPrint('Error loading chronos for chart: $e');
+        }
+        break;
+    }
+  }
 
   /// Handles the multi-step process for deleting an athlete.
   Future<void> _showDeleteAthleteDialog() async {
@@ -230,57 +313,71 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
         // UPDATED: AppBar title is now simpler.
         title: Text(l10n.athleteDetails),
         actions: [
-          // Button to show the athlete's notes.
-          IconButton(
-            icon: const Icon(Icons.note_alt_outlined),
-            tooltip: l10n.notes,
-            onPressed: () => _showAthleteNotesDialog(context, widget.athlete, l10n),
-          ),
-          // Button to show the athlete's personal bests.
-          IconButton(
-            icon: const Icon(Icons.emoji_events_outlined),
-            tooltip: l10n.personalBestsTitle,
-            onPressed: () async {
-              // FIXED: Most explicit approach - check mounted at every step
-              if (!mounted) return;
+          // NEW: Dropdown menu replacing multiple icon buttons
+          PopupMenuButton<AthleteMenuAction>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (action) => _handleMenuAction(action, chronoCollection, l10n),
+            itemBuilder: (context) {
+              // FIXED: Get icon color from theme for proper visibility
+              final iconColor = Theme.of(context).iconTheme.color;
               
-              final currentContext = context;
-              final currentL10n = l10n;
-              
-              try {
-                final snapshot = await chronoCollection.get();
-                
-                // Critical: check mounted again before using any saved context
-                if (!mounted) return;
-                
-                final allChronos = snapshot.docs.map((doc) => Chrono.fromFirestore(doc)).toList();
-                
-                // Final mounted check before calling method with context
-                if (mounted && currentContext.mounted) {
-                  _showPersonalBestsDialog(currentContext, allChronos, currentL10n);
-                }
-              } catch (e) {
-                // Handle potential errors silently
-                debugPrint('Error loading personal bests: $e');
-              }
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.timer_outlined),
-            tooltip: l10n.stopwatch,
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => StopwatchScreen(
-                    team: widget.team,
-                    athlete: widget.athlete,
-                    chronoCollection: chronoCollection,
+              return [
+                PopupMenuItem(
+                  value: AthleteMenuAction.notes,
+                  child: Row(
+                    children: [
+                      Icon(Icons.note_alt_outlined, color: iconColor),
+                      const SizedBox(width: 12),
+                      Text(l10n.notes),
+                    ],
                   ),
                 ),
-              );
+                PopupMenuItem(
+                  value: AthleteMenuAction.personalBests,
+                  child: Row(
+                    children: [
+                      Icon(Icons.emoji_events_outlined, color: iconColor),
+                      const SizedBox(width: 12),
+                      Text(l10n.personalBestsTitle),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: AthleteMenuAction.stopwatch,
+                  child: Row(
+                    children: [
+                      Icon(Icons.timer_outlined, color: iconColor),
+                      const SizedBox(width: 12),
+                      Text(l10n.stopwatch),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: AthleteMenuAction.splitAnalysis,
+                  child: Row(
+                    children: [
+                      Icon(Icons.show_chart, color: iconColor),
+                      const SizedBox(width: 12),
+                      Text(l10n.splitAnalysis),
+                    ],
+                  ),
+                ),
+                // FUTURE: Uncomment when statistics screen is ready
+                // PopupMenuItem(
+                //   value: AthleteMenuAction.statistics,
+                //   child: Row(
+                //     children: [
+                //       Icon(Icons.analytics_outlined, color: iconColor),
+                //       const SizedBox(width: 12),
+                //       Text(l10n.statistics),
+                //     ],
+                //   ),
+                // ),
+              ];
             },
           ),
-          // Button to edit the athlete.
+          // Keep Edit and Delete as separate buttons (important actions)
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {
@@ -390,7 +487,6 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           children: [
             Text(athlete.name, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 4),
-            // UPDATED: Team name added here.
             Text(team.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600)),
             const SizedBox(height: 8),
             Text('${l10n.age}: $age • $translatedGender'),
@@ -486,7 +582,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       'IM': l10n.im,
     };
 
-    // NEW: Check if this card is expanded
+    // Check if this card is expanded
     final isExpanded = _expandedChronos.contains(chrono.id);
     final validSplits = chrono.splits.where((s) => s.time != null && s.time! > 0).toList();
     final hasSplits = validSplits.isNotEmpty;
@@ -504,7 +600,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // NEW: Show expand icon if there are splits
+                // Show expand icon if there are splits
                 if (hasSplits)
                   IconButton(
                     icon: Icon(
@@ -522,7 +618,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                       });
                     },
                   ),
-                // UPDATED: Conditionally show the notes button.
+                // Conditionally show the notes button.
                 if (chrono.notes.isNotEmpty)
                   IconButton(
                     icon: const Icon(Icons.note_alt_outlined, color: Colors.grey),
@@ -562,7 +658,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
               ],
             ),
           ),
-          // NEW: Expandable splits section
+          // Expandable splits section
           if (isExpanded && hasSplits)
             _buildSplitsTable(context, validSplits, l10n),
         ],
@@ -571,7 +667,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
   }
 
   Widget _buildSplitsTable(BuildContext context, List<ChronoSplit> splits, AppLocalizations l10n) {
-    // FIXED: Use theme colors for dark mode compatibility
+    // Use theme colors for dark mode compatibility
     final theme = Theme.of(context);
     final headerColor = theme.colorScheme.surfaceContainerHighest;
     final borderColor = theme.dividerColor;
@@ -623,7 +719,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
     );
   }
 
-  /// NEW: Helper to build table cells
+  /// Helper to build table cells
   Widget _buildTableCell(String text, {bool isHeader = false, required ThemeData theme}) {
     return Padding(
       padding: const EdgeInsets.all(12.0),
@@ -633,7 +729,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
         style: TextStyle(
           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
           fontSize: isHeader ? 14 : 12,
-          // FIXED: Use theme text color for proper contrast
+          // Use theme text color for proper contrast
           color: theme.textTheme.bodyMedium?.color,
         ),
       ),

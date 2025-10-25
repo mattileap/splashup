@@ -177,5 +177,20 @@
   },
   "segment": "Segment",
   "cumulative": "Cumulative",
-  "invalidTimeFormat": "Invalid time format"
+  "invalidTimeFormat": "Invalid time format",
+  "splitAnalysis": "Split Analysis",
+  "filters": "Filters",
+  "type": "Type",
+  "legend": "Legend",
+  "noSplitData": "No split data available",
+  "tryDifferentFilter": "Try selecting a different distance or style",
+  "noVisibleLines": "No visible lines. Enable at least one from the legend below.",
+  "showRecords": "Show records: {count}",
+  "@showRecords": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "distanceMeters": "Distance (m)",
+  "timeSeconds": "Time (s)"
 }
