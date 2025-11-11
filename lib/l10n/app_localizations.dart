@@ -1001,6 +1001,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Time (s)'**
   String get timeSeconds;
+
+  /// No description provided for @tooltipMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Tooltip Display'**
+  String get tooltipMode;
+
+  /// No description provided for @compactData.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact (all times at distance)'**
+  String get compactData;
+
+  /// No description provided for @detailedData.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed (segment analysis)'**
+  String get detailedData;
+
+  /// No description provided for @selectSingleLineForDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Select only one line in the checkbox to view correct details'**
+  String get selectSingleLineForDetails;
 }
 
 class _AppLocalizationsDelegate

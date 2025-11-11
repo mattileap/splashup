@@ -496,4 +496,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get timeSeconds => 'Tempo (s)';
+
+  @override
+  String get tooltipMode => 'Visualizzazione Tooltip';
+
+  @override
+  String get compactData => 'Compatto (tutti i tempi alla distanza)';
+
+  @override
+  String get detailedData => 'Dettagliato (analisi segmento)';
+
+  @override
+  String get selectSingleLineForDetails =>
+      'Seleziona una sola linea nella checkbox per avere i dettagli corretti';
 }

@@ -33,6 +33,11 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
   // Chart data
   List<ChartLineData> _chartLines = [];
   Set<String> _visibleLines = {};
+  // Touch interaction state
+  int? _highlightedLineIndex;
+  
+  // Tooltip display mode
+  bool _showCompactTooltip = true; // true = compact, false = detailed segment
 
   @override
   void initState() {
@@ -128,7 +133,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
   List<FlSpot> _createSpotsForChrono(Chrono chrono) {
     final spots = <FlSpot>[];
     
-    // FIXED: Always start from origin (0, 0)
+    // Always start from origin (0, 0)
     spots.add(const FlSpot(0, 0));
     
     for (final split in chrono.splits) {
@@ -348,6 +353,24 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            
+            // Tooltip mode switch
+            SwitchListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.tooltipMode, style: theme.textTheme.bodyMedium),
+              subtitle: Text(
+                _showCompactTooltip ? l10n.compactData : l10n.detailedData,
+                style: theme.textTheme.bodySmall,
+              ),
+              value: !_showCompactTooltip, // Inverted: OFF=compact, ON=detailed
+              onChanged: (value) {
+                setState(() {
+                  _showCompactTooltip = !value;
+                });
+              },
+            ),
           ],
         ),
       ),
@@ -379,7 +402,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
     final minY = allSpots.map((s) => s.y).reduce(math.min); // Will be 0 now
     final maxY = allSpots.map((s) => s.y).reduce(math.max);
     
-    // FIXED: Prevent zero interval when all times are the same
+    // Prevent zero interval when all times are the same
     // Since minY is now always 0, we use maxY for calculations
     final yRange = maxY - minY;
     final yPadding = yRange > 0 ? yRange * 0.05 : maxY * 0.1; // Reduced padding since we start from 0
@@ -392,7 +415,21 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(l10n.splitAnalysis, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            
+            // Info text for detailed mode
+            if (!_showCompactTooltip)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  l10n.selectSingleLineForDetails,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            
             SizedBox(
               height: 300,
               child: LineChart(
@@ -413,10 +450,10 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                   ),
                   titlesData: FlTitlesData(
                     show: true,
-                    rightTitles: AxisTitles(
+                    rightTitles: const AxisTitles(
                       sideTitles: SideTitles(showTitles: false),
                     ),
-                    topTitles: AxisTitles(
+                    topTitles: const AxisTitles(
                       sideTitles: SideTitles(showTitles: false),
                     ),
                     bottomTitles: AxisTitles(
@@ -454,20 +491,27 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                   ),
                   minX: 0,
                   maxX: maxX,
-                  minY: 0, // FIXED: Always start Y axis from 0
+                  minY: 0, // Always start Y axis from 0
                   maxY: maxY + yPadding,
-                  lineBarsData: visibleChartLines.map((lineData) {
+                  lineBarsData: visibleChartLines.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final lineData = entry.value;
+                    final isHighlighted = _highlightedLineIndex == index;
+                    
                     return LineChartBarData(
                       spots: lineData.spots,
-                      isCurved: true,
-                      color: lineData.color,
-                      barWidth: 3,
+                      isCurved: false,
+                      // FIXED: Use withValues instead of deprecated withOpacity
+                      color: lineData.color.withValues(
+                        alpha: isHighlighted ? 1.0 : (_highlightedLineIndex == null ? 1.0 : 0.3),
+                      ),
+                      barWidth: isHighlighted ? 4 : 3,
                       isStrokeCapRound: true,
                       dotData: FlDotData(
                         show: true,
                         getDotPainter: (spot, percent, barData, index) {
                           return FlDotCirclePainter(
-                            radius: 4,
+                            radius: isHighlighted ? 5 : 4,
                             color: lineData.color,
                             strokeWidth: 2,
                             strokeColor: theme.colorScheme.surface,
@@ -478,19 +522,49 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                     );
                   }).toList(),
                   lineTouchData: LineTouchData(
+                    enabled: true,
+                    handleBuiltInTouches: true,
+                    // FIXED: Reset highlight when touch ends
+                    touchCallback: (event, response) {
+                      if (!mounted) return;
+                      
+                      setState(() {
+                        // Try multiple event types for touch end detection
+                        if (event is FlTapUpEvent || 
+                            event is FlPanEndEvent || 
+                            event is FlLongPressEnd ||
+                            response == null ||
+                            response.lineBarSpots == null ||
+                            response.lineBarSpots!.isEmpty) {
+                          _highlightedLineIndex = null;
+                        } else {
+                          _highlightedLineIndex = response.lineBarSpots!.first.barIndex;
+                        }
+                      });
+                    },
                     touchTooltipData: LineTouchTooltipData(
+                      maxContentWidth: 220,
+                      fitInsideHorizontally: true,
+                      fitInsideVertically: true,
+                      getTooltipColor: (touchedSpot) => theme.colorScheme.surfaceContainerHighest,
+                      tooltipBorder: BorderSide(color: theme.dividerColor, width: 1),
+                      tooltipPadding: const EdgeInsets.all(8),
+                      tooltipMargin: 10,
+                      tooltipHorizontalAlignment: FLHorizontalAlignment.left, // Allinea a destra del dito
+                      tooltipHorizontalOffset: -50, // Alternativa/Aggiunta: Sposta ulteriormente a destra
+                      // FIXED: Return exactly ONE item per touchedSpot
+                      // CORRECT: Switch between compact and detailed tooltip modes
+
                       getTooltipItems: (touchedSpots) {
-                        return touchedSpots.map((spot) {
-                          final chrono = visibleChartLines[spot.barIndex].chrono;
-                          return LineTooltipItem(
-                            '${spot.x.toInt()}m\n${Chrono.formatMillisecondsToTime((spot.y * 1000).round())}\n${_formatDate(chrono.date)}',
-                            TextStyle(
-                              color: theme.colorScheme.onSurface,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          );
-                        }).toList();
+                        if (touchedSpots.isEmpty) return [];
+                        // *** FIX: Chiama la funzione helper corretta in base allo switch ***
+                        if (_showCompactTooltip) {
+                          // COMPACT MODE: Show all lines at same distance
+                          return _buildCompactTooltip(touchedSpots, visibleChartLines, theme);
+                        } else {
+                          // DETAILED MODE: Show segment info for closest line
+                          return _buildDetailedTooltip(touchedSpots, visibleChartLines, theme, l10n);
+                        }
                       },
                     ),
                   ),
@@ -557,6 +631,131 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  /// Build compact tooltip: shows all lines at same distance
+  List<LineTooltipItem> _buildCompactTooltip(
+    List<LineBarSpot> touchedSpots,
+    List<ChartLineData> visibleLines,
+    ThemeData theme,
+  ) {
+    // If multiple lines at same point, show all with single tooltip
+    if (touchedSpots.length > 1) {
+      final distance = touchedSpots.first.x.toInt();
+      final buffer = StringBuffer('${distance}m\n');
+      
+      for (int i = 0; i < touchedSpots.length; i++) {
+        final spot = touchedSpots[i];
+        final lineData = visibleLines[spot.barIndex];
+        final timeStr = Chrono.formatMillisecondsToTime((spot.y * 1000).round());
+        final dateStr = '${lineData.chrono.date.day.toString().padLeft(2, '0')}/${lineData.chrono.date.month.toString().padLeft(2, '0')}';
+        buffer.write('● $timeStr ($dateStr)');
+        if (i < touchedSpots.length - 1) buffer.write('\n');
+      }
+      
+      // Return one item per spot, but only first has text
+      return touchedSpots.asMap().entries.map((entry) {
+        final isFirst = entry.key == 0;
+        return LineTooltipItem(
+          isFirst ? buffer.toString() : '',
+          TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontSize: 11,
+            height: 1.3,
+          ),
+        );
+      }).toList();
+    }
+    
+    // Single line - simple display
+    return touchedSpots.map((spot) {
+      final lineData = visibleLines[spot.barIndex];
+      final distance = spot.x.toInt();
+      final timeStr = Chrono.formatMillisecondsToTime((spot.y * 1000).round());
+      final dateStr = '${lineData.chrono.date.day.toString().padLeft(2, '0')}/${lineData.chrono.date.month.toString().padLeft(2, '0')}';
+      
+      return LineTooltipItem(
+        '${distance}m\n● $timeStr\n($dateStr)',
+        TextStyle(
+          color: lineData.color,
+          fontSize: 12,
+          height: 1.3,
+        ),
+      );
+    }).toList();
+  }
+
+  /// Build detailed tooltip: shows segment info for the selected line
+  /// Works best when only one line is visible in the legend
+  List<LineTooltipItem?> _buildDetailedTooltip(
+    List<LineBarSpot> touchedSpots,
+    List<ChartLineData> visibleLines,
+    ThemeData theme,
+    AppLocalizations l10n,
+  ) {
+    if (touchedSpots.isEmpty) return [];
+
+    // Take only the first touched spot (works best with single line selected)
+    final selectedSpot = touchedSpots.first;
+    final lineData = visibleLines[selectedSpot.barIndex];
+    final touchedX = selectedSpot.x;
+
+    // Find the index of the touched point on the line
+    int pointIndex = -1;
+    for (int i = 0; i < lineData.spots.length; i++) {
+      if ((lineData.spots[i].x - touchedX).abs() < 0.1) {
+        pointIndex = i;
+        break;
+      }
+    }
+
+    // Return list with same length as touchedSpots, but only show tooltip for selected spot
+    return touchedSpots.map((spot) {
+      if (spot != selectedSpot) return null;
+
+      // Special case: starting point
+      if (pointIndex <= 0 || touchedX < 0.1) {
+        return LineTooltipItem(
+          'Start',
+          TextStyle(
+            color: theme.colorScheme.onSurface,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+      }
+
+      // Calculate segment data
+      final currentSpot = lineData.spots[pointIndex];
+      final previousSpot = lineData.spots[pointIndex - 1];
+
+      final segmentStart = previousSpot.x.toInt();
+      final segmentEnd = currentSpot.x.toInt();
+      final splitTimeMs = ((currentSpot.y - previousSpot.y) * 1000).round();
+      final cumulativeTimeMs = (currentSpot.y * 1000).round();
+      final dateStr =
+          '${lineData.chrono.date.day.toString().padLeft(2, '0')}/${lineData.chrono.date.month.toString().padLeft(2, '0')}/${lineData.chrono.date.year}';
+
+      return LineTooltipItem(
+        children: [
+          TextSpan(
+            text: '${l10n.segment}: $segmentStart-${segmentEnd}m\n',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
+        'Split: ${Chrono.formatMillisecondsToTime(splitTimeMs)}\n'
+        '${l10n.cumulative}: ${Chrono.formatMillisecondsToTime(cumulativeTimeMs)}\n'
+        '$dateStr',
+        TextStyle(
+          color: lineData.color,
+          fontSize: 11,
+          height: 1.4,
+        ),
+      );
+    }).toList();
   }
 }
 

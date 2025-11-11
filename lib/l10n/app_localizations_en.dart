@@ -493,4 +493,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timeSeconds => 'Time (s)';
+
+  @override
+  String get tooltipMode => 'Tooltip Display';
+
+  @override
+  String get compactData => 'Compact (all times at distance)';
+
+  @override
+  String get detailedData => 'Detailed (segment analysis)';
+
+  @override
+  String get selectSingleLineForDetails =>
+      'Select only one line in the checkbox to view correct details';
 }

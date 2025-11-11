@@ -192,5 +192,10 @@
     }
   },
   "distanceMeters": "Distanza (m)",
-  "timeSeconds": "Tempo (s)"
+  "timeSeconds": "Tempo (s)",
+  "tooltipMode": "Visualizzazione Tooltip",
+  "compactData": "Compatto (tutti i tempi alla distanza)",
+  "detailedData": "Dettagliato (analisi segmento)",
+  "selectSingleLineForDetails": "Seleziona una sola linea nella checkbox per avere i dettagli corretti"
+
 }
