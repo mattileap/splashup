@@ -33,6 +33,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
   // Chart data
   List<ChartLineData> _chartLines = [];
   Set<String> _visibleLines = {};
+  
   // Touch interaction state
   int? _highlightedLineIndex;
   
@@ -368,6 +369,17 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
               onChanged: (value) {
                 setState(() {
                   _showCompactTooltip = !value;
+
+                  // 🔄 Sync visible lines when switching modes:
+                  // - In compact mode (checkboxes): show all lines
+                  // - In detailed mode (radio buttons): show only the first line
+                  if (_showCompactTooltip) {
+                    _visibleLines = _chartLines.map((l) => l.chrono.id).toSet();
+                  } else {
+                    if (_chartLines.isNotEmpty) {
+                      _visibleLines = {_chartLines.first.chrono.id};
+                    }
+                  }
                 });
               },
             ),
@@ -586,43 +598,106 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
           children: [
             Text(l10n.legend, style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
-            ..._chartLines.map((lineData) {
-              final isVisible = _visibleLines.contains(lineData.chrono.id);
-              return CheckboxListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: isVisible,
-                onChanged: (value) {
+
+            // ============================================================
+            // Line visibility controls (detailed / compact modes)
+            // ============================================================
+
+            // Detailed mode: use RadioListTile (single selection)
+            if (!_showCompactTooltip)
+              RadioGroup<String>(
+                // Valore attuale selezionato (usiamo il primo se none)
+                groupValue: _visibleLines.length == 1 ? _visibleLines.first : _chartLines.first.chrono.id,
+                onChanged: (String? selectedId) {
                   setState(() {
-                    if (value == true) {
-                      _visibleLines.add(lineData.chrono.id);
+                    if (selectedId != null) {
+                      // Seleziona solo questa linea
+                      _visibleLines = {selectedId};
                     } else {
-                      _visibleLines.remove(lineData.chrono.id);
+                      // Non permettiamo “nessuna selezione”: mantieni la precedente
+                      if (_visibleLines.isEmpty && _chartLines.isNotEmpty) {
+                        _visibleLines = {_chartLines.first.chrono.id};
+                      }
                     }
                   });
                 },
-                title: Row(
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: lineData.color,
-                        borderRadius: BorderRadius.circular(2),
+                child: Column(
+                  children: _chartLines.map((lineData) {
+                    final isSelected = _visibleLines.contains(lineData.chrono.id);
+                    return RadioListTile<String>(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: lineData.chrono.id,
+                      title: Row(
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 3,
+                            decoration: BoxDecoration(
+                              color: lineData.color,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              '${_formatDate(lineData.chrono.date)} - ${lineData.chrono.finalTime}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        '${_formatDate(lineData.chrono.date)} - ${lineData.chrono.finalTime}',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ),
-                  ],
+                    );
+                  }).toList(),
                 ),
-              );
-            }),
+              ),
+
+            // Compact mode: use CheckboxListTile (multiple selection)
+            if (_showCompactTooltip)
+              ..._chartLines.map((lineData) {
+                final isVisible = _visibleLines.contains(lineData.chrono.id);
+
+                return CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: isVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value == true) {
+                        _visibleLines.add(lineData.chrono.id);
+                      } else {
+                        _visibleLines.remove(lineData.chrono.id);
+                      }
+                    });
+                  },
+                  title: Row(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: lineData.color,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '${_formatDate(lineData.chrono.date)} - ${lineData.chrono.finalTime}',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: isVisible ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            ),
           ],
         ),
       ),
@@ -737,23 +812,27 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
           '${lineData.chrono.date.day.toString().padLeft(2, '0')}/${lineData.chrono.date.month.toString().padLeft(2, '0')}/${lineData.chrono.date.year}';
 
       return LineTooltipItem(
+        // main text: segment (will appear first). Apply bold style here.
+        '${l10n.segment}: $segmentStart-${segmentEnd}m\n',
+        TextStyle(
+          color: lineData.color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          height: 1.4,
+        ),
+        // children appended after main text: put the rest here, with normal weight
         children: [
           TextSpan(
-            text: '${l10n.segment}: $segmentStart-${segmentEnd}m\n',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
+            text:
+                'Split: ${Chrono.formatMillisecondsToTime(splitTimeMs)}\n'
+                '${l10n.cumulative}: ${Chrono.formatMillisecondsToTime(cumulativeTimeMs)}\n'
+                '$dateStr',
+            style: TextStyle(
+              fontWeight: FontWeight.normal,
+              fontSize: 11, // puoi adattare la dimensione se vuoi
             ),
           ),
         ],
-        'Split: ${Chrono.formatMillisecondsToTime(splitTimeMs)}\n'
-        '${l10n.cumulative}: ${Chrono.formatMillisecondsToTime(cumulativeTimeMs)}\n'
-        '$dateStr',
-        TextStyle(
-          color: lineData.color,
-          fontSize: 11,
-          height: 1.4,
-        ),
       );
     }).toList();
   }

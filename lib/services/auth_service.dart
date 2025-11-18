@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -32,39 +33,52 @@ class AuthService {
 
   Future<User?> signInWithGoogle() async {
     try {
-      // Step 1: Inizializza GoogleSignIn
-      // OBBLIGATORIO: Inizializza GoogleSignIn prima di qualsiasi operazione
-      await _ensureInitialized();
+      if (kIsWeb) {
+        // --- LOGICA WEB ---
+        // Molto più semplice, gestisce tutto Firebase
+        GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        // Richiedi esplicitamente l'account, anche se loggato altrove
+        googleProvider.setCustomParameters({'prompt': 'select_account'}); 
 
-      // Step 2: Autenticazione con Google (sostituisce signIn())
-      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
-        scopeHint: ['email', 'profile'], // Specifica gli scope necessari
-      );
-      
-      // Step 3: Aggiorna lo stato utente manualmente
-      _currentGoogleUser = googleUser;
+        final UserCredential userCredential = 
+            await _auth.signInWithPopup(googleProvider);
+        _currentGoogleUser = null; // Sul web non gestiamo _currentGoogleUser
+        return userCredential.user;
 
-      // Step 4: Ottieni l'autorizzazione per gli scope necessari
-      final authClient = _googleSignIn.authorizationClient;
-      final authorization = await authClient.authorizationForScopes(['email', 'profile']);
+      } else {
+        // Step 1: Inizializza GoogleSignIn
+        // OBBLIGATORIO: Inizializza GoogleSignIn prima di qualsiasi operazione
+        await _ensureInitialized();
+
+        // Step 2: Autenticazione con Google (sostituisce signIn())
+        final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
+          scopeHint: ['email', 'profile'], // Specifica gli scope necessari
+        );
       
-      if (authorization == null) {
-        throw Exception('Failed to get authorization for required scopes');
+        // Step 3: Aggiorna lo stato utente manualmente
+        _currentGoogleUser = googleUser;
+
+        // Step 4: Ottieni l'autorizzazione per gli scope necessari
+        final authClient = _googleSignIn.authorizationClient;
+        final authorization = await authClient.authorizationForScopes(['email', 'profile']);
+      
+        if (authorization == null) {
+          throw Exception('Failed to get authorization for required scopes');
+        }
+
+        // Step 5: Ottieni l'authentication (ora sincrono)
+        final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+
+        // Step 6: Crea le credenziali Firebase
+        final AuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: authorization.accessToken, // Usa il token dall'authorization
+          idToken: googleAuth.idToken,
+        );
+
+        // Step 7: Accedi a Firebase
+        final UserCredential userCredential = await _auth.signInWithCredential(credential);
+        return userCredential.user;
       }
-
-      // Step 5: Ottieni l'authentication (ora sincrono)
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-
-      // Step 6: Crea le credenziali Firebase
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: authorization.accessToken, // Usa il token dall'authorization
-        idToken: googleAuth.idToken,
-      );
-
-      // Step 7: Accedi a Firebase
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
-      return userCredential.user;
-      
     } on GoogleSignInException catch (e) {
       debugPrint('Google Sign-In error: ${e.code.name} - ${e.description}');
       _currentGoogleUser = null; // Reset stato in caso di errore
