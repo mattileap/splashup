@@ -8,23 +8,28 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
-  // FIXED: GoogleSignIn è ora un singleton - non più istanziato direttamente
+  // GoogleSignIn è un singleton
   GoogleSignIn get _googleSignIn => GoogleSignIn.instance;
   
-  // Gestione manuale dello stato utente (currentUser non esiste più)
+  // Gestione manuale dello stato utente
   GoogleSignInAccount? _currentGoogleUser;
-  // Flag per controllare se è già stato inizializzato
+  
+  // Flag per controllare se è già stato inizializzato (solo per Mobile)
   bool _isInitialized = false;
 
   Stream<User?> get user => _auth.authStateChanges();
   
-  // Getter per l'utente Google corrente (gestione manuale)
+  // Getter per l'utente Google corrente
   GoogleSignInAccount? get currentGoogleUser => _currentGoogleUser;
   bool get isSignedInWithGoogle => _currentGoogleUser != null;
 
-  // NUOVO: Metodo per inizializzare GoogleSignIn (obbligatorio in v7.x)
+  // Inizializzazione GoogleSignIn (obbligatorio per Mobile in v7.x, opzionale/diverso per Web)
   // OBBLIGATORIO: Inizializzazione asincrona
   Future<void> _ensureInitialized() async {
+    if (kIsWeb) {
+      // Sul Web l'inizializzazione è gestita implicitamente o tramite index.html
+      return; 
+    }
     if (!_isInitialized) {
       await _googleSignIn.initialize();
       _isInitialized = true;
@@ -37,15 +42,22 @@ class AuthService {
         // --- LOGICA WEB ---
         // Molto più semplice, gestisce tutto Firebase
         GoogleAuthProvider googleProvider = GoogleAuthProvider();
-        // Richiedi esplicitamente l'account, anche se loggato altrove
+        
+        // 'select_account' forza la schermata di scelta account Google
         googleProvider.setCustomParameters({'prompt': 'select_account'}); 
 
+        // Usiamo signInWithPopup che è nativo per il web e gestisce tutto il flusso OAuth
         final UserCredential userCredential = 
             await _auth.signInWithPopup(googleProvider);
-        _currentGoogleUser = null; // Sul web non gestiamo _currentGoogleUser
+            
+        // Sul web non usiamo _currentGoogleUser di google_sign_in perché
+        // Firebase gestisce direttamente il provider.
+        _currentGoogleUser = null; 
+        
         return userCredential.user;
 
       } else {
+        // --- LOGICA MOBILE ---
         // Step 1: Inizializza GoogleSignIn
         // OBBLIGATORIO: Inizializza GoogleSignIn prima di qualsiasi operazione
         await _ensureInitialized();
@@ -90,12 +102,20 @@ class AuthService {
     }
   }
 
-  // Tentativo di accesso silenzioso
+  // Tentativo di accesso silenzioso (Utile al riavvio dell'app)
   Future<User?> attemptSilentSignIn() async {
+    // Sul Web, Firebase persiste la sessione automaticamente (LocalPersistence).
+    // Di solito basta ascoltare lo stream 'user', ma se vuoi forzare un check:
+    if (kIsWeb) {
+      // Se c'è già un utente Firebase, lo restituiamo
+      return _auth.currentUser;
+    }
+
+    // --- LOGICA MOBILE ---
     try {
       await _ensureInitialized();
       
-      // FIXED: sostituisce signInSilently()
+      // Sostituisce signInSilently()
       final result = _googleSignIn.attemptLightweightAuthentication();
       GoogleSignInAccount? googleUser;
       
@@ -136,10 +156,27 @@ class AuthService {
 
   Future<void> signOut() async {
     try {
-      await _ensureInitialized();
-      await _googleSignIn.signOut();
+      // 1. Logout da Firebase (Fondamentale sia per Web che Mobile)
       await _auth.signOut();
-      _currentGoogleUser = null; // Reset stato manuale
+
+      // 2. Logout da Google (Per pulire la cache del browser o lo stato nativo)
+      if (kIsWeb) {
+        // Sul Web, google_sign_in potrebbe non essere stato usato se abbiamo fatto
+        // signInWithPopup tramite firebase_auth. Tuttavia, se è stato inizializzato,
+        // proviamo a disconnetterlo. Spesso su web basta _auth.signOut().
+        try {
+           // Non chiamiamo _ensureInitialized() su web qui per evitare errori se non serve
+           await _googleSignIn.disconnect(); 
+        } catch (_) {
+           // Ignora errori di disconnect su web (es. se non era loggato via plugin)
+        }
+      } else {
+        // Su Mobile è obbligatorio per permettere il cambio account
+        await _ensureInitialized();
+        await _googleSignIn.signOut();
+      }
+
+      _currentGoogleUser = null;
     } catch (e) {
       debugPrint('Error during sign out: $e');
     }
@@ -148,6 +185,8 @@ class AuthService {
   // Helper function to keep data deletion logic separate.
   Future<void> _deleteFirestoreData(String userId) async {
     final userDocRef = _firestore.collection('users').doc(userId);
+    
+    // Recupera e cancella sottocollezioni (Teams -> Athletes -> Chronos)
     final teamsSnapshot = await userDocRef.collection('teams').get();
     for (final teamDoc in teamsSnapshot.docs) {
       final athletesSnapshot = await teamDoc.reference.collection('athletes').get();
@@ -163,7 +202,7 @@ class AuthService {
     await userDocRef.delete();
   }
 
-  // UPDATED: Refactored to be non-recursive and more robust.
+  // Elimina Account e Dati (Gestione Re-autenticazione)
   Future<void> deleteAccountAndData() async {
     User? user = _auth.currentUser;
     if (user == null) {
@@ -177,39 +216,39 @@ class AuthService {
       await signOut();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
-        debugPrint('Re-authentication required. Prompting user to sign in again.');
+        debugPrint('Re-authentication required.');
         
         try {
-          // FIXED: Usa il nuovo pattern v7.x per la re-autenticazione
-          await _ensureInitialized();
-          
-          // FIXED: Re-autenticazione con Google con nuovo pattern v7.x
-          final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
-            scopeHint: ['email', 'profile'],
-          );
-          
-          _currentGoogleUser = googleUser;
-          
-          // Ottieni autorizzazione per la re-autenticazione
-          final authClient = _googleSignIn.authorizationClient;
-          final authorization = await authClient.authorizationForScopes(['email', 'profile']);
-          
-          if (authorization == null) {
-            throw Exception('Failed to get authorization during re-authentication');
+          if (kIsWeb) {
+            // --- RE-AUTH WEB ---
+            GoogleAuthProvider googleProvider = GoogleAuthProvider();
+            googleProvider.setCustomParameters({'prompt': 'select_account'});
+            
+            // Usa reauthenticateWithPopup per il web
+            await user.reauthenticateWithPopup(googleProvider);
+          } else {
+            // --- RE-AUTH MOBILE ---
+            await _ensureInitialized();
+            final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
+              scopeHint: ['email', 'profile'],
+            );
+            _currentGoogleUser = googleUser;
+            
+            final authClient = _googleSignIn.authorizationClient;
+            final authorization = await authClient.authorizationForScopes(['email', 'profile']);
+            
+            if (authorization == null) throw Exception('Failed authorization');
+            
+            final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+            final AuthCredential credential = GoogleAuthProvider.credential(
+              accessToken: authorization.accessToken,
+              idToken: googleAuth.idToken,
+            );
+            
+            await user.reauthenticateWithCredential(credential);
           }
-          
-          final GoogleSignInAuthentication googleAuth = googleUser.authentication;
-          
-          // Crea le credenziali per la re-autenticazione
-          final AuthCredential credential = GoogleAuthProvider.credential(
-            accessToken: authorization.accessToken,
-            idToken: googleAuth.idToken,
-          );
-          
-          // Step 4: Re-autentica l'utente
-          await user.reauthenticateWithCredential(credential);
 
-          // Ottieni l'istanza utente aggiornata e ritenta l'eliminazione
+          // Dopo re-auth riuscita, riprova a cancellare
           user = _auth.currentUser;
           if (user == null) {
             throw Exception('User is null after re-authentication.');
