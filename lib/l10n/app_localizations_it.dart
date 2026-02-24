@@ -230,11 +230,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get system => 'Sistema';
 
   @override
+  String teamDeleted(String teamName) {
+    return 'Squadra \"$teamName\" eliminata.';
+  }
+
+  @override
+  String get deleteData => 'Reset Dati App';
+
+  @override
   String get deleteAccount => 'Elimina Account';
 
   @override
-  String get deleteAccountWarning =>
+  String get deleteDataWarning =>
       'Questa azione è irreversibile. Tutte le tue squadre, atleti e record verranno eliminati permanentemente.';
+
+  @override
+  String get dataReset => 'Tutti i dati sono stati eliminati';
+
+  @override
+  String get dataResetFailed => 'Eliminazione dati fallita.';
 
   @override
   String get typeToDelete => 'Scrivi \'DELETE\' per confermare';
@@ -509,4 +523,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get selectSingleLineForDetails =>
       'Seleziona una sola linea nella checkbox per avere i dettagli corretti';
+
+  @override
+  String get appSlogan => 'Dive in. Stand out. SplashUp';
+
+  @override
+  String get welcomeSubtitle =>
+      'Il tuo compagno di nuoto\n100% Offline & Privato';
+
+  @override
+  String get diveInButton => 'Tuffati!';
 }

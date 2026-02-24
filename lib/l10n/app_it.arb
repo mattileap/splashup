@@ -72,8 +72,19 @@
   "light": "Chiaro",
   "dark": "Scuro",
   "system": "Sistema",
+  "teamDeleted": "Squadra \"{teamName}\" eliminata.",
+  "@teamDeleted": {
+    "placeholders": {
+      "teamName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteData": "Reset Dati App",
   "deleteAccount": "Elimina Account",
-  "deleteAccountWarning": "Questa azione è irreversibile. Tutte le tue squadre, atleti e record verranno eliminati permanentemente.",
+  "deleteDataWarning": "Questa azione è irreversibile. Tutte le tue squadre, atleti e record verranno eliminati permanentemente.",
+  "dataReset": "Tutti i dati sono stati eliminati",
+  "dataResetFailed": "Eliminazione dati fallita.",
   "typeToDelete": "Scrivi 'DELETE' per confermare",
   "editTeam": "Modifica Squadra",
   "deleteAthlete": "Elimina Atleta",
@@ -196,6 +207,8 @@
   "tooltipMode": "Visualizzazione Tooltip",
   "compactData": "Compatto (tutti i tempi alla distanza)",
   "detailedData": "Dettagliato (analisi segmento)",
-  "selectSingleLineForDetails": "Seleziona una sola linea nella checkbox per avere i dettagli corretti"
-
+  "selectSingleLineForDetails": "Seleziona una sola linea nella checkbox per avere i dettagli corretti",
+  "appSlogan": "Dive in. Stand out. SplashUp",
+  "welcomeSubtitle": "Il tuo compagno di nuoto\n100% Offline & Privato",
+  "diveInButton": "Tuffati!"
 }

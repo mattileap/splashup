@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
 import '../models/athlete_model.dart';
+import '../repositories/database_repository.dart';
 
 enum MoveType { single, byYear, all }
 
@@ -42,6 +42,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final db = context.read<DatabaseRepository>();
 
     if (_sourceTeam == null || _destinationTeam == null) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.selectTeamsFirst)));
@@ -66,85 +67,86 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
 
     if (confirm != true || !mounted) return;
 
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final sourceTeamRef = FirebaseFirestore.instance.collection('users').doc(userId).collection('teams').doc(_sourceTeam!.id);
-    final destTeamRef = FirebaseFirestore.instance.collection('users').doc(userId).collection('teams').doc(_destinationTeam!.id);
-
-    QuerySnapshot athletesToMoveSnapshot;
+    // Recuperiamo tutti gli atleti della squadra sorgente
+    // Nota: Otteniamo lo stream e prendiamo il primo elemento (snapshot attuale)
+    final allSourceAthletes = await db.getAthletesStream(_sourceTeam!.id).first;
+    List<Athlete> athletesToMove = [];
 
     switch (_moveType) {
       case MoveType.single:
         if (_selectedAthlete == null) return;
-        athletesToMoveSnapshot = await sourceTeamRef.collection('athletes').where(FieldPath.documentId, isEqualTo: _selectedAthlete!.id).get();
+        athletesToMove = allSourceAthletes.where((a) => a.id == _selectedAthlete!.id).toList();
         break;
       case MoveType.byYear:
         if (_selectedBirthYear == null) return;
-        athletesToMoveSnapshot = await sourceTeamRef.collection('athletes').where('birthYear', isEqualTo: _selectedBirthYear).get();
+        athletesToMove = allSourceAthletes.where((a) => a.birthYear == _selectedBirthYear).toList();
         break;
       case MoveType.all:
-        athletesToMoveSnapshot = await sourceTeamRef.collection('athletes').get();
+        athletesToMove = allSourceAthletes;
         break;
     }
 
-    if (athletesToMoveSnapshot.docs.isEmpty) {
+    if (athletesToMove.isEmpty) {
       messenger.showSnackBar(const SnackBar(content: Text("No athletes found to move.")));
       return;
     }
 
-    final batch = FirebaseFirestore.instance.batch();
-    for (final athleteDoc in athletesToMoveSnapshot.docs) {
-      final newAthleteRef = destTeamRef.collection('athletes').doc(athleteDoc.id);
-      batch.set(newAthleteRef, athleteDoc.data());
-
-      final chronosSnapshot = await athleteDoc.reference.collection('chronos').get();
-      for (final chronoDoc in chronosSnapshot.docs) {
-        batch.set(newAthleteRef.collection('chronos').doc(chronoDoc.id), chronoDoc.data());
-        batch.delete(chronoDoc.reference);
+    // Eseguiamo lo spostamento per ogni atleta
+    try {
+      for (final athlete in athletesToMove) {
+        await db.moveAthlete(athlete.id, _sourceTeam!.id, _destinationTeam!.id);
       }
-      batch.delete(athleteDoc.reference);
-    }
 
-    await batch.commit();
-
-    // UPDATED: Conditionally delete the source team after the move.
-    if (widget.deleteSourceTeamOnSuccess) {
-      await sourceTeamRef.delete();
-      messenger.showSnackBar(SnackBar(content: Text('"${_sourceTeam!.name}" was also deleted.')));
-    } else {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.moveSuccess)));
+      // Cancellazione opzionale del team sorgente
+      if (widget.deleteSourceTeamOnSuccess) {
+        await db.deleteTeam(_sourceTeam!.id);
+        if (mounted) {
+          messenger.showSnackBar(SnackBar(content: Text('"${_sourceTeam!.name}" was also deleted.')));
+        }
+      } else {
+        if (mounted) {
+          messenger.showSnackBar(SnackBar(content: Text(l10n.moveSuccess)));
+        }
+      }
+      
+      navigator.pop();
+    } catch (e) {
+      debugPrint('Error moving athletes: $e');
+      if (mounted) {
+        messenger.showSnackBar(const SnackBar(content: Text("Error moving athletes")));
+      }
     }
-    
-    navigator.pop();
   }
-
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final teamsCollection = FirebaseFirestore.instance.collection('users').doc(userId).collection('teams');
+    final db = Provider.of<DatabaseRepository>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.moveAthletes),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: teamsCollection.orderBy('name').snapshots(),
+      // StreamBuilder per le squadre
+      body: StreamBuilder<List<Team>>(
+        stream: db.getTeamsStream(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          final teams = snapshot.data!.docs.map((doc) => Team.fromFirestore(doc)).toList();
           
+          final teams = snapshot.data ?? [];
+          
+          // Filtriamo le squadre disponibili per la destinazione
           final destinationTeams = _sourceTeam == null
               ? teams
               : teams.where((t) => t.id != _sourceTeam!.id).toList();
 
+          // Manteniamo la selezione corrente valida se possibile
           final currentSourceTeam = _sourceTeam != null && teams.any((t) => t.id == _sourceTeam!.id)
               ? teams.firstWhere((t) => t.id == _sourceTeam!.id)
               : null;
           final currentDestTeam = _destinationTeam != null && destinationTeams.any((t) => t.id == _destinationTeam!.id)
               ? destinationTeams.firstWhere((t) => t.id == _destinationTeam!.id)
               : null;
-
 
           return ListView(
             padding: const EdgeInsets.all(16.0),
@@ -171,6 +173,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
                 items: teams.map((t) => DropdownMenuItem(value: t, child: Text(t.name))).toList(),
                 onChanged: (value) => setState(() {
                   _sourceTeam = value;
+                  // Reset destinazione se coincide con la nuova sorgente
                   if (_destinationTeam != null && _destinationTeam!.id == value!.id) {
                     _destinationTeam = null;
                   }
@@ -187,10 +190,10 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
               const SizedBox(height: 16),
 
               if (_moveType == MoveType.single)
-                _buildSingleAthleteSelector(context, l10n),
+                _buildSingleAthleteSelector(context, l10n, db),
               
               if (_moveType == MoveType.byYear)
-                _buildYearSelector(context, l10n),
+                _buildYearSelector(context, l10n, db),
 
               const SizedBox(height: 32),
               ElevatedButton.icon(
@@ -205,7 +208,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     );
   }
 
-  Widget _buildSingleAthleteSelector(BuildContext context, AppLocalizations l10n) {
+  Widget _buildSingleAthleteSelector(BuildContext context, AppLocalizations l10n, DatabaseRepository db) {
     if (_sourceTeam == null) {
       return ListTile(
         title: Text(l10n.selectAthlete),
@@ -214,25 +217,20 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
       );
     }
 
-    final athletesCollection = FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection('teams')
-        .doc(_sourceTeam!.id)
-        .collection('athletes');
-
-    return StreamBuilder<QuerySnapshot>(
-      stream: athletesCollection.orderBy('name').snapshots(),
+    return StreamBuilder<List<Athlete>>(
+      stream: db.getAthletesStream(_sourceTeam!.id),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        if (snapshot.data!.docs.isEmpty) {
+        
+        final athletes = snapshot.data ?? [];
+        
+        if (athletes.isEmpty) {
           return ListTile(
             title: Text(l10n.selectAthlete),
             subtitle: Text(l10n.noAthletesInTeam),
             enabled: false,
           );
         }
-        final athletes = snapshot.data!.docs.map((doc) => Athlete.fromFirestore(doc)).toList();
         
         final currentSelectedAthlete = _selectedAthlete != null && athletes.any((a) => a.id == _selectedAthlete!.id)
             ? athletes.firstWhere((a) => a.id == _selectedAthlete!.id)
@@ -248,7 +246,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     );
   }
 
-  Widget _buildYearSelector(BuildContext context, AppLocalizations l10n) {
+  Widget _buildYearSelector(BuildContext context, AppLocalizations l10n, DatabaseRepository db) {
     if (_sourceTeam == null) {
       return ListTile(
         title: Text(l10n.selectBirthYear),
@@ -258,21 +256,16 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
       );
     }
 
-    final athletesCollection = FirebaseFirestore.instance
-        .collection('users')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection('teams')
-        .doc(_sourceTeam!.id)
-        .collection('athletes');
-
-    return StreamBuilder<QuerySnapshot>(
-      stream: athletesCollection.snapshots(),
+    return StreamBuilder<List<Athlete>>(
+      stream: db.getAthletesStream(_sourceTeam!.id),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         
-        final uniqueYears = snapshot.data!.docs
-            .map((doc) => (doc.data() as Map<String, dynamic>)['birthYear'] as int?)
-            .where((year) => year != null)
+        final athletes = snapshot.data ?? [];
+        
+        // Estrai anni unici dagli atleti
+        final uniqueYears = athletes
+            .map((a) => a.birthYear)
             .toSet()
             .toList()
             ..sort();

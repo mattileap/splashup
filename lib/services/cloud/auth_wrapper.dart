@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
-import 'login_screen.dart';
-import 'teams_screen.dart';
+import 'auth_service.dart';
+import '../../screens/login_screen.dart';
+import '../../screens/teams_screen.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -24,7 +24,7 @@ class AuthWrapper extends StatelessWidget {
           return const TeamsScreen();
         } else {
           // User is not logged in
-          return const LoginScreen();
+          return const WelcomeScreen();
         }
       },
     );

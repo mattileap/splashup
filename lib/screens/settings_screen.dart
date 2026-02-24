@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
-import '../services/auth_service.dart';
+import '../repositories/database_repository.dart';
 import '../services/theme_service.dart';
 import 'move_athletes_screen.dart';
+// SYNC: NUOVO IMPORT per il Sync
+// import '../services/cloud/cloud_sync_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,6 +19,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int _teamCount = 0;
   int _selectedMonths = 12;
   int _selectedYears = 2;
+  
+  // SYNC: Stato per gestire il caricamento del backup
+  bool _isSyncing = false;
 
   @override
   void initState() {
@@ -27,28 +30,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _fetchTeamCount() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-    if (userId == null) {
-      return;
-    }
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('teams')
-        .count()
-        .get();
-
+    final db = context.read<DatabaseRepository>();
+    // Otteniamo la lista attuale delle squadre per contarle
+    final teams = await db.getTeamsStream().first;
+    
     if (mounted) {
       setState(() {
-        _teamCount = snapshot.count ?? 0;
+        _teamCount = teams.length;
       });
     }
   }
+
+ /*
+  // --- SYNC LOGIC ---
+  Future<void> _handleCloudBackup() async {
+    setState(() => _isSyncing = true);
+    final messenger = ScaffoldMessenger.of(context);
+    // Recuperiamo il DB locale dal provider
+    final db = context.read<DatabaseRepository>();
+    // Creiamo il servizio di sync al volo
+    final syncService = CloudSyncService(db);
+
+    try {
+      await syncService.backupToCloud(context);
+      if (mounted) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Backup su Google Drive completato! (Cloud Firestore)')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Errore Backup: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
+    }
+  }
+  // ---------END SYNC LOGIC---------
+*/
 
   Future<void> _runDeactivation() async {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final db = context.read<DatabaseRepository>();
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -64,37 +91,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (confirm != true || !mounted) return;
 
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final cutoffDate = DateTime.now().subtract(Duration(days: _selectedMonths * 30));
-    int deactivatedCount = 0;
-
-    final batch = FirebaseFirestore.instance.batch();
-    final teamsSnapshot = await FirebaseFirestore.instance.collection('users').doc(userId).collection('teams').get();
-
-    for (final teamDoc in teamsSnapshot.docs) {
-      final athletesSnapshot = await teamDoc.reference.collection('athletes').where('isActive', isEqualTo: true).get();
-      for (final athleteDoc in athletesSnapshot.docs) {
-        final lastChronoSnapshot = await athleteDoc.reference
-            .collection('chronos')
-            .orderBy('date', descending: true)
-            .limit(1)
-            .get();
-
-        if (lastChronoSnapshot.docs.isEmpty) {
-          continue;
-        }
-
-        final lastChronoDate = (lastChronoSnapshot.docs.first.data()['date'] as Timestamp).toDate();
-        if (lastChronoDate.isBefore(cutoffDate)) {
-          batch.update(athleteDoc.reference, {'isActive': false});
-          deactivatedCount++;
-        }
+    try {
+      // Usiamo la funzione ottimizzata del repository locale
+      final deactivatedCount = await db.deactivateInactiveAthletes(_selectedMonths);
+      
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.deactivationComplete(deactivatedCount))));
       }
-    }
-
-    await batch.commit();
-    if (mounted) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.deactivationComplete(deactivatedCount))));
+    } catch (e) {
+      debugPrint('Error running deactivation: $e');
+      if (mounted) {
+        messenger.showSnackBar(const SnackBar(content: Text("Error during deactivation")));
+      }
     }
   }
 
@@ -102,6 +110,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final db = context.read<DatabaseRepository>();
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -121,46 +130,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (confirm != true || !mounted) return;
 
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final cutoffDate = DateTime.now().subtract(Duration(days: _selectedYears * 365));
-    int deletedCount = 0;
-
-    final batch = FirebaseFirestore.instance.batch();
-    final teamsSnapshot = await FirebaseFirestore.instance.collection('users').doc(userId).collection('teams').get();
-
-    for (final teamDoc in teamsSnapshot.docs) {
-      final athletesSnapshot = await teamDoc.reference.collection('athletes').where('isActive', isEqualTo: false).get();
-      for (final athleteDoc in athletesSnapshot.docs) {
-        final lastChronoSnapshot = await athleteDoc.reference
-            .collection('chronos')
-            .orderBy('date', descending: true)
-            .limit(1)
-            .get();
-
-        bool shouldDelete = false;
-        if (lastChronoSnapshot.docs.isEmpty) {
-          shouldDelete = true;
-        } else {
-          final lastChronoDate = (lastChronoSnapshot.docs.first.data()['date'] as Timestamp).toDate();
-          if (lastChronoDate.isBefore(cutoffDate)) {
-            shouldDelete = true;
-          }
-        }
-
-        if (shouldDelete) {
-          final chronosToDelete = await athleteDoc.reference.collection('chronos').get();
-          for (final chronoDoc in chronosToDelete.docs) {
-            batch.delete(chronoDoc.reference);
-          }
-          batch.delete(athleteDoc.reference);
-          deletedCount++;
-        }
+    try {
+      // Usiamo la funzione ottimizzata del repository locale
+      final deletedCount = await db.deleteInactiveAthletes(_selectedYears);
+      
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(l10n.deletionComplete(deletedCount))));
       }
-    }
-
-    await batch.commit();
-    if (mounted) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.deletionComplete(deletedCount))));
+    } catch (e) {
+      debugPrint('Error running deletion: $e');
+      if (mounted) {
+        messenger.showSnackBar(const SnackBar(content: Text("Error during deletion")));
+      }
     }
   }
   
@@ -168,17 +149,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final userId = FirebaseAuth.instance.currentUser!.uid;
-    final teamsCollection = FirebaseFirestore.instance.collection('users').doc(userId).collection('teams');
+    final db = context.read<DatabaseRepository>();
 
     final teamToDelete = await showDialog<Team>(
       context: context,
       builder: (context) {
-        return StreamBuilder<QuerySnapshot>(
-          stream: teamsCollection.orderBy('name').snapshots(),
+        return StreamBuilder<List<Team>>(
+          stream: db.getTeamsStream(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-            final teams = snapshot.data!.docs.map((doc) => Team.fromFirestore(doc)).toList();
+            final teams = snapshot.data ?? [];
             return SimpleDialog(
               title: Text(l10n.selectTeamToDelete),
               children: teams.map((team) => SimpleDialogOption(
@@ -208,6 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (choice == 'move') {
       if (!mounted) return;
+      // Navighiamo alla schermata di spostamento, che è già configurata per gestire ID locali
       navigator.push(MaterialPageRoute(
         builder: (context) => MoveAthletesScreen(
           initialSourceTeam: teamToDelete,
@@ -245,32 +226,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (confirmed == true) {
-        // Perform the deletion
-        final teamRef = teamsCollection.doc(teamToDelete.id);
-        final athletesSnapshot = await teamRef.collection('athletes').get();
-        final batch = FirebaseFirestore.instance.batch();
-
-        for (final athleteDoc in athletesSnapshot.docs) {
-          final chronosSnapshot = await athleteDoc.reference.collection('chronos').get();
-          for (final chronoDoc in chronosSnapshot.docs) {
-            batch.delete(chronoDoc.reference);
+        try {
+          // Il metodo deleteTeam del repository è già cascading (elimina anche atleti e crono)
+          await db.deleteTeam(teamToDelete.id);
+          
+          if (mounted) {
+            // Usa il metodo l10n corretto con parametro
+            messenger.showSnackBar(SnackBar(content: Text(l10n.teamDeleted(teamToDelete.name))));
+            // Aggiorniamo il conteggio squadre
+            _fetchTeamCount();
           }
-          batch.delete(athleteDoc.reference);
-        }
-        batch.delete(teamRef);
-        await batch.commit();
-        if (mounted) {
-          messenger.showSnackBar(SnackBar(content: Text('"${teamToDelete.name}" was deleted.')));
+        } catch (e) {
+          debugPrint('Error deleting team: $e');
         }
       }
     }
   }
 
-  Future<void> _showDeleteConfirmationDialog() async {
+  // Trasformato da "Elimina Account" a "Elimina Tutti i Dati" (Factory Reset locale)
+  Future<void> _showDeleteAllDataDialog() async {
     final l10n = AppLocalizations.of(context)!;
-    final authService = Provider.of<AuthService>(context, listen: false);
     final confirmationController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    final db = context.read<DatabaseRepository>();
 
     return showDialog<void>(
       context: context,
@@ -279,11 +257,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text(l10n.deleteAccount),
+              title: Text(l10n.dataReset),
               content: SingleChildScrollView(
                 child: ListBody(
                   children: <Widget>[
-                    Text(l10n.deleteAccountWarning),
+                    Text(l10n.deleteDataWarning), // "Questa azione è irreversibile..." va bene anche qui
                     const SizedBox(height: 20),
                     Form(
                       key: formKey,
@@ -325,7 +303,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             if (states.contains(WidgetState.disabled)) {
                               return Colors.grey;
                             }
-                            return Colors.red.withAlpha(200); // Softer red
+                            return Colors.red.withAlpha(200); 
                           },
                         ),
                       ),
@@ -334,14 +312,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               final navigator = Navigator.of(context);
                               final messenger = ScaffoldMessenger.of(context);
                               try {
-                                await authService.deleteAccountAndData();
+                                // Eliminazione manuale di tutte le squadre (cascading su tutto il resto)
+                                final teams = await db.getTeamsStream().first;
+                                for(var team in teams) {
+                                  await db.deleteTeam(team.id);
+                                }
+                                
                                 if (!mounted) return;
                                 navigator.popUntil((route) => route.isFirst);
+                                messenger.showSnackBar(
+                                  SnackBar(content: Text(l10n.dataReset)),
+                                );
                               } catch (e) {
                                 if (!mounted) return;
                                 navigator.pop();
                                 messenger.showSnackBar(
-                                  const SnackBar(content: Text("Failed to delete account. Please try again.")),
+                                  SnackBar(content: Text(l10n.dataResetFailed)),
                                 );
                               }
                             }
@@ -496,7 +482,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withAlpha(200)), // Softer red
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withAlpha(200)),
                   onPressed: _runDeletion,
                   child: Text(l10n.run),
                 ),
@@ -507,12 +493,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const Divider(),
           ListTile(
             leading: const Icon(Icons.delete_forever, color: Colors.red),
+            // Ho cambiato il titolo per riflettere che siamo offline
             title: Text(
-              l10n.deleteAccount,
+              l10n.deleteData, // O usa una stringa l10n se vuoi aggiungerla
               style: const TextStyle(color: Colors.red),
             ),
-            onTap: _showDeleteConfirmationDialog,
+            onTap: _showDeleteAllDataDialog,
           ),
+
+ /*
+          // --- SEZIONE TEST SYNC (DA NASCONDERE IN PRODUZIONE) ---
+          if (true) ...[ // Cambia 'true' in 'false' per nascondere
+            const Divider(),
+            const Padding(
+              padding: EdgeInsets.only(left: 16, top: 10, bottom: 5),
+              child: Text("CLOUD DEBUG AREA", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+            ),
+            ListTile(
+              leading: _isSyncing 
+                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) 
+                  : const Icon(Icons.cloud_upload, color: Colors.blue),
+              title: const Text("Backup su Google"),
+              subtitle: const Text("Carica dati locali su Firebase"),
+              enabled: !_isSyncing,
+              onTap: _handleCloudBackup,
+            ),
+          ],
+          // ---END SEZIONE TEST SYNC (DA NASCONDERE IN PRODUZIONE) ---
+*/
         ],
       ),
     );

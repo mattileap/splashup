@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Athlete {
   final String id;
   final String name;
@@ -19,17 +17,29 @@ class Athlete {
     required this.notes,
   });
 
-  factory Athlete.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+  // NEW: From Map (Sembast)
+  factory Athlete.fromMap(Map<String, dynamic> map, String docId) {
     return Athlete(
-      id: doc.id,
-      name: data['name'] ?? '',
-      birthYear: data['birthYear'] ?? 2000,
-      gender: data['gender'] ?? 'Male',
-      // Ensure preferredStyles is always a List<String>
-      preferredStyles: List<String>.from(data['preferredStyles'] ?? []),
-      isActive: data['isActive'] ?? true,
-      notes: data['notes'] ?? '',
+      id: docId,
+      name: map['name'] as String? ?? '',
+      birthYear: map['birthYear'] as int? ?? 2000,
+      gender: map['gender'] as String? ?? 'Male',
+      // Gestione sicura della lista di stringhe
+      preferredStyles: List<String>.from(map['preferredStyles'] ?? []),
+      isActive: map['isActive'] as bool? ?? true,
+      notes: map['notes'] as String? ?? '',
     );
+  }
+
+  // NEW: To Map (Saving)
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'birthYear': birthYear,
+      'gender': gender,
+      'preferredStyles': preferredStyles,
+      'isActive': isActive,
+      'notes': notes,
+    };
   }
 }

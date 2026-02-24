@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart'; // Serve per accedere al Repository
 import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
-import '../services/auth_service.dart';
 import 'athletes_screen.dart';
 import 'settings_screen.dart';
 
-/// TeamsScreen is the main landing page for a logged-in user.
-/// It displays a list of their teams and serves as the primary navigation hub.
+// NUOVO IMPORT
+import '../repositories/database_repository.dart';
+
 class TeamsScreen extends StatefulWidget {
   const TeamsScreen({super.key});
 
@@ -17,7 +16,6 @@ class TeamsScreen extends StatefulWidget {
 }
 
 class _TeamsScreenState extends State<TeamsScreen> {
-  final AuthService _authService = AuthService();
 
   /// Displays a dialog to edit the name and default pool length of an existing team.
   Future<void> _editTeam(Team team) async {
@@ -61,7 +59,6 @@ class _TeamsScreenState extends State<TeamsScreen> {
                 ElevatedButton(
                   child: Text(l10n.save),
                   onPressed: () {
-                    // FIXED: Pop immediately, then perform Firestore operation
                     Navigator.of(dialogContext).pop(true);
                   },
                 ),
@@ -72,29 +69,25 @@ class _TeamsScreenState extends State<TeamsScreen> {
       },
     );
 
-    // FIXED: Perform Firestore operation AFTER dialog is closed
     if (result == true) {
       final newTeamName = teamNameController.text;
       if (newTeamName.isNotEmpty) {
-        try {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .collection('teams')
-              .doc(team.id)
-              .update({'name': newTeamName, 'poolLength': poolLength});
-        } catch (e) {
-          // Handle errors gracefully (optional: show a snackbar)
-          debugPrint('Error updating team: $e');
-        }
+        // NUOVO: Usiamo il repository locale invece di Firestore
+        final db = context.read<DatabaseRepository>();
+        final updatedTeam = Team(
+          id: team.id,
+          name: newTeamName,
+          poolLength: poolLength,
+        );
+        await db.updateTeam(updatedTeam);
       }
     }
   }
 
   /// Displays a dialog to add a new team to the user's collection.
-  Future<void> _addTeam(CollectionReference teamsCollection) async {
-    if (FirebaseAuth.instance.currentUser == null) return;
-
+  Future<void> _addTeam() async {
+    // NOTA: Non controlliamo più FirebaseAuth.instance.currentUser perché siamo offline!
+    
     final l10n = AppLocalizations.of(context)!;
     final teamNameController = TextEditingController();
     int poolLength = 25; // Default to 25m for new teams.
@@ -141,7 +134,6 @@ class _TeamsScreenState extends State<TeamsScreen> {
                   ),
                   child: Text(l10n.add),
                   onPressed: () {
-                    // FIXED: Pop immediately, then perform Firestore operation
                     Navigator.of(dialogContext).pop(true);
                   },
                 ),
@@ -152,20 +144,18 @@ class _TeamsScreenState extends State<TeamsScreen> {
       },
     );
 
-    // FIXED: Perform Firestore operation AFTER dialog is closed
     if (result == true) {
       final newTeamName = teamNameController.text;
       if (newTeamName.isNotEmpty) {
-        try {
-          //Add new team with its default pool lenght
-          await teamsCollection.add({
-            'name': newTeamName,
-            'poolLength': poolLength,
-          });
-        } catch (e) {
-          // Handle errors gracefully (optional: show a snackbar)
-          debugPrint('Error adding team: $e');
-        }
+        // NUOVO: Salvataggio locale tramite repository
+        final db = context.read<DatabaseRepository>();
+        // Creiamo un team con ID vuoto, il repository ne genererà uno (UUID)
+        final newTeam = Team(
+          id: '', 
+          name: newTeamName,
+          poolLength: poolLength,
+        );
+        await db.addTeam(newTeam);
       }
     }
   }
@@ -173,20 +163,9 @@ class _TeamsScreenState extends State<TeamsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final String? userId = FirebaseAuth.instance.currentUser?.uid;
-
-    if (userId == null) {
-      return const Scaffold(
-        body: Center(
-          child: Text("Error: User not logged in. Please restart the app."),
-        ),
-      );
-    }
-
-    final CollectionReference teamsCollection = FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('teams');
+    
+    // NUOVO: Otteniamo il riferimento al repository
+    final db = Provider.of<DatabaseRepository>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -200,24 +179,22 @@ class _TeamsScreenState extends State<TeamsScreen> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await _authService.signOut();
-            },
-          ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: teamsCollection.orderBy('name').snapshots(),
+      // NUOVO: StreamBuilder tipizzato su List<Team> invece di QuerySnapshot
+      body: StreamBuilder<List<Team>>(
+        stream: db.getTeamsStream(), // Stream dal database locale
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return const Center(child: Text('Something went wrong'));
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          
+          final teams = snapshot.data ?? [];
+
+          if (teams.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -240,14 +217,12 @@ class _TeamsScreenState extends State<TeamsScreen> {
             );
           }
 
-          final teams =
-              snapshot.data!.docs.map((doc) => Team.fromFirestore(doc)).toList();
-
           return ListView.builder(
             padding: const EdgeInsets.all(8.0),
             itemCount: teams.length,
             itemBuilder: (context, index) {
               final team = teams[index];
+              
               return Card(
                 elevation: 2.0,
                 margin: const EdgeInsets.symmetric(vertical: 6.0),
@@ -289,7 +264,7 @@ class _TeamsScreenState extends State<TeamsScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _addTeam(teamsCollection),
+        onPressed: () => _addTeam(), // Rimosso parametro teamsCollection non più necessario
         tooltip: l10n.addTeam,
         child: const Icon(Icons.add),
       ),

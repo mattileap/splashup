@@ -6,18 +6,17 @@ import '../models/chrono_model.dart';
 import 'add_edit_chrono_screen.dart';
 import '../models/team_model.dart';
 import '../models/athlete_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class StopwatchScreen extends StatelessWidget {
   final Team team;
   final Athlete athlete;
-  final CollectionReference chronoCollection;
+  // Rimosso: final CollectionReference chronoCollection;
 
   const StopwatchScreen({
     super.key,
     required this.team,
     required this.athlete,
-    required this.chronoCollection,
+    // Rimosso: required this.chronoCollection,
   });
 
   @override
@@ -36,7 +35,7 @@ class StopwatchScreen extends StatelessWidget {
               children: [
                 _buildTimerDisplay(context, stopwatchService),
                 // Pass the necessary data down to the controls widget.
-                _buildControls(context, stopwatchService, l10n, chronoCollection, team),
+                _buildControls(context, stopwatchService, l10n, team, athlete),
                 _buildLapList(context, stopwatchService, l10n),
               ],
             ),
@@ -57,7 +56,7 @@ class StopwatchScreen extends StatelessWidget {
   }
 
   // The controls widget now handles the navigation.
-  Widget _buildControls(BuildContext context, StopwatchService stopwatch, AppLocalizations l10n, CollectionReference chronoCollection, Team team) {
+  Widget _buildControls(BuildContext context, StopwatchService stopwatch, AppLocalizations l10n, Team team, Athlete athlete) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -83,13 +82,13 @@ class StopwatchScreen extends StatelessWidget {
               final finalTimeMs = stopwatch.elapsed.inMilliseconds;
               final finalTime = Chrono.formatMillisecondsToTime(finalTimeMs);
 
-              // *** NOTA: La creazione delle note automatiche è stata rimossa ***
-
+              // Navigazione aggiornata per Sembast (Offline)
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => AddEditChronoScreen(
-                    chronoCollection: chronoCollection,
-                    team: team,
+                    teamId: team.id,          // NUOVO
+                    athleteId: athlete.id,    // NUOVO
+                    team: team,               // Manteniamo il team per la poolLength
                     initialTime: finalTime,
                     initialTimeMs: finalTimeMs,
                     initialSplits: splits,

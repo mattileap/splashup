@@ -72,8 +72,19 @@
   "light": "Light",
   "dark": "Dark",
   "system": "System",
+  "teamDeleted": "\"{teamName}\" deleted.",
+  "@teamDeleted": {
+    "placeholders": {
+      "teamName": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteData": "Reset App Data",
   "deleteAccount": "Delete Account",
-  "deleteAccountWarning": "This action is irreversible. All your teams, athletes, and records will be permanently deleted.",
+  "deleteDataWarning": "This action is irreversible. All your teams, athletes, and records will be permanently deleted.",
+  "dataReset": "All data has been reset.",
+  "dataResetFailed": "Failed to reset data.",
   "typeToDelete": "Type 'DELETE' to confirm",
   "editTeam": "Edit Team",
   "deleteAthlete": "Delete Athlete",
@@ -116,7 +127,7 @@
     "placeholders": {
         "count": {}
     }
-  },  
+  },
   "deleteInactiveAthletes": "Delete Inactive Athletes",
   "deleteInactiveDescription": "Permanently delete athletes who have been inactive for a long time.",
   "deleteAfter": "Delete after",
@@ -196,6 +207,8 @@
   "tooltipMode": "Tooltip Display",
   "compactData": "Compact (all times at distance)",
   "detailedData": "Detailed (segment analysis)",
-  "selectSingleLineForDetails": "Select only one line in the checkbox to view correct details"
-
+  "selectSingleLineForDetails": "Select only one line in the checkbox to view correct details",
+  "appSlogan": "Dive in. Stand out. SplashUp",
+  "welcomeSubtitle": "Your swimming companion\n100% Offline & Private",
+  "diveInButton": "Dive In!"
 }

@@ -227,11 +227,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get system => 'System';
 
   @override
+  String teamDeleted(String teamName) {
+    return '\"$teamName\" deleted.';
+  }
+
+  @override
+  String get deleteData => 'Reset App Data';
+
+  @override
   String get deleteAccount => 'Delete Account';
 
   @override
-  String get deleteAccountWarning =>
+  String get deleteDataWarning =>
       'This action is irreversible. All your teams, athletes, and records will be permanently deleted.';
+
+  @override
+  String get dataReset => 'All data has been reset.';
+
+  @override
+  String get dataResetFailed => 'Failed to reset data.';
 
   @override
   String get typeToDelete => 'Type \'DELETE\' to confirm';
@@ -506,4 +520,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get selectSingleLineForDetails =>
       'Select only one line in the checkbox to view correct details';
+
+  @override
+  String get appSlogan => 'Dive in. Stand out. SplashUp';
+
+  @override
+  String get welcomeSubtitle =>
+      'Your swimming companion\n100% Offline & Private';
+
+  @override
+  String get diveInButton => 'Dive In!';
 }

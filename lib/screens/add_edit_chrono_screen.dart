@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/chrono_model.dart';
 import '../models/team_model.dart';
+import '../repositories/database_repository.dart';
 
 /// Custom InputFormatter for sequential time input (MM:SS.cc)
 /// Digits shift left automatically, decimal point is ignored
@@ -94,12 +95,11 @@ class TimeInputFormatter extends TextInputFormatter {
 /// A screen that provides a form for both adding a new chrono record and
 /// editing an existing one.
 class AddEditChronoScreen extends StatefulWidget {
-  // The Firestore collection where the chrono will be saved or updated.
-  final CollectionReference chronoCollection;
-  // An optional existing chrono. If provided, the screen is in "edit" mode.
+  final String teamId;
+  final String athleteId;
+  final Team team; // Needed for the default pool length
   final Chrono? existingChrono;
-  // ADDED: The team is now required to get the default pool length.
-  final Team team;
+  
   // Parameters for receiving data from the stopwatch.
   final String? initialTime;
   final int? initialTimeMs;
@@ -108,7 +108,8 @@ class AddEditChronoScreen extends StatefulWidget {
 
   const AddEditChronoScreen({
     super.key,
-    required this.chronoCollection,
+    required this.teamId,
+    required this.athleteId,
     required this.team,
     this.existingChrono,
     this.initialTime,
@@ -135,11 +136,11 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
   final _notesController = TextEditingController();
   final _finalTimeFormatter = TimeInputFormatter();
 
-  // NEW: Split management
+  // Split management
   List<ChronoSplit> _splits = [];
   late List<TextEditingController> _splitControllers;
   late List<TimeInputFormatter> _splitFormatters;
-  // NEW: Error tracking for each split field
+  // Error tracking for each split field
   final Map<int, String?> _splitErrors = {};
   int? _finalTimeMs;
   // A getter to easily check if the screen is in editing mode.
@@ -418,29 +419,30 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       
       setState(() { _isDirty = false; });
 
-      // Create a map of the data to be saved
-      final data = {
-        'date': Timestamp.fromDate(_selectedDate),
-        'poolLength': _poolLength,
-        'distance': _distance,
-        'style': _style,
-        'finalTime': _finalTimeController.text,
-        'finalTimeMs': _finalTimeMs,
-        'splits': validSplits.map((split) => split.toMap()).toList(),
-        'notes': _notesController.text,
-        'type': _chronoType,
-      };
+      final newChrono = Chrono(
+        id: widget.existingChrono?.id ?? '', // ID vuoto per nuovi, ID esistente per update
+        date: _selectedDate,
+        poolLength: _poolLength,
+        distance: _distance ?? 100,
+        style: _style,
+        finalTime: _finalTimeController.text,
+        finalTimeMs: _finalTimeMs,
+        splits: validSplits,
+        notes: _notesController.text,
+        type: _chronoType,
+      );
 
-      // Close the screen first
+      final db = context.read<DatabaseRepository>();
+
       if (mounted) Navigator.of(context).pop();
 
       // Then perform Firestore operation (works offline with persistence)
       // If editing, update the existing document. Otherwise, add a new one.      
       try {
         if (isEditing) {
-          await widget.chronoCollection.doc(widget.existingChrono!.id).update(data);
+          await db.updateChrono(widget.teamId, widget.athleteId, newChrono);
         } else {
-          await widget.chronoCollection.add(data);
+          await db.addChrono(widget.teamId, widget.athleteId, newChrono);
         }
       } catch (e) {
         debugPrint('Error saving chrono: $e');

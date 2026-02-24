@@ -530,17 +530,41 @@ abstract class AppLocalizations {
   /// **'System'**
   String get system;
 
+  /// No description provided for @teamDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{teamName}\" deleted.'**
+  String teamDeleted(String teamName);
+
+  /// No description provided for @deleteData.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset App Data'**
+  String get deleteData;
+
   /// No description provided for @deleteAccount.
   ///
   /// In en, this message translates to:
   /// **'Delete Account'**
   String get deleteAccount;
 
-  /// No description provided for @deleteAccountWarning.
+  /// No description provided for @deleteDataWarning.
   ///
   /// In en, this message translates to:
   /// **'This action is irreversible. All your teams, athletes, and records will be permanently deleted.'**
-  String get deleteAccountWarning;
+  String get deleteDataWarning;
+
+  /// No description provided for @dataReset.
+  ///
+  /// In en, this message translates to:
+  /// **'All data has been reset.'**
+  String get dataReset;
+
+  /// No description provided for @dataResetFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reset data.'**
+  String get dataResetFailed;
 
   /// No description provided for @typeToDelete.
   ///
@@ -1025,6 +1049,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select only one line in the checkbox to view correct details'**
   String get selectSingleLineForDetails;
+
+  /// No description provided for @appSlogan.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive in. Stand out. SplashUp'**
+  String get appSlogan;
+
+  /// No description provided for @welcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your swimming companion\n100% Offline & Private'**
+  String get welcomeSubtitle;
+
+  /// No description provided for @diveInButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive In!'**
+  String get diveInButton;
 }
 
 class _AppLocalizationsDelegate

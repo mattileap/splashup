@@ -1,26 +1,30 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 /// A data model for a Team object.
 class Team {
   final String id;
   final String name;
-  // ADDED: New property to store the team's default pool length.
+  // Property to store the team's default pool length.
   final int poolLength;
 
   Team({
-    required this.id, 
+    required this.id,
     required this.name,
-    required this.poolLength, // ADDED
+    required this.poolLength,
   });
 
-  /// A factory constructor to create a Team from a Firestore document.
-  factory Team.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+  // NEW: Creates a Team from a simple Map (for Sembast)
+  factory Team.fromMap(Map<String, dynamic> map, String docId) {
     return Team(
-      id: doc.id,
-      name: data['name'] ?? '',
-      // ADDED: Read the pool length, defaulting to 25 if not set.
-      poolLength: data['poolLength'] ?? 25,
+      id: docId, // ID is passed separately (DB key)
+      name: map['name'] as String? ?? '',
+      poolLength: map['poolLength'] as int? ?? 25,
     );
+  }
+
+  // NEW: Converts Team object in a Map for saving
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'poolLength': poolLength,
+    };
   }
 }

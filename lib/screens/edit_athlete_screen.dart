@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:collection/collection.dart';
 import '../l10n/app_localizations.dart';
 import '../models/athlete_model.dart';
 import '../models/team_model.dart';
-import 'package:collection/collection.dart';
+import '../repositories/database_repository.dart';
 
 class EditAthleteScreen extends StatefulWidget {
   final Team team;
@@ -135,31 +135,27 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
           .map((entry) => entry.key)
           .toList();
 
-      final athleteRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
-          .collection('teams')
-          .doc(widget.team.id)
-          .collection('athletes')
-          .doc(widget.athlete.id);
+      // NUOVO: Creazione oggetto Athlete aggiornato
+      final updatedAthlete = Athlete(
+        id: widget.athlete.id,
+        name: _nameController.text.trim(),
+        birthYear: _selectedBirthYear ?? 2000,
+        gender: _gender,
+        preferredStyles: selectedStyles,
+        isActive: _isActive,
+        notes: _notesController.text.trim(),
+      );
 
-      final updateData = {
-        'name': _nameController.text,
-        'birthYear': _selectedBirthYear,
-        'gender': _gender,
-        'preferredStyles': selectedStyles,
-        'isActive': _isActive,
-        'notes': _notesController.text,
-      };
+      final db = context.read<DatabaseRepository>();
 
-      // Close the screen first
+      // Chiudiamo prima la schermata
       if (mounted) {
         Navigator.of(context).pop();
       }
 
-      // Then update Firestore (works offline with persistence)
+      // Poi aggiorniamo il DB locale
       try {
-        await athleteRef.update(updateData);
+        await db.updateAthlete(widget.team.id, updatedAthlete);
       } catch (e) {
         debugPrint('Error updating athlete: $e');
       }

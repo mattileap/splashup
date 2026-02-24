@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
 import '../models/athlete_model.dart';
+import '../repositories/database_repository.dart';
 import 'add_athlete_screen.dart';
-import 'athlete_details_screen.dart'; // Import the new details screen
+import 'athlete_details_screen.dart'; 
 
 class AthletesScreen extends StatefulWidget {
   final Team team;
@@ -63,24 +63,15 @@ class _AthletesScreenState extends State<AthletesScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final String? userId = FirebaseAuth.instance.currentUser?.uid;
-
-    if (userId == null) {
-      return const Scaffold(body: Center(child: Text("User not logged in")));
-    }
-
-    final athletesCollection = FirebaseFirestore.instance
-        .collection('users')
-        .doc(userId)
-        .collection('teams')
-        .doc(widget.team.id)
-        .collection('athletes');
+    
+    // NUOVO: Recuperiamo il repository
+    final db = Provider.of<DatabaseRepository>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
-        // UPDATED: The title is now the team name.
+        // The title is the team name.
         title: Text(widget.team.name),
-        // UPDATED: The search bar is now in the 'bottom' property of the AppBar.
+        // The search bar is in the 'bottom' property of the AppBar.
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: Padding(
@@ -123,8 +114,9 @@ class _AthletesScreenState extends State<AthletesScreen> {
           ),
           const Divider(height: 1),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: athletesCollection.orderBy('name').snapshots(),
+            // NEW: Stream on List<Athlete>
+            child: StreamBuilder<List<Athlete>>(
+              stream: db.getAthletesStream(widget.team.id),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -132,7 +124,10 @@ class _AthletesScreenState extends State<AthletesScreen> {
                 if (snapshot.hasError) {
                   return const Center(child: Text('Something went wrong'));
                 }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                
+                final allAthletes = snapshot.data ?? [];
+
+                if (allAthletes.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -155,10 +150,7 @@ class _AthletesScreenState extends State<AthletesScreen> {
                   );
                 }
 
-                final allAthletes = snapshot.data!.docs
-                    .map((doc) => Athlete.fromFirestore(doc))
-                    .toList();
-
+                // Filtraggio in memoria (Sembast è veloce, va benissimo farlo qui)
                 final filteredAthletes = allAthletes.where((athlete) {
                   final isStatusMatch = _showInactive || athlete.isActive;
                   final isSearchMatch = _searchQuery.isEmpty ||
@@ -173,8 +165,11 @@ class _AthletesScreenState extends State<AthletesScreen> {
                   itemBuilder: (context, index) {
                     final athlete = filteredAthletes[index];
                     return ListTile(
-                      leading:
-                          CircleAvatar(child: Text(athlete.name.substring(0, 1))),
+                      leading: CircleAvatar(
+                        child: Text(athlete.name.isNotEmpty 
+                          ? athlete.name.substring(0, 1).toUpperCase() 
+                          : '?'),
+                      ),
                       title: Text(athlete.name),
                       subtitle: Text('${l10n.birthYear}: ${athlete.birthYear}'),
                       trailing: Row(
@@ -211,8 +206,8 @@ class _AthletesScreenState extends State<AthletesScreen> {
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) =>
-                  AddAthleteScreen(athletesCollection: athletesCollection),
+              // Update: Pass teamId instead of CollectionReference
+              builder: (context) => AddAthleteScreen(teamId: widget.team.id),
             ),
           );
         },
