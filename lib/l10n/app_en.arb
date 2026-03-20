@@ -210,5 +210,9 @@
   "selectSingleLineForDetails": "Select only one line in the checkbox to view correct details",
   "appSlogan": "Dive in. Stand out. SplashUp",
   "welcomeSubtitle": "Your swimming companion\n100% Offline & Private",
-  "diveInButton": "Dive In!"
+  "diveInButton": "Dive In!",
+  "loadTestDataTitle": "Welcome to SplashUp!",
+  "loadTestDataMessage": "It looks like your database is empty. Would you like to load some sample data to explore the app, or start fresh?",
+  "loadTestDataBtn": "Load Sample Data",
+  "startFreshBtn": "Start Fresh"
 }

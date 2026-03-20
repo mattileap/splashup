@@ -1067,6 +1067,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive In!'**
   String get diveInButton;
+
+  /// No description provided for @loadTestDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to SplashUp!'**
+  String get loadTestDataTitle;
+
+  /// No description provided for @loadTestDataMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'It looks like your database is empty. Would you like to load some sample data to explore the app, or start fresh?'**
+  String get loadTestDataMessage;
+
+  /// No description provided for @loadTestDataBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Load Sample Data'**
+  String get loadTestDataBtn;
+
+  /// No description provided for @startFreshBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Fresh'**
+  String get startFreshBtn;
 }
 
 class _AppLocalizationsDelegate

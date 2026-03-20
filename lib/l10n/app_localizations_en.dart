@@ -530,4 +530,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveInButton => 'Dive In!';
+
+  @override
+  String get loadTestDataTitle => 'Welcome to SplashUp!';
+
+  @override
+  String get loadTestDataMessage =>
+      'It looks like your database is empty. Would you like to load some sample data to explore the app, or start fresh?';
+
+  @override
+  String get loadTestDataBtn => 'Load Sample Data';
+
+  @override
+  String get startFreshBtn => 'Start Fresh';
 }

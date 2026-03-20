@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.0.0+24
+version: 2.1.0+25
 
 environment:
   sdk: ^3.7.0
@@ -33,18 +33,18 @@ dependencies:
   flutter_localizations: #Adding languages support
     sdk: flutter         #Adding languages support
   intl: ^0.20.2          #Adding languages support
-  firebase_core: ^4.2.0   # Adding Firebase support
-  cloud_firestore: ^6.0.3 # Adding Firebase support
-  firebase_auth: ^6.1.1   # Adding Google Authentication
-  google_sign_in: ^7.2.0  # Adding Google Authentication
+  #firebase_core: ^4.2.0   # Adding Firebase support
+  #cloud_firestore: ^6.0.3 # Adding Firebase support
+  #firebase_auth: ^6.1.1   # Adding Google Authentication
+  #google_sign_in: ^7.2.0  # Adding Google Authentication
   collection: ^1.19.1 # Add this for deep equality checks
   provider: ^6.1.5+1 # Add this for state management
   shared_preferences: ^2.5.3 # Add this to save user preferences
   fl_chart: ^1.1.1 # Adding charts management
-  sembast: ^3.7.1 # DB framework
-  path_provider: ^2.1.2 # To manage path and storage
-  path: ^1.9.0 # To manage path and storage
-  uuid: ^4.3.3 # To generate local unique ID
+  sembast: ^3.8.6 # DB framework
+  path_provider: ^2.1.5 # To manage path and storage
+  path: ^1.9.1 # To manage path and storage
+  uuid: ^4.5.3 # To generate local unique ID
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

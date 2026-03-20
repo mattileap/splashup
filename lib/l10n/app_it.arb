@@ -210,5 +210,9 @@
   "selectSingleLineForDetails": "Seleziona una sola linea nella checkbox per avere i dettagli corretti",
   "appSlogan": "Dive in. Stand out. SplashUp",
   "welcomeSubtitle": "Il tuo compagno di nuoto\n100% Offline & Privato",
-  "diveInButton": "Tuffati!"
+  "diveInButton": "Tuffati!",
+  "loadTestDataTitle": "Benvenuto in SplashUp!",
+  "loadTestDataMessage": "Sembra che il tuo database sia vuoto. Vuoi caricare dei dati di prova per esplorare l'app, oppure preferisci iniziare da zero?",
+  "loadTestDataBtn": "Carica Dati di Prova",
+  "startFreshBtn": "Inizia da Zero"
 }

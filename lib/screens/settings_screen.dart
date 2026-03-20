@@ -21,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int _selectedYears = 2;
   
   // SYNC: Stato per gestire il caricamento del backup
-  bool _isSyncing = false;
+  // bool _isSyncing = false;
 
   @override
   void initState() {

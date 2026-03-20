@@ -1,14 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
+import '../repositories/database_repository.dart';
+import '../utils/dummy_data_generator.dart'; // Importiamo il generatore
 import 'teams_screen.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  bool _isLoading = false;
+
+  Future<void> _handleDiveIn(BuildContext context, AppLocalizations l10n) async {
+    final db = context.read<DatabaseRepository>();
+    
+    setState(() => _isLoading = true);
+    
+    // Controlliamo se il database è vuoto leggendo la lista delle squadre
+    final teams = await db.getTeamsStream().first;
+    
+    setState(() => _isLoading = false);
+
+    if (teams.isEmpty && context.mounted) {
+      // Il database è vuoto: Mostriamo il dialog
+      final wantTestData = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.loadTestDataTitle),
+          content: Text(l10n.loadTestDataMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.startFreshBtn),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade700,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.loadTestDataBtn),
+            ),
+          ],
+        ),
+      );
+
+      // Se l'utente ha scelto di caricare i dati
+      if (wantTestData == true && context.mounted) {
+        setState(() => _isLoading = true);
+        await DummyDataGenerator.populateDatabase(db);
+        setState(() => _isLoading = false);
+      }
+    }
+
+    // A prescindere dalla scelta, andiamo alla schermata principale
+    if (context.mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const TeamsScreen()),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Recuperiamo le traduzioni
     final l10n = AppLocalizations.of(context)!;
     
     return Scaffold(
@@ -18,12 +78,10 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // TUA ICONA ORIGINALE
               SvgPicture.asset(
                 'assets/images/SplashUp_Icon.svg',
                 height: 120, // Leggermente più grande per la copertina
                 width: 120,
-                // Manteniamo il tuo filtro colore originale
                 colorFilter: const ColorFilter.mode(Colors.blue, BlendMode.srcIn),
               ),
               const SizedBox(height: 32),
@@ -36,10 +94,8 @@ class WelcomeScreen extends StatelessWidget {
                   color: Colors.blue.shade800,
                 ),
               ),
-              
               const SizedBox(height: 8), // Piccolo spazio tra titolo e slogan
-              
-              // NUOVO SLOGAN
+              // SLOGAN
               Text(
                 l10n.appSlogan, // "Dive in. Stand out. SplashUp"
                 textAlign: TextAlign.center,
@@ -49,12 +105,10 @@ class WelcomeScreen extends StatelessWidget {
                   fontStyle: FontStyle.italic, // Opzionale: corsivo per lo slogan
                 ),
               ),
-
               const SizedBox(height: 24), // Spazio maggiore prima della descrizione
-              
               // DESCRIZIONE / SOTTOTITOLO (LOCALIZZATO)
               Text(
-                l10n.welcomeSubtitle, // "Il tuo compagno di nuoto..."
+                l10n.welcomeSubtitle,
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
@@ -66,12 +120,8 @@ class WelcomeScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Navigazione diretta alla schermata Squadre (senza login)
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const TeamsScreen()),
-                    );
-                  },
+                  // Disabilita il tasto se sta caricando
+                  onPressed: _isLoading ? null : () => _handleDiveIn(context, l10n),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue.shade700,
                     foregroundColor: Colors.white,
@@ -80,13 +130,15 @@ class WelcomeScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: Text(
-                    l10n.diveInButton, // "Tuffati!"
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isLoading 
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        l10n.diveInButton,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                 ),
               ),
             ],
