@@ -26,6 +26,10 @@ class StopwatchService extends ChangeNotifier {
   // Pauses the stopwatch.
   void stop() {
     _stopwatch.stop();
+    // Cattura il tempo esatto al momento dello stop: il timer aggiorna
+    // _elapsed solo ogni 10ms, senza questa riga il tempo salvato poteva
+    // essere fino a 10ms più vecchio del momento reale di stop.
+    _elapsed = _stopwatch.elapsed;
     _timer?.cancel();
     _timer = null;
     notifyListeners();
@@ -52,7 +56,10 @@ class StopwatchService extends ChangeNotifier {
   static String formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     // REMOVED: The unused 'threeDigits' function has been removed.
-    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    // Niente remainder(60): se il cronometro resta attivo oltre un'ora la
+    // stringa andava in wrap (65' → "05:00.00") mentre i millisecondi
+    // salvati restavano corretti → dato incoerente nel DB.
+    String twoDigitMinutes = twoDigits(duration.inMinutes);
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
     String twoDigitHundredths = (duration.inMilliseconds.remainder(1000) ~/ 10).toString().padLeft(2, '0');
     return "$twoDigitMinutes:$twoDigitSeconds.$twoDigitHundredths";

@@ -214,5 +214,44 @@
   "loadTestDataTitle": "Benvenuto in SplashUp!",
   "loadTestDataMessage": "Sembra che il tuo database sia vuoto. Vuoi caricare dei dati di prova per esplorare l'app, oppure preferisci iniziare da zero?",
   "loadTestDataBtn": "Carica Dati di Prova",
-  "startFreshBtn": "Inizia da Zero"
+  "startFreshBtn": "Inizia da Zero",
+  "sameSourceDestError": "La squadra di origine e quella di destinazione non possono coincidere.",
+  "noAthletesToMove": "Nessun atleta da spostare.",
+  "teamAlsoDeleted": "\"{name}\" è stata eliminata.",
+  "@teamAlsoDeleted": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "errorMovingAthletes": "Errore durante lo spostamento degli atleti",
+  "moveType": "Tipo di spostamento",
+  "errorDeactivation": "Errore durante la disattivazione",
+  "errorDeletion": "Errore durante l'eliminazione",
+  "requiredField": "Obbligatorio",
+  "timeGreaterThanZero": "Il tempo deve essere maggiore di zero",
+  "pleaseEnterName": "Inserisci un nome",
+  "pleaseSelectYear": "Seleziona un anno",
+  "somethingWentWrong": "Qualcosa è andato storto",
+  "errorWithDetails": "Errore: {error}",
+  "@errorWithDetails": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "hideSplits": "Nascondi parziali",
+  "showSplits": "Mostra parziali",
+  "startLabel": "Partenza",
+  "splitLabel": "Parziale:",
+  "errorSavingAthlete": "Errore nel salvataggio dell'atleta: {error}",
+  "@errorSavingAthlete": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "errorSavingChrono": "Errore nel salvataggio del tempo: {error}",
+  "@errorSavingChrono": {
+    "placeholders": {
+      "error": {}
+    }
+  }
 }

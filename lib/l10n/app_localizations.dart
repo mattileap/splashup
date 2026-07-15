@@ -1091,6 +1091,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Fresh'**
   String get startFreshBtn;
+
+  /// No description provided for @sameSourceDestError.
+  ///
+  /// In en, this message translates to:
+  /// **'Source and destination teams cannot be the same.'**
+  String get sameSourceDestError;
+
+  /// No description provided for @noAthletesToMove.
+  ///
+  /// In en, this message translates to:
+  /// **'No athletes found to move.'**
+  String get noAthletesToMove;
+
+  /// No description provided for @teamAlsoDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{name}\" was also deleted.'**
+  String teamAlsoDeleted(Object name);
+
+  /// No description provided for @errorMovingAthletes.
+  ///
+  /// In en, this message translates to:
+  /// **'Error moving athletes'**
+  String get errorMovingAthletes;
+
+  /// No description provided for @moveType.
+  ///
+  /// In en, this message translates to:
+  /// **'Move Type'**
+  String get moveType;
+
+  /// No description provided for @errorDeactivation.
+  ///
+  /// In en, this message translates to:
+  /// **'Error during deactivation'**
+  String get errorDeactivation;
+
+  /// No description provided for @errorDeletion.
+  ///
+  /// In en, this message translates to:
+  /// **'Error during deletion'**
+  String get errorDeletion;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get requiredField;
+
+  /// No description provided for @timeGreaterThanZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Time must be greater than zero'**
+  String get timeGreaterThanZero;
+
+  /// No description provided for @pleaseEnterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a name'**
+  String get pleaseEnterName;
+
+  /// No description provided for @pleaseSelectYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a year'**
+  String get pleaseSelectYear;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get somethingWentWrong;
+
+  /// No description provided for @errorWithDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorWithDetails(Object error);
+
+  /// No description provided for @hideSplits.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide splits'**
+  String get hideSplits;
+
+  /// No description provided for @showSplits.
+  ///
+  /// In en, this message translates to:
+  /// **'Show splits'**
+  String get showSplits;
+
+  /// No description provided for @startLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get startLabel;
+
+  /// No description provided for @splitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Split:'**
+  String get splitLabel;
+
+  /// No description provided for @errorSavingAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving athlete: {error}'**
+  String errorSavingAthlete(Object error);
+
+  /// No description provided for @errorSavingChrono.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving chrono: {error}'**
+  String errorSavingChrono(Object error);
 }
 
 class _AppLocalizationsDelegate

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
-import 'package:sembast/sembast.dart';
+// sembast.dart non serve: sembast_io.dart riesporta tutto il necessario
+// (segnalato da flutter analyze come unnecessary_import)
 import 'package:sembast/sembast_io.dart';
 import 'package:uuid/uuid.dart';
 import '../models/team_model.dart';
@@ -30,6 +32,14 @@ class SembastRepository implements DatabaseRepository {
     await appDir.create(recursive: true);
     final dbPath = join(appDir.path, 'splashup.db');
     _database = await databaseFactoryIo.openDatabase(dbPath);
+  }
+
+  /// Test-only: inietta un database già aperto (es. in-memory) al posto
+  /// di quello su file creato da init(), che richiede path_provider e
+  /// quindi non è utilizzabile nei unit test.
+  @visibleForTesting
+  void debugSetDatabase(Database db) {
+    _database = db;
   }
 
   Future<Database> get _readyDb async {
@@ -182,19 +192,24 @@ class SembastRepository implements DatabaseRepository {
 
   // --- COMPLEX OPERATIONS ---
 
-@override
+  @override
   Future<void> moveAthlete(String athleteId, String sourceTeamId, String destTeamId) async {
     final db = await _readyDb;
-    
-    // Just update the teamId field in the athlete record
-    await _athletesStore.record(athleteId).update(db, {'teamId': destTeamId});
-    
-    // // Optional: Update teamId in all chronos too (for consistency)
-    await _chronosStore.update(
-      db, 
-      {'teamId': destTeamId}, 
-      finder: Finder(filter: Filter.equals('athleteId', athleteId))
-    );
+
+    // Transazione atomica: atleta e relativi crono cambiano squadra insieme.
+    // Prima le due scritture erano separate e un'interruzione a metà poteva
+    // lasciare i crono associati alla squadra vecchia.
+    await db.transaction((txn) async {
+      // Just update the teamId field in the athlete record
+      await _athletesStore.record(athleteId).update(txn, {'teamId': destTeamId});
+
+      // Update teamId in all chronos too (for consistency)
+      await _chronosStore.update(
+        txn,
+        {'teamId': destTeamId},
+        finder: Finder(filter: Filter.equals('athleteId', athleteId)),
+      );
+    });
   }
 
   @override
@@ -265,8 +280,11 @@ class SembastRepository implements DatabaseRepository {
         bool shouldDelete = false;
         if (lastChrono == null) {
            final createdAt = snap.value['createdAt'] as int?;
-           if (createdAt != null && createdAt < cutoffDate) shouldDelete = true;
-           else if (createdAt == null) shouldDelete = true; // No data, safe to delete
+           if (createdAt != null && createdAt < cutoffDate) {
+             shouldDelete = true;
+           } else if (createdAt == null) {
+             shouldDelete = true; // No data, safe to delete
+           }
         } else {
            if ((lastChrono.value['date'] as int) < cutoffDate) {
              shouldDelete = true;

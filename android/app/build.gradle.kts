@@ -1,15 +1,33 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
-    id("com.google.gms.google-services")
+    // DISATTIVATO insieme a Firebase: google-services.json è registrato per
+    // il vecchio package (com.example.splashup) e faceva fallire il build
+    // dopo il rename. Quando Firebase verrà riattivato: registrare la nuova
+    // app "com.splashup.splashup" nella console Firebase, scaricare il nuovo
+    // google-services.json e riabilitare questa riga (e quella in
+    // settings.gradle.kts).
+    // id("com.google.gms.google-services")
     // END: FlutterFire Configuration
-    id("kotlin-android")
+    // RIMOSSO id("kotlin-android"): con AGP 9 il Kotlin è integrato
+    // (Built-in Kotlin) — vedi guida Flutter "migrate-to-built-in-kotlin".
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firma di release: le credenziali stanno in android/key.properties
+// (NON versionato, vedi android/.gitignore). Template: key.properties.example
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
-    namespace = "com.example.splashup"
+    namespace = "com.splashup.splashup"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -18,13 +36,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
-
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.splashup"
+        applicationId = "com.splashup.splashup"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -33,28 +47,55 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Config di release creata solo se key.properties esiste
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Firma con il keystore di release se configurato (key.properties
+            // presente), altrimenti fallback alle chiavi di debug così
+            // `flutter run --release` funziona anche senza keystore.
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
+    }
+}
+
+// Blocco Built-in Kotlin (sostituisce il vecchio kotlinOptions dentro
+// android{}): il jvmTarget deve coincidere con compileOptions (Java 11).
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     }
 }
 
 flutter {
     source = "../.."
 }
-  
- // ADD THIS BLOCK to customize the APK output name.
- // It iterates through all build variants (like debug, release)
- // and sets a custom name for the output file.
-android.applicationVariants.all {
- val variant = this
- variant.outputs.all {
- // 'this' refers to the output variant (e.g., apk)
-  val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
- // Construct the new name, e.g., "splashup-v1.0.0.apk"
-  outputImpl.outputFileName = "splashup-v${variant.versionName}.apk"
- }
+
+// Nome APK personalizzato, es. "splashup-v2.1.0.apk".
+// MIGRATO alla nuova Variant API (androidComponents): la vecchia
+// android.applicationVariants è stata rimossa in AGP 9.
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
+                output.outputFileName.set(
+                    output.versionName.map { v -> "splashup-v${v ?: "dev"}.apk" }
+                )
+            }
+        }
+    }
 }

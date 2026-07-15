@@ -46,6 +46,9 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
       'Butterfly': false,
       'Backstroke': false,
       'Breaststroke': false,
+      // 'IM' mancava: un atleta con IM tra gli stili preferiti non lo
+      // vedeva in modifica e lo perdeva silenziosamente al salvataggio.
+      'IM': false,
     };
     for (var style in widget.athlete.preferredStyles) {
       if (_preferredStyles.containsKey(style)) {
@@ -55,6 +58,14 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
 
     final currentYear = DateTime.now().year;
     _birthYearOptions = List.generate(100, (index) => currentYear - index);
+    // Difensivo: se l'anno di nascita salvato è fuori dal range dei 100
+    // anni generati, il DropdownButtonFormField andrebbe in assertion
+    // ("value must be in items") crashando la schermata.
+    if (_selectedBirthYear != null &&
+        !_birthYearOptions.contains(_selectedBirthYear)) {
+      _birthYearOptions.add(_selectedBirthYear!);
+      _birthYearOptions.sort((a, b) => b.compareTo(a)); // Discendente
+    }
 
     _nameController.addListener(_markDirty);
     _notesController.addListener(_markDirty);
@@ -66,8 +77,10 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
         .map((entry) => entry.key)
         .toList();
 
-    // UPDATED: Corrected the class name.
-    final stylesEqual = const DeepCollectionEquality()
+    // Confronto NON ordinato: l'ordine degli stili salvati può differire
+    // dall'ordine della mappa, e col confronto ordinato la schermata
+    // risultava sempre "dirty" (warning di uscita anche senza modifiche).
+    final stylesEqual = const DeepCollectionEquality.unordered()
         .equals(selectedStyles, widget.athlete.preferredStyles);
 
     final newDirtyState = _nameController.text != widget.athlete.name ||
@@ -124,6 +137,8 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
   }
 
   Future<void> _updateAthlete() async {
+    // Capture l10n before any await so it is safe to use after async gaps.
+    final l10n = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate()) {
       // FIXED: Mark as not dirty and close screen immediately
       setState(() {
@@ -147,18 +162,26 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
       );
 
       final db = context.read<DatabaseRepository>();
+      final navigator = Navigator.of(context);
+      final messenger = ScaffoldMessenger.of(context);
 
-      // Chiudiamo prima la schermata
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-
-      // Poi aggiorniamo il DB locale
+      // Prima salviamo, POI chiudiamo la schermata: col pop anticipato un
+      // eventuale errore di scrittura veniva solo loggato e l'utente
+      // credeva di aver salvato.
       try {
         await db.updateAthlete(widget.team.id, updatedAthlete);
       } catch (e) {
         debugPrint('Error updating athlete: $e');
+        if (mounted) {
+          setState(() => _isDirty = true); // Ripristina lo stato "modificato"
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.errorSavingAthlete(e.toString()))),
+          );
+        }
+        return;
       }
+
+      if (mounted) navigator.pop();
     }
   }
 
@@ -171,6 +194,7 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
       'Butterfly': l10n.butterfly,
       'Backstroke': l10n.backstroke,
       'Breaststroke': l10n.breaststroke,
+      'IM': l10n.im,
     };
 
     return PopScope(
@@ -207,7 +231,7 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
                 controller: _nameController,
                 decoration: InputDecoration(labelText: l10n.athleteName),
                 validator: (value) =>
-                    value!.isEmpty ? 'Please enter a name' : null,
+                    value!.isEmpty ? l10n.pleaseEnterName : null,
               ),
               DropdownButtonFormField<int>(
                 // UPDATED: Replaced 'value' with 'initialValue'
@@ -226,7 +250,7 @@ class _EditAthleteScreenState extends State<EditAthleteScreen> {
                   });
                 },
                 validator: (value) =>
-                    value == null ? 'Please select a year' : null,
+                    value == null ? l10n.pleaseSelectYear : null,
               ),
               DropdownButtonFormField<String>(
                 // UPDATED: Replaced 'value' with 'initialValue'

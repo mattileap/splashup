@@ -45,18 +45,29 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
   // Track which chrono cards are expanded for splits
   final Set<String> _expandedChronos = {};
 
-  /// Parses a time string (e.g., "01:23.45") into a Duration object for easy comparison.
-  Duration _parseTime(String time) {
-    try {
-      final parts = time.split(RegExp(r'[:.]'));
-      if (parts.length != 3) return const Duration(days: 999); // Invalid format, sort last
-      final minutes = int.parse(parts[0]);
-      final seconds = int.parse(parts[1]);
-      final hundredths = int.parse(parts[2]);
-      return Duration(minutes: minutes, seconds: seconds, milliseconds: hundredths * 10);
-    } catch (e) {
-      return const Duration(days: 999); // Handle parsing errors gracefully
-    }
+  // Stream creati una sola volta: crearli dentro build() causava una nuova
+  // sottoscrizione a ogni rebuild (es. a ogni cambio di filtro).
+  // Due stream separati perché gli stream async* di Sembast sono
+  // single-subscription e qui servono due StreamBuilder (menu AppBar + lista).
+  late final Stream<List<Chrono>> _menuChronosStream;
+  late final Stream<List<Chrono>> _listChronosStream;
+
+  @override
+  void initState() {
+    super.initState();
+    final db = context.read<DatabaseRepository>();
+    _menuChronosStream = db.getChronosStream(widget.athlete.id);
+    _listChronosStream = db.getChronosStream(widget.athlete.id);
+  }
+
+  /// Returns the duration of a chrono for comparison purposes.
+  /// Usa finalTimeMs (il dato canonico) e ripiega sul parse della stringa
+  /// solo per record legacy; i tempi non validi o a 0 vengono ordinati
+  /// in fondo così non diventano mai personal best.
+  Duration _chronoDuration(Chrono chrono) {
+    final ms = chrono.finalTimeMs ?? Chrono.parseTimeToMilliseconds(chrono.finalTime);
+    if (ms == null || ms <= 0) return const Duration(days: 999); // Sort last
+    return Duration(milliseconds: ms);
   }
 
   /// Calculates and displays the athlete's personal best times in a dialog.
@@ -77,7 +88,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
       final key = '${chrono.distance}-${chrono.style}';
       final existingBest = personalBests[key];
 
-      if (existingBest == null || _parseTime(chrono.finalTime) < _parseTime(existingBest.finalTime)) {
+      if (existingBest == null || _chronoDuration(chrono) < _chronoDuration(existingBest)) {
         personalBests[key] = chrono;
       }
     }
@@ -105,7 +116,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                       final translatedStyle = styleDisplayNames[chrono.style] ?? chrono.style;
                       return ListTile(
                         title: Text('${chrono.distance}m $translatedStyle'),
-                        subtitle: Text(chrono.finalTime),
+                        subtitle: Text(chrono.displayTime),
                       );
                     }).toList(),
                   ),
@@ -197,9 +208,6 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
             ),
           ),
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Charts coming soon in local mode!')),
-        );
         break;
     }
   }
@@ -213,21 +221,27 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
     // Show a dialog with options: Cancel, Deactivate, or Delete.
     final result = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      // I pulsanti chiudono il dialog col SUO context (dialogContext):
+      // usando il navigator della schermata, un doppio tap veloce poteva
+      // chiudere anche la schermata sottostante.
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.deleteAthlete),
         content: Text(l10n.deleteAthleteWarning),
         actions: [
           TextButton(
-            onPressed: () => navigator.pop('cancel'),
+            onPressed: () => Navigator.of(dialogContext).pop('cancel'),
             child: Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => navigator.pop('deactivate'),
+            onPressed: () => Navigator.of(dialogContext).pop('deactivate'),
             child: Text(l10n.deactivate),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => navigator.pop('delete'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop('delete'),
             child: Text(l10n.deleteAnyway),
           ),
         ],
@@ -268,7 +282,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           // Per popolare il menu Action, abbiamo bisogno dei dati.
           // Usiamo uno StreamBuilder per avere i dati aggiornati anche per il menu.
           StreamBuilder<List<Chrono>>(
-            stream: db.getChronosStream(widget.athlete.id),
+            stream: _menuChronosStream,
             builder: (context, snapshot) {
               final allChronos = snapshot.data ?? [];
               
@@ -338,6 +352,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           // Keep Edit and Delete as separate buttons (important actions)
           IconButton(
             icon: const Icon(Icons.edit),
+            tooltip: l10n.editAthlete,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -352,6 +367,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           // Button to delete the athlete.
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+            tooltip: l10n.deleteAthlete,
             onPressed: _showDeleteAthleteDialog,
           ),
         ],
@@ -363,7 +379,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           // The rest of the screen is a scrollable list of chronos.
           Expanded(
             child: StreamBuilder<List<Chrono>>(
-              stream: db.getChronosStream(widget.athlete.id),
+              stream: _listChronosStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -450,7 +466,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
           children: [
             Text(athlete.name, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 4),
-            Text(team.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600)),
+            Text(team.name, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             const SizedBox(height: 8),
             Text('${l10n.age}: $age • $translatedGender'),
             const SizedBox(height: 8),
@@ -558,7 +574,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
             leading: CircleAvatar(
               child: Text(chrono.distance.toString()),
             ),
-            title: Text('${styleDisplayNames[chrono.style] ?? chrono.style} - ${chrono.finalTime}'),
+            title: Text('${styleDisplayNames[chrono.style] ?? chrono.style} - ${chrono.displayTime}'),
             subtitle: Text('${DateFormat.yMMMd().format(chrono.date)} • ${typeDisplayNames[chrono.type] ?? chrono.type}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -568,9 +584,9 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                   IconButton(
                     icon: Icon(
                       isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: Colors.blue,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    tooltip: isExpanded ? 'Hide splits' : 'Show splits',
+                    tooltip: isExpanded ? l10n.hideSplits : l10n.showSplits,
                     onPressed: () {
                       setState(() {
                         if (isExpanded) {
@@ -590,6 +606,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                   ),
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.grey),
+                  tooltip: l10n.editChrono,
                   onPressed: () {
                      Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => AddEditChronoScreen(
@@ -602,6 +619,7 @@ class _AthleteDetailsScreenState extends State<AthleteDetailsScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  tooltip: l10n.deleteChronoTitle,
                   onPressed: () async {
                     final confirm = await showDialog<bool>(
                       context: context,

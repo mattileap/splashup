@@ -23,7 +23,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     
     // Controlliamo se il database è vuoto leggendo la lista delle squadre
     final teams = await db.getTeamsStream().first;
-    
+
+    // Il widget potrebbe essere stato smontato durante l'await:
+    // chiamare setState in quel caso causerebbe un crash.
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (teams.isEmpty && context.mounted) {
@@ -55,6 +58,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       if (wantTestData == true && context.mounted) {
         setState(() => _isLoading = true);
         await DummyDataGenerator.populateDatabase(db);
+        // Guardia anche qui: populateDatabase è un await e il check
+        // a riga sopra non copre questo punto.
+        if (!mounted) return;
         setState(() => _isLoading = false);
       }
     }

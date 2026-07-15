@@ -8,87 +8,69 @@ import '../models/team_model.dart';
 import '../repositories/database_repository.dart';
 
 /// Custom InputFormatter for sequential time input (MM:SS.cc)
-/// Digits shift left automatically, decimal point is ignored
+/// Digits shift left automatically, decimal point is ignored.
+///
+/// STATELESS: lo stato è derivato ogni volta da oldValue.text, così il
+/// formatter funziona correttamente anche con campi pre-compilati
+/// (modifica di un crono esistente) o aggiornati programmaticamente
+/// (ricalcolo split), senza andare fuori sincrono.
 class TimeInputFormatter extends TextInputFormatter {
-  String _currentValue = '00:00.00';
+  // Minuti a 2 O 3 cifre: un tempo pre-compilato oltre i 99' (es. dal
+  // cronometro in acque libere, "100:23.45") resta editabile senza essere
+  // azzerato. La digitazione da campo vuoto lavora comunque su 2 cifre.
+  static final RegExp _timePattern = RegExp(r'^\d{2,3}:\d{2}\.\d{2}$');
+  static const String _empty = '00:00.00';
 
   @override
   TextEditingValue formatEditUpdate(
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
+    // Il valore corrente è il testo reale del campo (se valido), non uno
+    // stato interno che può divergere da ciò che l'utente vede.
+    final current =
+        _timePattern.hasMatch(oldValue.text) ? oldValue.text : _empty;
     final newText = newValue.text;
-    final oldText = oldValue.text;
 
-    // Handle complete deletion (when field is cleared)
+    final String result;
     if (newText.isEmpty) {
-      _currentValue = '00:00.00';
-      return TextEditingValue(
-        text: _currentValue,
-        selection: TextSelection.collapsed(offset: _currentValue.length),
-      );
+      // Handle complete deletion (when field is cleared)
+      result = _empty;
+    } else if (newText.length < oldValue.text.length) {
+      // If user is deleting (backspace): shift right
+      result = _shiftRight(current);
+    } else {
+      final lastChar = newText[newText.length - 1];
+      if (RegExp(r'[0-9]').hasMatch(lastChar)) {
+        // Digit typed: shift left
+        result = _shiftLeft(current, lastChar);
+      } else {
+        // Ignore decimal point and any other character
+        result = current;
+      }
     }
 
-    // If user is deleting (backspace)
-    if (newText.length < oldText.length) {
-      _handleBackspace();
-      return TextEditingValue(
-        text: _currentValue,
-        selection: TextSelection.collapsed(offset: _currentValue.length),
-      );
-    }
-
-    // Get the last character typed
-    final lastChar = newText[newText.length - 1];
-
-    // Ignore decimal point (we format automatically)
-    if (lastChar == '.') {
-      return TextEditingValue(
-        text: _currentValue,
-        selection: TextSelection.collapsed(offset: _currentValue.length),
-      );
-    }
-
-    // Handle digits 0-9 only
-    if (RegExp(r'[0-9]').hasMatch(lastChar)) {
-      _handleDigit(lastChar);
-      return TextEditingValue(
-        text: _currentValue,
-        selection: TextSelection.collapsed(offset: _currentValue.length),
-      );
-    }
-
-    // Ignore any other character
     return TextEditingValue(
-      text: _currentValue,
-      selection: TextSelection.collapsed(offset: _currentValue.length),
+      text: result,
+      selection: TextSelection.collapsed(offset: result.length),
     );
   }
 
-  void _handleDigit(String digit) {
-    // Remove formatting characters to get just the 6 digits
-    final numbers = _currentValue.replaceAll(RegExp(r'[:\.]'), '');
-    
-    // Shift left and add new digit at the end
-    final shifted = '${numbers.substring(1)}$digit';
-    
-    // Reformat as MM:SS.cc
-    _currentValue = '${shifted.substring(0, 2)}:${shifted.substring(2, 4)}.${shifted.substring(4, 6)}';
+  // Le funzioni di shift preservano la lunghezza del buffer (6 o 7 cifre),
+  // così funzionano sia con minuti a 2 che a 3 cifre.
+  static String _shiftLeft(String current, String digit) {
+    final numbers = current.replaceAll(RegExp(r'[:.]'), '');
+    return _format('${numbers.substring(1)}$digit');
   }
 
-  void _handleBackspace() {
-    // Remove formatting characters
-    final numbers = _currentValue.replaceAll(RegExp(r'[:\.]'), '');
-    
-    // Shift right and add 0 at the beginning
-    final shifted = '0${numbers.substring(0, 5)}';
-    
-    // Reformat as MM:SS.cc
-    _currentValue = '${shifted.substring(0, 2)}:${shifted.substring(2, 4)}.${shifted.substring(4, 6)}';
+  static String _shiftRight(String current) {
+    final numbers = current.replaceAll(RegExp(r'[:.]'), '');
+    return _format('0${numbers.substring(0, numbers.length - 1)}');
   }
 
-  void reset() {
-    _currentValue = '00:00.00';
+  static String _format(String digits) {
+    final m = digits.length - 4; // Cifre dei minuti (2 o 3)
+    return '${digits.substring(0, m)}:${digits.substring(m, m + 2)}.${digits.substring(m + 2)}';
   }
 }
 
@@ -161,7 +143,9 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       _style = chrono.style;
       _distance = chrono.distance;
       _chronoType = chrono.type;
-      _finalTimeController.text = chrono.finalTime;
+      // displayTime: se il record ha una stringa non normalizzata (es.
+      // "00:65.00"), nel campo appare già normalizzata ("01:05.00").
+      _finalTimeController.text = chrono.displayTime;
       _notesController.text = chrono.notes;
       _finalTimeMs = chrono.finalTimeMs;
       // Carica i parziali esistenti
@@ -397,6 +381,8 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
 
   /// Validates and saves the form data to Firestore.
   Future<void> _saveChrono() async {
+    // Capture l10n before any await so it is safe to use after async gaps.
+    final l10n = AppLocalizations.of(context)!;
     // First, check if the form is valid.
     if (_formKey.currentState!.validate()) {
       
@@ -425,7 +411,10 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
         poolLength: _poolLength,
         distance: _distance ?? 100,
         style: _style,
-        finalTime: _finalTimeController.text,
+        // Normalizziamo la stringa dai millisecondi: "00:65.00" digitato
+        // dall'utente viene salvato come "01:05.00". Il validator
+        // garantisce che _finalTimeMs sia valorizzato e > 0.
+        finalTime: Chrono.formatMillisecondsToTime(_finalTimeMs ?? 0),
         finalTimeMs: _finalTimeMs,
         splits: validSplits,
         notes: _notesController.text,
@@ -433,11 +422,12 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       );
 
       final db = context.read<DatabaseRepository>();
+      final navigator = Navigator.of(context);
 
-      if (mounted) Navigator.of(context).pop();
-
-      // Then perform Firestore operation (works offline with persistence)
-      // If editing, update the existing document. Otherwise, add a new one.      
+      // Prima salviamo, POI chiudiamo la schermata: col pop anticipato un
+      // eventuale errore di scrittura veniva solo loggato e l'utente
+      // credeva di aver salvato.
+      // If editing, update the existing document. Otherwise, add a new one.
       try {
         if (isEditing) {
           await db.updateChrono(widget.teamId, widget.athleteId, newChrono);
@@ -446,7 +436,16 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
         }
       } catch (e) {
         debugPrint('Error saving chrono: $e');
+        if (mounted) {
+          setState(() { _isDirty = true; }); // Ripristina lo stato "modificato"
+          _showError(l10n.errorSavingChrono(e.toString()));
+        }
+        return;
       }
+
+      // pop(true) = "salvato con successo": serve al cronometro per
+      // distinguere il salvataggio dall'annullamento.
+      if (mounted) navigator.pop(true);
     }
   }
 
@@ -558,7 +557,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                     _markDirty(true);
                   });
                 },
-                validator: (v) => v == null ? 'Required' : null,
+                validator: (v) => v == null ? l10n.requiredField : null,
               ),
               // Dropdown for selecting the swimming style.
               DropdownButtonFormField<String>(
@@ -578,16 +577,24 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                   hintText: l10n.finalTimeHint,
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.clear, size: 20),
+                    tooltip: l10n.reset,
                     onPressed: () {
                       _finalTimeController.clear();
-                      _finalTimeFormatter.reset();
                       _markDirty(true);
                     },
                   ),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 inputFormatters: [_finalTimeFormatter],
-                validator: (v) => v!.isEmpty ? 'Required' : null,
+                // Il tempo deve essere > 0: il formatter garantisce sempre
+                // il formato 00:00.00, quindi il solo check isEmpty lasciava
+                // salvare crono a 0 ms che inquinavano i personal best.
+                validator: (v) {
+                  if (v == null || v.isEmpty) return l10n.requiredField;
+                  final ms = Chrono.parseTimeToMilliseconds(v);
+                  if (ms == null || ms <= 0) return l10n.timeGreaterThanZero;
+                  return null;
+                },
               ),
               // NEW: Splits section
               const SizedBox(height: 24),
@@ -698,11 +705,11 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
               if (!isLastSplit)
                 IconButton(
                   icon: const Icon(Icons.clear, size: 16),
+                  tooltip: l10n.reset,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                   onPressed: () {
                     _splitControllers[index].clear();
-                    _splitFormatters[index].reset();
                     _updateSplitTime(index, '');
                   },
                 ),

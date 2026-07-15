@@ -29,6 +29,12 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
   Athlete? _selectedAthlete;
   int? _selectedBirthYear;
 
+  // Stream creati fuori da build(): crearli inline causava una nuova
+  // sottoscrizione a ogni rebuild. Lo stream degli atleti viene ricreato
+  // solo quando cambia la squadra sorgente o il tipo di spostamento.
+  late final Stream<List<Team>> _teamsStream;
+  Stream<List<Athlete>>? _sourceAthletesStream;
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +42,17 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
       _sourceTeam = widget.initialSourceTeam;
       _moveType = MoveType.all;
     }
+    _teamsStream = context.read<DatabaseRepository>().getTeamsStream();
+    _refreshSourceAthletesStream();
+  }
+
+  /// Ricrea lo stream degli atleti della squadra sorgente. Va richiamato
+  /// quando cambia _sourceTeam o _moveType (gli stream Sembast sono
+  /// single-subscription: il cambio di selettore richiede uno stream nuovo).
+  void _refreshSourceAthletesStream() {
+    _sourceAthletesStream = _sourceTeam == null
+        ? null
+        : context.read<DatabaseRepository>().getAthletesStream(_sourceTeam!.id);
   }
 
   Future<void> _performMove() async {
@@ -49,7 +66,17 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
       return;
     }
     if (_sourceTeam!.id == _destinationTeam!.id) {
-      messenger.showSnackBar(const SnackBar(content: Text("Source and destination teams cannot be the same.")));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.sameSourceDestError)));
+      return;
+    }
+    // Validazione PRIMA del dialog di conferma: senza questi check l'utente
+    // confermava lo spostamento e non succedeva nulla, senza alcun messaggio.
+    if (_moveType == MoveType.single && _selectedAthlete == null) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.selectAthlete)));
+      return;
+    }
+    if (_moveType == MoveType.byYear && _selectedBirthYear == null) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.selectBirthYear)));
       return;
     }
 
@@ -87,7 +114,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     }
 
     if (athletesToMove.isEmpty) {
-      messenger.showSnackBar(const SnackBar(content: Text("No athletes found to move.")));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.noAthletesToMove)));
       return;
     }
 
@@ -97,11 +124,14 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
         await db.moveAthlete(athlete.id, _sourceTeam!.id, _destinationTeam!.id);
       }
 
-      // Cancellazione opzionale del team sorgente
-      if (widget.deleteSourceTeamOnSuccess) {
+      // Cancellazione opzionale del team sorgente.
+      // SAFETY: eliminiamo solo se sono stati spostati TUTTI gli atleti,
+      // perché deleteTeam è a cascata ed eliminerebbe anche gli atleti
+      // rimasti nella squadra e i loro crono.
+      if (widget.deleteSourceTeamOnSuccess && _moveType == MoveType.all) {
         await db.deleteTeam(_sourceTeam!.id);
         if (mounted) {
-          messenger.showSnackBar(SnackBar(content: Text('"${_sourceTeam!.name}" was also deleted.')));
+          messenger.showSnackBar(SnackBar(content: Text(l10n.teamAlsoDeleted(_sourceTeam!.name))));
         }
       } else {
         if (mounted) {
@@ -113,7 +143,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     } catch (e) {
       debugPrint('Error moving athletes: $e');
       if (mounted) {
-        messenger.showSnackBar(const SnackBar(content: Text("Error moving athletes")));
+        messenger.showSnackBar(SnackBar(content: Text(l10n.errorMovingAthletes)));
       }
     }
   }
@@ -129,7 +159,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
       ),
       // StreamBuilder per le squadre
       body: StreamBuilder<List<Team>>(
-        stream: db.getTeamsStream(),
+        stream: _teamsStream,
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
           
@@ -153,17 +183,23 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
             children: [
               DropdownButtonFormField<MoveType>(
                 initialValue: _moveType,
-                decoration: const InputDecoration(labelText: 'Move Type'),
+                decoration: InputDecoration(labelText: l10n.moveType),
                 items: [
                   DropdownMenuItem(value: MoveType.single, child: Text(l10n.moveSingleAthlete)),
                   DropdownMenuItem(value: MoveType.byYear, child: Text(l10n.moveAthletesByYear)),
                   DropdownMenuItem(value: MoveType.all, child: Text(l10n.moveAllAthletes)),
                 ],
-                onChanged: (value) => setState(() {
-                  _moveType = value!;
-                  _selectedAthlete = null;
-                  _selectedBirthYear = null;
-                }),
+                // Se la schermata è stata aperta dal flusso "elimina squadra",
+                // il tipo di spostamento resta bloccato su "tutti gli atleti"
+                // per evitare eliminazioni a cascata parziali.
+                onChanged: widget.deleteSourceTeamOnSuccess
+                    ? null
+                    : (value) => setState(() {
+                          _moveType = value!;
+                          _selectedAthlete = null;
+                          _selectedBirthYear = null;
+                          _refreshSourceAthletesStream();
+                        }),
               ),
               const SizedBox(height: 16),
 
@@ -171,7 +207,11 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
                 initialValue: currentSourceTeam,
                 decoration: InputDecoration(labelText: l10n.sourceTeam),
                 items: teams.map((t) => DropdownMenuItem(value: t, child: Text(t.name))).toList(),
-                onChanged: (value) => setState(() {
+                // Sorgente bloccata nel flusso "elimina squadra": la squadra
+                // da eliminare è quella scelta nelle impostazioni.
+                onChanged: widget.deleteSourceTeamOnSuccess
+                    ? null
+                    : (value) => setState(() {
                   _sourceTeam = value;
                   // Reset destinazione se coincide con la nuova sorgente
                   if (_destinationTeam != null && _destinationTeam!.id == value!.id) {
@@ -179,6 +219,7 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
                   }
                   _selectedAthlete = null;
                   _selectedBirthYear = null;
+                  _refreshSourceAthletesStream();
                 }),
               ),
               DropdownButtonFormField<Team>(
@@ -218,12 +259,12 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     }
 
     return StreamBuilder<List<Athlete>>(
-      stream: db.getAthletesStream(_sourceTeam!.id),
+      stream: _sourceAthletesStream,
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        
+
         final athletes = snapshot.data ?? [];
-        
+
         if (athletes.isEmpty) {
           return ListTile(
             title: Text(l10n.selectAthlete),
@@ -257,12 +298,12 @@ class _MoveAthletesScreenState extends State<MoveAthletesScreen> {
     }
 
     return StreamBuilder<List<Athlete>>(
-      stream: db.getAthletesStream(_sourceTeam!.id),
+      stream: _sourceAthletesStream,
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        
+
         final athletes = snapshot.data ?? [];
-        
+
         // Estrai anni unici dagli atleti
         final uniqueYears = athletes
             .map((a) => a.birthYear)

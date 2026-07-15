@@ -543,4 +543,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startFreshBtn => 'Start Fresh';
+
+  @override
+  String get sameSourceDestError =>
+      'Source and destination teams cannot be the same.';
+
+  @override
+  String get noAthletesToMove => 'No athletes found to move.';
+
+  @override
+  String teamAlsoDeleted(Object name) {
+    return '\"$name\" was also deleted.';
+  }
+
+  @override
+  String get errorMovingAthletes => 'Error moving athletes';
+
+  @override
+  String get moveType => 'Move Type';
+
+  @override
+  String get errorDeactivation => 'Error during deactivation';
+
+  @override
+  String get errorDeletion => 'Error during deletion';
+
+  @override
+  String get requiredField => 'Required';
+
+  @override
+  String get timeGreaterThanZero => 'Time must be greater than zero';
+
+  @override
+  String get pleaseEnterName => 'Please enter a name';
+
+  @override
+  String get pleaseSelectYear => 'Please select a year';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong';
+
+  @override
+  String errorWithDetails(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get hideSplits => 'Hide splits';
+
+  @override
+  String get showSplits => 'Show splits';
+
+  @override
+  String get startLabel => 'Start';
+
+  @override
+  String get splitLabel => 'Split:';
+
+  @override
+  String errorSavingAthlete(Object error) {
+    return 'Error saving athlete: $error';
+  }
+
+  @override
+  String errorSavingChrono(Object error) {
+    return 'Error saving chrono: $error';
+  }
 }

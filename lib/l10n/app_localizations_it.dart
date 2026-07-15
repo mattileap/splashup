@@ -546,4 +546,71 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get startFreshBtn => 'Inizia da Zero';
+
+  @override
+  String get sameSourceDestError =>
+      'La squadra di origine e quella di destinazione non possono coincidere.';
+
+  @override
+  String get noAthletesToMove => 'Nessun atleta da spostare.';
+
+  @override
+  String teamAlsoDeleted(Object name) {
+    return '\"$name\" è stata eliminata.';
+  }
+
+  @override
+  String get errorMovingAthletes =>
+      'Errore durante lo spostamento degli atleti';
+
+  @override
+  String get moveType => 'Tipo di spostamento';
+
+  @override
+  String get errorDeactivation => 'Errore durante la disattivazione';
+
+  @override
+  String get errorDeletion => 'Errore durante l\'eliminazione';
+
+  @override
+  String get requiredField => 'Obbligatorio';
+
+  @override
+  String get timeGreaterThanZero => 'Il tempo deve essere maggiore di zero';
+
+  @override
+  String get pleaseEnterName => 'Inserisci un nome';
+
+  @override
+  String get pleaseSelectYear => 'Seleziona un anno';
+
+  @override
+  String get somethingWentWrong => 'Qualcosa è andato storto';
+
+  @override
+  String errorWithDetails(Object error) {
+    return 'Errore: $error';
+  }
+
+  @override
+  String get hideSplits => 'Nascondi parziali';
+
+  @override
+  String get showSplits => 'Mostra parziali';
+
+  @override
+  String get startLabel => 'Partenza';
+
+  @override
+  String get splitLabel => 'Parziale:';
+
+  @override
+  String errorSavingAthlete(Object error) {
+    return 'Errore nel salvataggio dell\'atleta: $error';
+  }
+
+  @override
+  String errorSavingChrono(Object error) {
+    return 'Errore nel salvataggio del tempo: $error';
+  }
 }

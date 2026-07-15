@@ -116,6 +116,15 @@ class Chrono {
     };
   }
 
+  /// Tempo da mostrare in UI, sempre normalizzato: un valore inserito come
+  /// "00:65.00" (65 secondi) viene mostrato come "01:05.00". Usa i
+  /// millisecondi canonici quando disponibili, altrimenti prova a
+  /// normalizzare la stringa; se non è interpretabile la restituisce com'è.
+  String get displayTime {
+    final ms = finalTimeMs ?? parseTimeToMilliseconds(finalTime);
+    return ms != null ? formatMillisecondsToTime(ms) : finalTime;
+  }
+
   static int? parseTimeToMilliseconds(String timeString) {
     if (timeString.isEmpty) return null;
     try {
@@ -148,7 +157,10 @@ class Chrono {
   static String formatMillisecondsToTime(int milliseconds) {
     if (milliseconds < 0) return '00:00.00';
     final duration = Duration(milliseconds: milliseconds);
-    final minutes = duration.inMinutes.remainder(60);
+    // Niente remainder(60): oltre i 60' i minuti continuano a crescere
+    // (es. 65:00.00) invece di andare in wrap perdendo le ore.
+    // parseTimeToMilliseconds gestisce già minuti > 59 in round-trip.
+    final minutes = duration.inMinutes;
     final seconds = duration.inSeconds.remainder(60);
     final centiseconds = (duration.inMilliseconds.remainder(1000) / 10).floor();
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}.${centiseconds.toString().padLeft(2, '0')}';

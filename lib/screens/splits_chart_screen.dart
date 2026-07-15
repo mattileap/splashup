@@ -88,7 +88,10 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
     final lines = <ChartLineData>[];
     for (final chrono in chronosToShow) {
       final spots = _createSpotsForChrono(chrono);
-      if (spots.isNotEmpty) {
+      // Servono almeno 2 punti: il primo è sempre l'origine (0,0) aggiunta
+      // da _createSpotsForChrono, quindi con isNotEmpty passavano anche
+      // linee senza alcuno split reale (causando maxX/maxY = 0 e crash).
+      if (spots.length >= 2) {
         final color = _getColorForPerformance(
           chrono.finalTimeMs ?? 0,
           bestTime,
@@ -105,6 +108,8 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
     setState(() {
       _chartLines = lines;
       _visibleLines = lines.map((l) => l.chrono.id).toSet();
+      // Reset: le linee sono cambiate, l'highlight sarebbe scorretto
+      _highlightedLineIndex = null;
     });
   }
 
@@ -202,7 +207,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
             const SizedBox(height: 16),
             Text(
               l10n.noSplitData,
-              style: TextStyle(fontSize: 20, color: Colors.grey.shade600),
+              style: TextStyle(fontSize: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
@@ -344,6 +349,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                     max: 10,
                     divisions: 9,
                     label: _numberOfChronos.toString(),
+                    semanticFormatterCallback: (double value) => value.round().toString(),
                     onChanged: (value) {
                       setState(() {
                         _numberOfChronos = value.round();
@@ -380,6 +386,9 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                       _visibleLines = {_chartLines.first.chrono.id};
                     }
                   }
+                  // L'highlight indicizza le linee visibili: al cambio di
+                  // visibilità punterebbe alla linea sbagliata.
+                  _highlightedLineIndex = null;
                 });
               },
             ),
@@ -401,7 +410,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
           alignment: Alignment.center,
           child: Text(
             l10n.noVisibleLines,
-            style: TextStyle(color: Colors.grey.shade600),
+            style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             textAlign: TextAlign.center,
           ),
         ),
@@ -418,7 +427,11 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
     // Since minY is now always 0, we use maxY for calculations
     final yRange = maxY - minY;
     final yPadding = yRange > 0 ? yRange * 0.05 : maxY * 0.1; // Reduced padding since we start from 0
-    final horizontalInterval = yRange > 0 ? yRange / 5 : maxY / 5;
+    // Clamp a un minimo positivo: fl_chart lancia un'assertion se
+    // l'intervallo della griglia è 0.
+    final horizontalInterval =
+        math.max(yRange > 0 ? yRange / 5 : maxY / 5, 0.001);
+    final verticalInterval = math.max(maxX / 5, 0.001);
 
     return Card(
       child: Padding(
@@ -450,7 +463,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                     show: true,
                     drawVerticalLine: true,
                     horizontalInterval: horizontalInterval,
-                    verticalInterval: maxX / 5,
+                    verticalInterval: verticalInterval,
                     getDrawingHorizontalLine: (value) => FlLine(
                       color: theme.dividerColor,
                       strokeWidth: 1,
@@ -619,6 +632,8 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                         _visibleLines = {_chartLines.first.chrono.id};
                       }
                     }
+                    // Reset: l'highlight indicizza le linee visibili
+                    _highlightedLineIndex = null;
                   });
                 },
                 child: Column(
@@ -642,7 +657,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              '${_formatDate(lineData.chrono.date)} - ${lineData.chrono.finalTime}',
+                              '${_formatDate(lineData.chrono.date)} - ${lineData.chrono.displayTime}',
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                               ),
@@ -672,6 +687,8 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                       } else {
                         _visibleLines.remove(lineData.chrono.id);
                       }
+                      // Reset: l'highlight indicizza le linee visibili
+                      _highlightedLineIndex = null;
                     });
                   },
                   title: Row(
@@ -687,7 +704,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          '${_formatDate(lineData.chrono.date)} - ${lineData.chrono.finalTime}',
+                          '${_formatDate(lineData.chrono.date)} - ${lineData.chrono.displayTime}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: isVisible ? FontWeight.w600 : FontWeight.normal,
                           ),
@@ -791,7 +808,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
       // Special case: starting point
       if (pointIndex <= 0 || touchedX < 0.1) {
         return LineTooltipItem(
-          'Start',
+          l10n.startLabel,
           TextStyle(
             color: theme.colorScheme.onSurface,
             fontSize: 12,
@@ -824,7 +841,7 @@ class _SplitsChartScreenState extends State<SplitsChartScreen> {
         children: [
           TextSpan(
             text:
-                'Split: ${Chrono.formatMillisecondsToTime(splitTimeMs)}\n'
+                '${l10n.splitLabel} ${Chrono.formatMillisecondsToTime(splitTimeMs)}\n'
                 '${l10n.cumulative}: ${Chrono.formatMillisecondsToTime(cumulativeTimeMs)}\n'
                 '$dateStr',
             style: TextStyle(

@@ -16,29 +16,22 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  int _teamCount = 0;
   int _selectedMonths = 12;
   int _selectedYears = 2;
-  
+
+  // Il conteggio squadre ora arriva da uno stream live invece che da una
+  // lettura una tantum in initState: prima i tile "Sposta atleti" ed
+  // "Elimina squadra" restavano abilitati/disabilitati in modo errato
+  // dopo aver aggiunto o eliminato squadre.
+  late final Stream<List<Team>> _teamsStream;
+
   // SYNC: Stato per gestire il caricamento del backup
   // bool _isSyncing = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchTeamCount();
-  }
-
-  Future<void> _fetchTeamCount() async {
-    final db = context.read<DatabaseRepository>();
-    // Otteniamo la lista attuale delle squadre per contarle
-    final teams = await db.getTeamsStream().first;
-    
-    if (mounted) {
-      setState(() {
-        _teamCount = teams.length;
-      });
-    }
+    _teamsStream = context.read<DatabaseRepository>().getTeamsStream();
   }
 
  /*
@@ -73,18 +66,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _runDeactivation() async {
     final l10n = AppLocalizations.of(context)!;
-    final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final db = context.read<DatabaseRepository>();
 
+    // I pulsanti chiudono il dialog col SUO context: usando il navigator
+    // della schermata, un doppio tap veloce poteva chiudere anche la
+    // schermata sottostante.
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.deactivateInactiveAthletes),
         content: Text(l10n.deactivationConfirmation),
         actions: [
-          TextButton(onPressed: () => navigator.pop(false), child: Text(l10n.cancel)),
-          ElevatedButton(onPressed: () => navigator.pop(true), child: Text(l10n.run)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(l10n.cancel)),
+          ElevatedButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(l10n.run)),
         ],
       ),
     );
@@ -101,27 +96,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       debugPrint('Error running deactivation: $e');
       if (mounted) {
-        messenger.showSnackBar(const SnackBar(content: Text("Error during deactivation")));
+        messenger.showSnackBar(SnackBar(content: Text(l10n.errorDeactivation)));
       }
     }
   }
 
   Future<void> _runDeletion() async {
     final l10n = AppLocalizations.of(context)!;
-    final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final db = context.read<DatabaseRepository>();
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.deleteInactiveAthletes),
         content: Text(l10n.deletionConfirmation),
         actions: [
-          TextButton(onPressed: () => navigator.pop(false), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(l10n.cancel)),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () => navigator.pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
             child: Text(l10n.delete),
           ),
         ],
@@ -140,7 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (e) {
       debugPrint('Error running deletion: $e');
       if (mounted) {
-        messenger.showSnackBar(const SnackBar(content: Text("Error during deletion")));
+        messenger.showSnackBar(SnackBar(content: Text(l10n.errorDeletion)));
       }
     }
   }
@@ -153,7 +150,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final teamToDelete = await showDialog<Team>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return StreamBuilder<List<Team>>(
           stream: db.getTeamsStream(),
           builder: (context, snapshot) {
@@ -162,7 +159,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return SimpleDialog(
               title: Text(l10n.selectTeamToDelete),
               children: teams.map((team) => SimpleDialogOption(
-                onPressed: () => navigator.pop(team),
+                onPressed: () => Navigator.of(dialogContext).pop(team),
                 child: Text(team.name),
               )).toList(),
             );
@@ -175,13 +172,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final choice = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(l10n.deleteTeam),
         content: Text(l10n.deleteTeamWarning),
         actions: [
-          TextButton(onPressed: () => navigator.pop('cancel'), child: Text(l10n.cancel)),
-          TextButton(onPressed: () => navigator.pop('move'), child: Text(l10n.moveAthletesOption)),
-          ElevatedButton(onPressed: () => navigator.pop('delete'), child: Text(l10n.deleteAnyway)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop('cancel'), child: Text(l10n.cancel)),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop('move'), child: Text(l10n.moveAthletesOption)),
+          ElevatedButton(onPressed: () => Navigator.of(dialogContext).pop('delete'), child: Text(l10n.deleteAnyway)),
         ],
       ),
     );
@@ -201,22 +198,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final confirmationController = TextEditingController();
       final confirmed = await showDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           title: Text(l10n.deleteTeam),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(l10n.deleteTeamConfirmation),
-              TextField(controller: confirmationController, decoration: const InputDecoration(labelText: 'DELETE')),
+              TextField(controller: confirmationController, decoration: InputDecoration(labelText: l10n.typeToDelete)),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => navigator.pop(false), child: Text(l10n.cancel)),
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(l10n.cancel)),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
               onPressed: () {
                 if (confirmationController.text == 'DELETE') {
-                  navigator.pop(true);
+                  Navigator.of(dialogContext).pop(true);
                 }
               },
               child: Text(l10n.delete),
@@ -224,6 +224,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
       );
+
+      // Dispose del controller del dialog (prima non veniva mai rilasciato)
+      confirmationController.dispose();
 
       if (confirmed == true) {
         try {
@@ -233,8 +236,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (mounted) {
             // Usa il metodo l10n corretto con parametro
             messenger.showSnackBar(SnackBar(content: Text(l10n.teamDeleted(teamToDelete.name))));
-            // Aggiorniamo il conteggio squadre
-            _fetchTeamCount();
+            // Il conteggio squadre si aggiorna da solo via _teamsStream
           }
         } catch (e) {
           debugPrint('Error deleting team: $e');
@@ -250,7 +252,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final formKey = GlobalKey<FormState>();
     final db = context.read<DatabaseRepository>();
 
-    return showDialog<void>(
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -277,7 +279,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         },
                         validator: (value) {
                           if (value != 'DELETE') {
-                            return '';
+                            // Prima ritornava '' che disegnava una striscia
+                            // d'errore vuota sotto il campo.
+                            return l10n.typeToDelete;
                           }
                           return null;
                         },
@@ -303,9 +307,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             if (states.contains(WidgetState.disabled)) {
                               return Colors.grey;
                             }
-                            return Colors.red.withAlpha(200); 
+                            return Colors.red.withAlpha(200);
                           },
                         ),
+                        foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white),
                       ),
                       onPressed: value.text == 'DELETE'
                           ? () async {
@@ -342,6 +347,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
       },
     );
+
+    // Dispose del controller del dialog (prima non veniva mai rilasciato)
+    confirmationController.dispose();
   }
 
   @override
@@ -390,29 +398,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Text(l10n.dataManagement,
                 style: Theme.of(context).textTheme.titleSmall),
           ),
-          ListTile(
-            enabled: _teamCount >= 2,
-            leading: const Icon(Icons.sync_alt),
-            title: Text(l10n.moveAthletes),
-            subtitle: Text(
-              _teamCount < 2 
-              ? l10n.moveAthletesDeny
-              : l10n.moveAthletesDescription
-            ),
-            onTap: _teamCount >= 2 ? () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const MoveAthletesScreen()),
+          // I due tile dipendono dal numero di squadre: usiamo lo stream
+          // live così restano coerenti con le modifiche fatte altrove.
+          StreamBuilder<List<Team>>(
+            stream: _teamsStream,
+            builder: (context, snapshot) {
+              final teamCount = snapshot.data?.length ?? 0;
+              return Column(
+                children: [
+                  ListTile(
+                    enabled: teamCount >= 2,
+                    leading: const Icon(Icons.sync_alt),
+                    title: Text(l10n.moveAthletes),
+                    subtitle: Text(
+                      teamCount < 2
+                      ? l10n.moveAthletesDeny
+                      : l10n.moveAthletesDescription
+                    ),
+                    onTap: teamCount >= 2 ? () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const MoveAthletesScreen()),
+                      );
+                    } : null,
+                  ),
+
+                  // ADDED: New ListTile for deleting a team.
+                  ListTile(
+                    enabled: teamCount > 0,
+                    leading: const Icon(Icons.group_remove_outlined),
+                    title: Text(l10n.deleteTeam),
+                    subtitle: Text(l10n.deleteTeamDescription),
+                    onTap: teamCount > 0 ? _showDeleteTeamDialog : null,
+                  ),
+                ],
               );
-            } : null,
-          ),
-          
-          // ADDED: New ListTile for deleting a team.
-          ListTile(
-            enabled: _teamCount > 0,
-            leading: const Icon(Icons.group_remove_outlined),
-            title: Text(l10n.deleteTeam),
-            subtitle: Text(l10n.deleteTeamDescription),
-            onTap: _showDeleteTeamDialog,
+            },
           ),
 
           const Divider(),
@@ -482,7 +502,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withAlpha(200)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.withAlpha(200),
+                    foregroundColor: Colors.white,
+                  ),
                   onPressed: _runDeletion,
                   child: Text(l10n.run),
                 ),

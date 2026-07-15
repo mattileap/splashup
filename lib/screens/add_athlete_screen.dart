@@ -29,16 +29,23 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
     'Butterfly': false,
     'Backstroke': false,
     'Breaststroke': false,
+    // 'IM' mancava anche qui: impossibile assegnarlo in fase di creazione
+    'IM': false,
   };
 
   bool _isDirty = false;
+  // Default per l'anno di nascita, serve anche al check "form modificato"
+  late final int _defaultBirthYear;
 
   @override
   void initState() {
     super.initState();
     final currentYear = DateTime.now().year;
     _birthYearOptions = List.generate(100, (index) => currentYear - index);
-    _selectedBirthYear = currentYear;
+    // Default sensato: prima era l'anno corrente (atleta di 0 anni),
+    // errore facile da non notare in fase di inserimento.
+    _defaultBirthYear = currentYear - 10;
+    _selectedBirthYear = _defaultBirthYear;
 
     _nameController.addListener(() => _markDirty(true));
     _notesController.addListener(() => _markDirty(true));
@@ -60,10 +67,15 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
   }
 
   Future<bool> _canPop() async {
-    // Only show dialog if the form has been touched and is not empty
+    // Only show dialog if the form has been touched and is not empty.
+    // Il check ora copre TUTTI i campi: prima genere, anno di nascita e
+    // stato attivo erano ignorati e si potevano perdere senza warning.
     final formIsDirty = _nameController.text.isNotEmpty ||
         _notesController.text.isNotEmpty ||
-        _preferredStyles.containsValue(true);
+        _preferredStyles.containsValue(true) ||
+        _gender != 'Male' ||
+        _selectedBirthYear != _defaultBirthYear ||
+        !_isActive;
 
     if (!formIsDirty) return true;
 
@@ -92,6 +104,8 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
   }
 
   Future<void> _saveAthlete() async {
+    // Capture l10n before any await so it is safe to use after async gaps.
+    final l10n = AppLocalizations.of(context)!;
     if (_formKey.currentState!.validate()) {
       final selectedStyles = _preferredStyles.entries
           .where((entry) => entry.value)
@@ -111,18 +125,25 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
 
       // NEW: Saving via Repository
       final db = context.read<DatabaseRepository>();
-      
-      // Close first screen
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
+      final navigator = Navigator.of(context);
+      final messenger = ScaffoldMessenger.of(context);
 
+      // Prima salviamo, POI chiudiamo la schermata: col pop anticipato un
+      // eventuale errore di scrittura veniva solo loggato e l'utente
+      // credeva di aver salvato.
       try {
         await db.addAthlete(widget.teamId, newAthlete);
       } catch (e) {
         debugPrint('Error saving athlete: $e');
-        // Se volessi gestire l'errore in UI, dovresti non chiudere lo schermo prima
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.errorSavingAthlete(e.toString()))),
+          );
+        }
+        return;
       }
+
+      if (mounted) navigator.pop();
     }
   }
 
@@ -134,6 +155,7 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
       'Butterfly': l10n.butterfly,
       'Backstroke': l10n.backstroke,
       'Breaststroke': l10n.breaststroke,
+      'IM': l10n.im,
     };
 
     return PopScope(
@@ -166,7 +188,7 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
                 decoration: InputDecoration(labelText: l10n.athleteName),
                 textCapitalization: TextCapitalization.words,
                 validator: (value) =>
-                    value!.isEmpty ? 'Please enter a name' : null,
+                    value!.isEmpty ? l10n.pleaseEnterName : null,
               ),
               DropdownButtonFormField<int>(
                 initialValue: _selectedBirthYear,
@@ -184,7 +206,7 @@ class _AddAthleteScreenState extends State<AddAthleteScreen> {
                   });
                 },
                 validator: (value) =>
-                    value == null ? 'Please select a year' : null,
+                    value == null ? l10n.pleaseSelectYear : null,
               ),
               DropdownButtonFormField<String>(
                 initialValue: _gender,

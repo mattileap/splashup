@@ -20,10 +20,16 @@ class _AthletesScreenState extends State<AthletesScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _showInactive = false;
+  // Stream creato una sola volta: crearlo dentro build() causava una nuova
+  // sottoscrizione (e uno spinner) a ogni rebuild, es. a ogni tasto digitato
+  // nella barra di ricerca.
+  late final Stream<List<Athlete>> _athletesStream;
 
   @override
   void initState() {
     super.initState();
+    _athletesStream =
+        context.read<DatabaseRepository>().getAthletesStream(widget.team.id);
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text;
@@ -63,9 +69,6 @@ class _AthletesScreenState extends State<AthletesScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
-    // NUOVO: Recuperiamo il repository
-    final db = Provider.of<DatabaseRepository>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -85,6 +88,7 @@ class _AthletesScreenState extends State<AthletesScreen> {
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
+                        tooltip: l10n.reset,
                         onPressed: () {
                           _searchController.clear();
                         },
@@ -116,13 +120,13 @@ class _AthletesScreenState extends State<AthletesScreen> {
           Expanded(
             // NEW: Stream on List<Athlete>
             child: StreamBuilder<List<Athlete>>(
-              stream: db.getAthletesStream(widget.team.id),
+              stream: _athletesStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return const Center(child: Text('Something went wrong'));
+                  return Center(child: Text(l10n.somethingWentWrong));
                 }
                 
                 final allAthletes = snapshot.data ?? [];
@@ -177,6 +181,7 @@ class _AthletesScreenState extends State<AthletesScreen> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.note_alt_outlined),
+                            tooltip: l10n.notesTitle,
                             onPressed: () => _showNotesDialog(context, athlete),
                           ),
                           if (!athlete.isActive)

@@ -16,6 +16,15 @@ class TeamsScreen extends StatefulWidget {
 }
 
 class _TeamsScreenState extends State<TeamsScreen> {
+  // Stream creato una sola volta: crearlo dentro build() causava una nuova
+  // sottoscrizione a ogni rebuild della schermata.
+  late final Stream<List<Team>> _teamsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _teamsStream = context.read<DatabaseRepository>().getTeamsStream();
+  }
 
   /// Displays a dialog to edit the name and default pool length of an existing team.
   Future<void> _editTeam(Team team) async {
@@ -69,18 +78,20 @@ class _TeamsScreenState extends State<TeamsScreen> {
       },
     );
 
-    if (result == true) {
-      final newTeamName = teamNameController.text;
-      if (newTeamName.isNotEmpty) {
-        // NUOVO: Usiamo il repository locale invece di Firestore
-        final db = context.read<DatabaseRepository>();
-        final updatedTeam = Team(
-          id: team.id,
-          name: newTeamName,
-          poolLength: poolLength,
-        );
-        await db.updateTeam(updatedTeam);
-      }
+    // .trim() per evitare nomi squadra fatti di soli spazi;
+    // dispose del controller (prima non veniva mai rilasciato).
+    final newTeamName = teamNameController.text.trim();
+    teamNameController.dispose();
+
+    if (result == true && mounted && newTeamName.isNotEmpty) {
+      // NUOVO: Usiamo il repository locale invece di Firestore
+      final db = context.read<DatabaseRepository>();
+      final updatedTeam = Team(
+        id: team.id,
+        name: newTeamName,
+        poolLength: poolLength,
+      );
+      await db.updateTeam(updatedTeam);
     }
   }
 
@@ -144,28 +155,27 @@ class _TeamsScreenState extends State<TeamsScreen> {
       },
     );
 
-    if (result == true) {
-      final newTeamName = teamNameController.text;
-      if (newTeamName.isNotEmpty) {
-        // NUOVO: Salvataggio locale tramite repository
-        final db = context.read<DatabaseRepository>();
-        // Creiamo un team con ID vuoto, il repository ne genererà uno (UUID)
-        final newTeam = Team(
-          id: '', 
-          name: newTeamName,
-          poolLength: poolLength,
-        );
-        await db.addTeam(newTeam);
-      }
+    // .trim() per evitare nomi squadra fatti di soli spazi;
+    // dispose del controller (prima non veniva mai rilasciato).
+    final newTeamName = teamNameController.text.trim();
+    teamNameController.dispose();
+
+    if (result == true && mounted && newTeamName.isNotEmpty) {
+      // NUOVO: Salvataggio locale tramite repository
+      final db = context.read<DatabaseRepository>();
+      // Creiamo un team con ID vuoto, il repository ne genererà uno (UUID)
+      final newTeam = Team(
+        id: '',
+        name: newTeamName,
+        poolLength: poolLength,
+      );
+      await db.addTeam(newTeam);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
-    // NUOVO: Otteniamo il riferimento al repository
-    final db = Provider.of<DatabaseRepository>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -183,13 +193,13 @@ class _TeamsScreenState extends State<TeamsScreen> {
       ),
       // NUOVO: StreamBuilder tipizzato su List<Team> invece di QuerySnapshot
       body: StreamBuilder<List<Team>>(
-        stream: db.getTeamsStream(), // Stream dal database locale
+        stream: _teamsStream, // Stream dal database locale (creato in initState)
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text(l10n.errorWithDetails(snapshot.error.toString())));
           }
           
           final teams = snapshot.data ?? [];
@@ -245,6 +255,7 @@ class _TeamsScreenState extends State<TeamsScreen> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit, color: Colors.grey),
+                        tooltip: l10n.editTeam,
                         onPressed: () => _editTeam(team),
                       ),
                       const Icon(Icons.arrow_forward_ios, size: 16),

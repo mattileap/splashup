@@ -66,29 +66,32 @@ class StopwatchScreen extends StatelessWidget {
         ),
         const SizedBox(width: 20),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             if (stopwatch.isRunning) {
               // If the timer is running, stop it first.
               stopwatch.stop();
 
-              // Convert laps to ChronoSplit format              
+              // Convert laps to ChronoSplit format
               // FIXED: Pass total elapsed time to calculate the final split
               final List<ChronoSplit> splits = _convertLapsToSplits(
                 stopwatch.laps,
                 stopwatch.elapsed, // Pass total time
               );
-              
+
               // Calculate final time in milliseconds
               final finalTimeMs = stopwatch.elapsed.inMilliseconds;
               final finalTime = Chrono.formatMillisecondsToTime(finalTimeMs);
 
-              // Navigazione aggiornata per Sembast (Offline)
-              Navigator.of(context).pushReplacement(
+              // FIX UX: push (non pushReplacement) e attendiamo l'esito.
+              // Con pushReplacement, annullando il salvataggio tempo e
+              // vasche registrati andavano persi per sempre.
+              final navigator = Navigator.of(context);
+              final saved = await navigator.push<bool>(
                 MaterialPageRoute(
                   builder: (context) => AddEditChronoScreen(
-                    teamId: team.id,          // NUOVO
-                    athleteId: athlete.id,    // NUOVO
-                    team: team,               // Manteniamo il team per la poolLength
+                    teamId: team.id,
+                    athleteId: athlete.id,
+                    team: team, // Manteniamo il team per la poolLength
                     initialTime: finalTime,
                     initialTimeMs: finalTimeMs,
                     initialSplits: splits,
@@ -96,6 +99,15 @@ class StopwatchScreen extends StatelessWidget {
                   ),
                 ),
               );
+
+              if (saved == true) {
+                // Salvato: azzeriamo il cronometro e torniamo ai dettagli
+                // atleta (stessa destinazione del vecchio flusso).
+                stopwatch.reset();
+                navigator.pop();
+              }
+              // Annullato: si resta sul cronometro con tempo e vasche
+              // intatti, pronti per un nuovo tentativo di salvataggio.
             } else {
               // If the timer is stopped, start it.
               stopwatch.start();

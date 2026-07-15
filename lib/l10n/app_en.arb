@@ -214,5 +214,44 @@
   "loadTestDataTitle": "Welcome to SplashUp!",
   "loadTestDataMessage": "It looks like your database is empty. Would you like to load some sample data to explore the app, or start fresh?",
   "loadTestDataBtn": "Load Sample Data",
-  "startFreshBtn": "Start Fresh"
+  "startFreshBtn": "Start Fresh",
+  "sameSourceDestError": "Source and destination teams cannot be the same.",
+  "noAthletesToMove": "No athletes found to move.",
+  "teamAlsoDeleted": "\"{name}\" was also deleted.",
+  "@teamAlsoDeleted": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "errorMovingAthletes": "Error moving athletes",
+  "moveType": "Move Type",
+  "errorDeactivation": "Error during deactivation",
+  "errorDeletion": "Error during deletion",
+  "requiredField": "Required",
+  "timeGreaterThanZero": "Time must be greater than zero",
+  "pleaseEnterName": "Please enter a name",
+  "pleaseSelectYear": "Please select a year",
+  "somethingWentWrong": "Something went wrong",
+  "errorWithDetails": "Error: {error}",
+  "@errorWithDetails": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "hideSplits": "Hide splits",
+  "showSplits": "Show splits",
+  "startLabel": "Start",
+  "splitLabel": "Split:",
+  "errorSavingAthlete": "Error saving athlete: {error}",
+  "@errorSavingAthlete": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "errorSavingChrono": "Error saving chrono: {error}",
+  "@errorSavingChrono": {
+    "placeholders": {
+      "error": {}
+    }
+  }
 }

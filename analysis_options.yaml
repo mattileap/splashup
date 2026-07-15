@@ -9,6 +9,14 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  exclude:
+    # Servizi cloud disattivati: le dipendenze firebase_*/google_sign_in
+    # sono commentate nel pubspec, quindi questi file non compilano ma non
+    # sono importati da nessun file attivo. Rimuovere questo exclude quando
+    # Firebase verrà riattivato.
+    - lib/services/cloud/**
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`
