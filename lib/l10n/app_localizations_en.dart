@@ -609,4 +609,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String errorSavingChrono(Object error) {
     return 'Error saving chrono: $error';
   }
+
+  @override
+  String get dummyTeamNoviceA => 'Team A - Novice A';
+
+  @override
+  String get dummyTeamMasters => 'Team A - Masters';
+
+  @override
+  String get dummyTeamB => 'Team B';
+
+  @override
+  String get dummyTeamJuniors => 'Team C - Juniors';
+
+  @override
+  String dummyAthleteName(Object code) {
+    return 'Athlete $code';
+  }
+
+  @override
+  String get dummyCodeNovice => 'N';
+
+  @override
+  String get dummyCodeMasters => 'M';
+
+  @override
+  String get dummyCodeJuniors => 'J';
+
+  @override
+  String get dummyAthleteNote => 'Sample athlete created for demo purposes.';
+
+  @override
+  String get dummyNoteRace => 'Sample race';
+
+  @override
+  String get dummyNoteTraining => 'Sample training';
+
+  @override
+  String get dummyNotePersonalBest => 'Personal best!';
 }

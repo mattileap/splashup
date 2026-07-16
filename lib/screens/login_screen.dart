@@ -57,7 +57,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       // Se l'utente ha scelto di caricare i dati
       if (wantTestData == true && context.mounted) {
         setState(() => _isLoading = true);
-        await DummyDataGenerator.populateDatabase(db);
+        await DummyDataGenerator.populateDatabase(db, l10n);
         // Guardia anche qui: populateDatabase è un await e il check
         // a riga sopra non copre questo punto.
         if (!mounted) return;

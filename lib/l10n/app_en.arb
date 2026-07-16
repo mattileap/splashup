@@ -253,5 +253,32 @@
     "placeholders": {
       "error": {}
     }
-  }
+  },
+  "dummyTeamNoviceA": "Team A - Novice A",
+  "dummyTeamMasters": "Team A - Masters",
+  "dummyTeamB": "Team B",
+  "dummyTeamJuniors": "Team C - Juniors",
+  "dummyAthleteName": "Athlete {code}",
+  "@dummyAthleteName": {
+    "description": "Generic name for a sample athlete, e.g. 'Athlete A1N'",
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "dummyCodeNovice": "N",
+  "@dummyCodeNovice": {
+    "description": "Suffix appended to sample athlete codes of the Novice category"
+  },
+  "dummyCodeMasters": "M",
+  "@dummyCodeMasters": {
+    "description": "Suffix appended to sample athlete codes of the Masters category"
+  },
+  "dummyCodeJuniors": "J",
+  "@dummyCodeJuniors": {
+    "description": "Suffix appended to sample athlete codes of the Juniors category"
+  },
+  "dummyAthleteNote": "Sample athlete created for demo purposes.",
+  "dummyNoteRace": "Sample race",
+  "dummyNoteTraining": "Sample training",
+  "dummyNotePersonalBest": "Personal best!"
 }

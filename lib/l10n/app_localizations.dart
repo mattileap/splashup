@@ -1205,6 +1205,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error saving chrono: {error}'**
   String errorSavingChrono(Object error);
+
+  /// No description provided for @dummyTeamNoviceA.
+  ///
+  /// In en, this message translates to:
+  /// **'Team A - Novice A'**
+  String get dummyTeamNoviceA;
+
+  /// No description provided for @dummyTeamMasters.
+  ///
+  /// In en, this message translates to:
+  /// **'Team A - Masters'**
+  String get dummyTeamMasters;
+
+  /// No description provided for @dummyTeamB.
+  ///
+  /// In en, this message translates to:
+  /// **'Team B'**
+  String get dummyTeamB;
+
+  /// No description provided for @dummyTeamJuniors.
+  ///
+  /// In en, this message translates to:
+  /// **'Team C - Juniors'**
+  String get dummyTeamJuniors;
+
+  /// Generic name for a sample athlete, e.g. 'Athlete A1N'
+  ///
+  /// In en, this message translates to:
+  /// **'Athlete {code}'**
+  String dummyAthleteName(Object code);
+
+  /// Suffix appended to sample athlete codes of the Novice category
+  ///
+  /// In en, this message translates to:
+  /// **'N'**
+  String get dummyCodeNovice;
+
+  /// Suffix appended to sample athlete codes of the Masters category
+  ///
+  /// In en, this message translates to:
+  /// **'M'**
+  String get dummyCodeMasters;
+
+  /// Suffix appended to sample athlete codes of the Juniors category
+  ///
+  /// In en, this message translates to:
+  /// **'J'**
+  String get dummyCodeJuniors;
+
+  /// No description provided for @dummyAthleteNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample athlete created for demo purposes.'**
+  String get dummyAthleteNote;
+
+  /// No description provided for @dummyNoteRace.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample race'**
+  String get dummyNoteRace;
+
+  /// No description provided for @dummyNoteTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample training'**
+  String get dummyNoteTraining;
+
+  /// No description provided for @dummyNotePersonalBest.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal best!'**
+  String get dummyNotePersonalBest;
 }
 
 class _AppLocalizationsDelegate

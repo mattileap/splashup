@@ -253,5 +253,32 @@
     "placeholders": {
       "error": {}
     }
-  }
+  },
+  "dummyTeamNoviceA": "Squadra A - Esordienti A",
+  "dummyTeamMasters": "Squadra A - Master",
+  "dummyTeamB": "Squadra B",
+  "dummyTeamJuniors": "Squadra C - Juniores",
+  "dummyAthleteName": "Atleta {code}",
+  "@dummyAthleteName": {
+    "description": "Nome generico per un atleta di esempio, es. 'Atleta A1ES'",
+    "placeholders": {
+      "code": {}
+    }
+  },
+  "dummyCodeNovice": "ES",
+  "@dummyCodeNovice": {
+    "description": "Suffisso aggiunto ai codici degli atleti di esempio della categoria Esordienti"
+  },
+  "dummyCodeMasters": "M",
+  "@dummyCodeMasters": {
+    "description": "Suffisso aggiunto ai codici degli atleti di esempio della categoria Master"
+  },
+  "dummyCodeJuniors": "J",
+  "@dummyCodeJuniors": {
+    "description": "Suffisso aggiunto ai codici degli atleti di esempio della categoria Juniores"
+  },
+  "dummyAthleteNote": "Atleta di esempio creato a scopo dimostrativo.",
+  "dummyNoteRace": "Gara di esempio",
+  "dummyNoteTraining": "Allenamento di esempio",
+  "dummyNotePersonalBest": "Record personale!"
 }
