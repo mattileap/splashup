@@ -52,15 +52,20 @@ class StopwatchService extends ChangeNotifier {
     }
   }
 
-  // Helper to format Duration into a MM:SS.ss string.
-  static String formatDuration(Duration duration) {
+  // Helper to format Duration into a MM:SS.ss (or MM:SS.s) string.
+  // [hundredths] riguarda SOLO la visualizzazione (impostazione "Precisione
+  // tempo"): i millisecondi salvati nel DB restano a precisione piena.
+  static String formatDuration(Duration duration, {bool hundredths = true}) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-    // REMOVED: The unused 'threeDigits' function has been removed.
     // Niente remainder(60): se il cronometro resta attivo oltre un'ora la
     // stringa andava in wrap (65' → "05:00.00") mentre i millisecondi
     // salvati restavano corretti → dato incoerente nel DB.
     String twoDigitMinutes = twoDigits(duration.inMinutes);
     String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    if (!hundredths) {
+      final tenths = duration.inMilliseconds.remainder(1000) ~/ 100;
+      return "$twoDigitMinutes:$twoDigitSeconds.$tenths";
+    }
     String twoDigitHundredths = (duration.inMilliseconds.remainder(1000) ~/ 10).toString().padLeft(2, '0');
     return "$twoDigitMinutes:$twoDigitSeconds.$twoDigitHundredths";
   }

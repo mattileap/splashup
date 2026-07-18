@@ -125,7 +125,7 @@
   "deactivationComplete": "Cleanup complete. {count} athlete(s) were deactivated.",
   "@deactivationComplete": {
     "placeholders": {
-        "count": {}
+      "count": {}
     }
   },
   "deleteInactiveAthletes": "Delete Inactive Athletes",
@@ -136,7 +136,7 @@
   "deletionComplete": "Cleanup complete. {count} athlete(s) were deleted.",
   "@deletionComplete": {
     "placeholders": {
-        "count": {}
+      "count": {}
     }
   },
   "googleSignIn": "Sign in with Google",
@@ -156,34 +156,34 @@
   "splitTimeInvalidError": "Split {index}: please enter a valid cumulative time",
   "@splitTimeInvalidError": {
     "placeholders": {
-        "index": {}
+      "index": {}
     }
   },
   "splitDistanceMultiple": "Split {number}: distance must be a multiple of {poolLength} m",
   "@splitDistanceMultiple": {
     "placeholders": {
-        "number": {},
-        "poolLength": {}
+      "number": {},
+      "poolLength": {}
     }
   },
   "splitDistanceExceeds": "Split {number}: distance ({splitDistance} m) exceeds total distance ({totalDistance} m)",
   "@splitDistanceExceeds": {
     "placeholders": {
-        "number": {},
-        "splitDistance": {},
-        "totalDistance": {}
+      "number": {},
+      "splitDistance": {},
+      "totalDistance": {}
     }
   },
   "splitDistanceOrder": "Split {number}: distances must be in ascending order",
   "@splitDistanceOrder": {
     "placeholders": {
-        "number": {}
+      "number": {}
     }
   },
   "splitTimeOrder": "Split {number}: times must be in ascending order",
   "@splitTimeOrder": {
     "placeholders": {
-        "number": {}
+      "number": {}
     }
   },
   "segment": "Segment",
@@ -280,5 +280,37 @@
   "dummyAthleteNote": "Sample athlete created for demo purposes.",
   "dummyNoteRace": "Sample race",
   "dummyNoteTraining": "Sample training",
-  "dummyNotePersonalBest": "Personal best!"
+  "dummyNotePersonalBest": "Personal best!",
+  "customizeExperience": "Customize experience",
+  "customizeExperienceDescription": "Theme, colors, font, text size and language",
+  "colorTheme": "Color theme",
+  "colorBlue": "Blue",
+  "colorTeal": "Teal",
+  "colorGreen": "Green",
+  "colorCoral": "Coral",
+  "colorPurple": "Purple",
+  "colorPink": "Pink",
+  "font": "Font",
+  "fontStandard": "Standard",
+  "fontOpenDyslexic": "OpenDyslexic",
+  "fontOpenDyslexicDescription": "Font designed to improve readability for people with dyslexia",
+  "textSize": "Text size",
+  "textSizeSmall": "Small",
+  "textSizeNormal": "Normal",
+  "textSizeLarge": "Large",
+  "language": "Language",
+  "preview": "Preview",
+  "previewPangram": "The quick brown fox jumps over the lazy dog. 0123456789",
+  "hapticFeedback": "Haptic feedback",
+  "hapticFeedbackDescription": "Vibrate on start, stop and lap",
+  "soundFeedback": "Sound feedback",
+  "soundFeedbackDescription": "Play a click sound on start, stop and lap",
+  "keepScreenOn": "Keep screen on",
+  "keepScreenOnDescription": "Prevent the screen from turning off while on the stopwatch",
+  "timePrecision": "Time precision",
+  "precisionHundredths": "Hundredths (0.01 s)",
+  "precisionTenths": "Tenths (0.1 s)",
+  "info": "Info",
+  "appVersion": "Version",
+  "openSourceLicenses": "Open source licenses"
 }

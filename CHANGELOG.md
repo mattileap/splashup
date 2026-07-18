@@ -2,6 +2,30 @@
 
 Tutte le modifiche rilevanti di SplashUp. Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [2.4.0] - 2026-07-17
+
+Release dedicata alla personalizzazione e all'accessibilità.
+
+### Aggiunto
+- **Pagina "Personalizza esperienza"** (Impostazioni → Aspetto): raccoglie tutte le opzioni di personalizzazione, con anteprima dal vivo:
+  - **Tema chiaro/scuro/sistema**: spostato qui dalla vecchia voce in Impostazioni.
+  - **Temi colore**: 6 palette (Blu — default storico —, Verde acqua, Verde, Corallo, Viola, Rosa) applicate a tutta l'app tramite seed color Material 3.
+  - **Font OpenDyslexic**: font alternativo per utenti con dislessia (licenza SIL OFL, ~870 KB in bundle, nessun download runtime), selezionabile accanto al font standard.
+  - **Dimensione testo**: Piccolo / Normale / Grande, applicata sopra la scala di sistema.
+  - **Lingua in-app**: Sistema (default) / Italiano / English, prima seguiva solo la lingua del dispositivo.
+- **Sezione "Cronometro" in Impostazioni**:
+  - Feedback aptico su avvio, stop e giro (attivo di default).
+  - Feedback sonoro (click) su avvio, stop e giro.
+  - "Schermo sempre attivo" durante l'uso del cronometro (attivo di default, via `wakelock_plus`).
+  - Precisione tempo visualizzato: centesimi (default) o decimi. Solo visualizzazione: i millisecondi salvati restano a precisione piena.
+- **Sezione "Info" in Impostazioni**: versione app (via `package_info_plus`) e pagina licenze open source.
+
+### Tecnico
+- `ThemeService` esteso (tema colore, font, dimensione testo) e ora costruisce i `ThemeData`; nuovi `LocaleService` e `StopwatchSettingsService`, tutti persistiti in `shared_preferences`.
+- Nuove dipendenze: `package_info_plus ^10.1.0`, `wakelock_plus ^1.6.1` (ultime versioni). Dipendenze esistenti già all'ultima versione.
+- 32 nuove chiavi di traduzione in `app_en.arb` e `app_it.arb`.
+- `StopwatchScreen` convertito in StatefulWidget per gestire il ciclo di vita del wakelock.
+
 ## [2.3.0] - 2026-07-16
 
 Release dedicata ai dati di prova: ora multilingua, generici e sempre attuali.

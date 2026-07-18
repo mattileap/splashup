@@ -652,4 +652,104 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get dummyNotePersonalBest => 'Record personale!';
+
+  @override
+  String get customizeExperience => 'Personalizza esperienza';
+
+  @override
+  String get customizeExperienceDescription =>
+      'Tema, colori, font, dimensione testo e lingua';
+
+  @override
+  String get colorTheme => 'Tema colore';
+
+  @override
+  String get colorBlue => 'Blu';
+
+  @override
+  String get colorTeal => 'Verde acqua';
+
+  @override
+  String get colorGreen => 'Verde';
+
+  @override
+  String get colorCoral => 'Corallo';
+
+  @override
+  String get colorPurple => 'Viola';
+
+  @override
+  String get colorPink => 'Rosa';
+
+  @override
+  String get font => 'Font';
+
+  @override
+  String get fontStandard => 'Standard';
+
+  @override
+  String get fontOpenDyslexic => 'OpenDyslexic';
+
+  @override
+  String get fontOpenDyslexicDescription =>
+      'Font progettato per migliorare la leggibilità per chi ha la dislessia';
+
+  @override
+  String get textSize => 'Dimensione testo';
+
+  @override
+  String get textSizeSmall => 'Piccolo';
+
+  @override
+  String get textSizeNormal => 'Normale';
+
+  @override
+  String get textSizeLarge => 'Grande';
+
+  @override
+  String get language => 'Lingua';
+
+  @override
+  String get preview => 'Anteprima';
+
+  @override
+  String get previewPangram =>
+      'Ma la volpe, col suo balzo, ha raggiunto il quieto Fido. 0123456789';
+
+  @override
+  String get hapticFeedback => 'Feedback aptico';
+
+  @override
+  String get hapticFeedbackDescription => 'Vibrazione su avvio, stop e giro';
+
+  @override
+  String get soundFeedback => 'Feedback sonoro';
+
+  @override
+  String get soundFeedbackDescription => 'Suono click su avvio, stop e giro';
+
+  @override
+  String get keepScreenOn => 'Schermo sempre attivo';
+
+  @override
+  String get keepScreenOnDescription =>
+      'Impedisce lo spegnimento dello schermo mentre sei sul cronometro';
+
+  @override
+  String get timePrecision => 'Precisione tempo';
+
+  @override
+  String get precisionHundredths => 'Centesimi (0,01 s)';
+
+  @override
+  String get precisionTenths => 'Decimi (0,1 s)';
+
+  @override
+  String get info => 'Info';
+
+  @override
+  String get appVersion => 'Versione';
+
+  @override
+  String get openSourceLicenses => 'Licenze open source';
 }

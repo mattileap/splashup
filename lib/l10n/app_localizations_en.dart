@@ -647,4 +647,105 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dummyNotePersonalBest => 'Personal best!';
+
+  @override
+  String get customizeExperience => 'Customize experience';
+
+  @override
+  String get customizeExperienceDescription =>
+      'Theme, colors, font, text size and language';
+
+  @override
+  String get colorTheme => 'Color theme';
+
+  @override
+  String get colorBlue => 'Blue';
+
+  @override
+  String get colorTeal => 'Teal';
+
+  @override
+  String get colorGreen => 'Green';
+
+  @override
+  String get colorCoral => 'Coral';
+
+  @override
+  String get colorPurple => 'Purple';
+
+  @override
+  String get colorPink => 'Pink';
+
+  @override
+  String get font => 'Font';
+
+  @override
+  String get fontStandard => 'Standard';
+
+  @override
+  String get fontOpenDyslexic => 'OpenDyslexic';
+
+  @override
+  String get fontOpenDyslexicDescription =>
+      'Font designed to improve readability for people with dyslexia';
+
+  @override
+  String get textSize => 'Text size';
+
+  @override
+  String get textSizeSmall => 'Small';
+
+  @override
+  String get textSizeNormal => 'Normal';
+
+  @override
+  String get textSizeLarge => 'Large';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get preview => 'Preview';
+
+  @override
+  String get previewPangram =>
+      'The quick brown fox jumps over the lazy dog. 0123456789';
+
+  @override
+  String get hapticFeedback => 'Haptic feedback';
+
+  @override
+  String get hapticFeedbackDescription => 'Vibrate on start, stop and lap';
+
+  @override
+  String get soundFeedback => 'Sound feedback';
+
+  @override
+  String get soundFeedbackDescription =>
+      'Play a click sound on start, stop and lap';
+
+  @override
+  String get keepScreenOn => 'Keep screen on';
+
+  @override
+  String get keepScreenOnDescription =>
+      'Prevent the screen from turning off while on the stopwatch';
+
+  @override
+  String get timePrecision => 'Time precision';
+
+  @override
+  String get precisionHundredths => 'Hundredths (0.01 s)';
+
+  @override
+  String get precisionTenths => 'Tenths (0.1 s)';
+
+  @override
+  String get info => 'Info';
+
+  @override
+  String get appVersion => 'Version';
+
+  @override
+  String get openSourceLicenses => 'Open source licenses';
 }

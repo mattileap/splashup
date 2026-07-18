@@ -125,7 +125,7 @@
   "deactivationComplete": "Pulizia completata. {count} atleta(i) sono stati disattivati.",
   "@deactivationComplete": {
     "placeholders": {
-        "count": {}
+      "count": {}
     }
   },
   "deleteInactiveAthletes": "Elimina Atleti Inattivi",
@@ -136,7 +136,7 @@
   "deletionComplete": "Pulizia completata. {count} atleta(i) sono stati eliminati.",
   "@deletionComplete": {
     "placeholders": {
-        "count": {}
+      "count": {}
     }
   },
   "googleSignIn": "Accedi con Google",
@@ -156,34 +156,34 @@
   "splitTimeInvalidError": "Parziale {index}: inserisci un tempo cumulativo valido",
   "@splitTimeInvalidError": {
     "placeholders": {
-        "index": {}
+      "index": {}
     }
   },
   "splitDistanceMultiple": "Parziale {number}: la distanza deve essere multiplo di {poolLength} m",
   "@splitDistanceMultiple": {
     "placeholders": {
-        "number": {},
-        "poolLength": {}
+      "number": {},
+      "poolLength": {}
     }
-  },  
+  },
   "splitDistanceExceeds": "Parziale {number}: la distanza ({splitDistance} m) supera la distanza totale ({totalDistance} m)",
   "@splitDistanceExceeds": {
     "placeholders": {
-        "number": {},
-        "splitDistance": {},
-        "totalDistance": {}
+      "number": {},
+      "splitDistance": {},
+      "totalDistance": {}
     }
-  },  
+  },
   "splitDistanceOrder": "Parziale {number}: le distanze devono essere in ordine crescente",
   "@splitDistanceOrder": {
     "placeholders": {
-        "number": {}
+      "number": {}
     }
   },
   "splitTimeOrder": "Parziale {number}: i tempi devono essere in ordine crescente",
   "@splitTimeOrder": {
     "placeholders": {
-        "number": {}
+      "number": {}
     }
   },
   "segment": "Parziale",
@@ -280,5 +280,37 @@
   "dummyAthleteNote": "Atleta di esempio creato a scopo dimostrativo.",
   "dummyNoteRace": "Gara di esempio",
   "dummyNoteTraining": "Allenamento di esempio",
-  "dummyNotePersonalBest": "Record personale!"
+  "dummyNotePersonalBest": "Record personale!",
+  "customizeExperience": "Personalizza esperienza",
+  "customizeExperienceDescription": "Tema, colori, font, dimensione testo e lingua",
+  "colorTheme": "Tema colore",
+  "colorBlue": "Blu",
+  "colorTeal": "Verde acqua",
+  "colorGreen": "Verde",
+  "colorCoral": "Corallo",
+  "colorPurple": "Viola",
+  "colorPink": "Rosa",
+  "font": "Font",
+  "fontStandard": "Standard",
+  "fontOpenDyslexic": "OpenDyslexic",
+  "fontOpenDyslexicDescription": "Font progettato per migliorare la leggibilità per chi ha la dislessia",
+  "textSize": "Dimensione testo",
+  "textSizeSmall": "Piccolo",
+  "textSizeNormal": "Normale",
+  "textSizeLarge": "Grande",
+  "language": "Lingua",
+  "preview": "Anteprima",
+  "previewPangram": "Ma la volpe, col suo balzo, ha raggiunto il quieto Fido. 0123456789",
+  "hapticFeedback": "Feedback aptico",
+  "hapticFeedbackDescription": "Vibrazione su avvio, stop e giro",
+  "soundFeedback": "Feedback sonoro",
+  "soundFeedbackDescription": "Suono click su avvio, stop e giro",
+  "keepScreenOn": "Schermo sempre attivo",
+  "keepScreenOnDescription": "Impedisce lo spegnimento dello schermo mentre sei sul cronometro",
+  "timePrecision": "Precisione tempo",
+  "precisionHundredths": "Centesimi (0,01 s)",
+  "precisionTenths": "Decimi (0,1 s)",
+  "info": "Info",
+  "appVersion": "Versione",
+  "openSourceLicenses": "Licenze open source"
 }

@@ -1277,6 +1277,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Personal best!'**
   String get dummyNotePersonalBest;
+
+  /// No description provided for @customizeExperience.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize experience'**
+  String get customizeExperience;
+
+  /// No description provided for @customizeExperienceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme, colors, font, text size and language'**
+  String get customizeExperienceDescription;
+
+  /// No description provided for @colorTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Color theme'**
+  String get colorTheme;
+
+  /// No description provided for @colorBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get colorBlue;
+
+  /// No description provided for @colorTeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get colorTeal;
+
+  /// No description provided for @colorGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get colorGreen;
+
+  /// No description provided for @colorCoral.
+  ///
+  /// In en, this message translates to:
+  /// **'Coral'**
+  String get colorCoral;
+
+  /// No description provided for @colorPurple.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get colorPurple;
+
+  /// No description provided for @colorPink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get colorPink;
+
+  /// No description provided for @font.
+  ///
+  /// In en, this message translates to:
+  /// **'Font'**
+  String get font;
+
+  /// No description provided for @fontStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get fontStandard;
+
+  /// No description provided for @fontOpenDyslexic.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenDyslexic'**
+  String get fontOpenDyslexic;
+
+  /// No description provided for @fontOpenDyslexicDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Font designed to improve readability for people with dyslexia'**
+  String get fontOpenDyslexicDescription;
+
+  /// No description provided for @textSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size'**
+  String get textSize;
+
+  /// No description provided for @textSizeSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get textSizeSmall;
+
+  /// No description provided for @textSizeNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get textSizeNormal;
+
+  /// No description provided for @textSizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get textSizeLarge;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get preview;
+
+  /// No description provided for @previewPangram.
+  ///
+  /// In en, this message translates to:
+  /// **'The quick brown fox jumps over the lazy dog. 0123456789'**
+  String get previewPangram;
+
+  /// No description provided for @hapticFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Haptic feedback'**
+  String get hapticFeedback;
+
+  /// No description provided for @hapticFeedbackDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrate on start, stop and lap'**
+  String get hapticFeedbackDescription;
+
+  /// No description provided for @soundFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound feedback'**
+  String get soundFeedback;
+
+  /// No description provided for @soundFeedbackDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a click sound on start, stop and lap'**
+  String get soundFeedbackDescription;
+
+  /// No description provided for @keepScreenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep screen on'**
+  String get keepScreenOn;
+
+  /// No description provided for @keepScreenOnDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prevent the screen from turning off while on the stopwatch'**
+  String get keepScreenOnDescription;
+
+  /// No description provided for @timePrecision.
+  ///
+  /// In en, this message translates to:
+  /// **'Time precision'**
+  String get timePrecision;
+
+  /// No description provided for @precisionHundredths.
+  ///
+  /// In en, this message translates to:
+  /// **'Hundredths (0.01 s)'**
+  String get precisionHundredths;
+
+  /// No description provided for @precisionTenths.
+  ///
+  /// In en, this message translates to:
+  /// **'Tenths (0.1 s)'**
+  String get precisionTenths;
+
+  /// No description provided for @info.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get info;
+
+  /// No description provided for @appVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get appVersion;
+
+  /// No description provided for @openSourceLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open source licenses'**
+  String get openSourceLicenses;
 }
 
 class _AppLocalizationsDelegate

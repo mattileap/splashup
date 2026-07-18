@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
 import '../repositories/database_repository.dart';
-import '../services/theme_service.dart';
+import '../services/stopwatch_settings_service.dart';
+import 'customize_experience_screen.dart';
 import 'move_athletes_screen.dart';
 // SYNC: NUOVO IMPORT per il Sync
 // import '../services/cloud/cloud_sync_service.dart';
@@ -355,7 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final themeService = Provider.of<ThemeService>(context);
+    final stopwatchSettings = Provider.of<StopwatchSettingsService>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -367,28 +369,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: Text(l10n.appearance,
                 style: Theme.of(context).textTheme.titleSmall),
           ),
+          // La scelta del tema (e le nuove opzioni di personalizzazione)
+          // vive ora nella pagina dedicata "Personalizza esperienza".
           ListTile(
-            leading: const Icon(Icons.brightness_6_outlined),
-            title: Text(l10n.theme),
-            trailing: DropdownButton<ThemeMode>(
-              value: themeService.themeMode,
+            leading: const Icon(Icons.tune_outlined),
+            title: Text(l10n.customizeExperience),
+            subtitle: Text(l10n.customizeExperienceDescription),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const CustomizeExperienceScreen(),
+                ),
+              );
+            },
+          ),
+          const Divider(),
+          // --- SEZIONE CRONOMETRO ---
+          ListTile(
+            title: Text(l10n.stopwatch,
+                style: Theme.of(context).textTheme.titleSmall),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.vibration_outlined),
+            title: Text(l10n.hapticFeedback),
+            subtitle: Text(l10n.hapticFeedbackDescription),
+            value: stopwatchSettings.hapticFeedback,
+            onChanged: stopwatchSettings.setHapticFeedback,
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.volume_up_outlined),
+            title: Text(l10n.soundFeedback),
+            subtitle: Text(l10n.soundFeedbackDescription),
+            value: stopwatchSettings.soundFeedback,
+            onChanged: stopwatchSettings.setSoundFeedback,
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.screen_lock_portrait_outlined),
+            title: Text(l10n.keepScreenOn),
+            subtitle: Text(l10n.keepScreenOnDescription),
+            value: stopwatchSettings.keepScreenOn,
+            onChanged: stopwatchSettings.setKeepScreenOn,
+          ),
+          ListTile(
+            leading: const Icon(Icons.timer_outlined),
+            title: Text(l10n.timePrecision),
+            trailing: DropdownButton<StopwatchPrecision>(
+              value: stopwatchSettings.precision,
               items: [
                 DropdownMenuItem(
-                  value: ThemeMode.system,
-                  child: Text(l10n.system),
+                  value: StopwatchPrecision.hundredths,
+                  child: Text(l10n.precisionHundredths),
                 ),
                 DropdownMenuItem(
-                  value: ThemeMode.light,
-                  child: Text(l10n.light),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.dark,
-                  child: Text(l10n.dark),
+                  value: StopwatchPrecision.tenths,
+                  child: Text(l10n.precisionTenths),
                 ),
               ],
-              onChanged: (ThemeMode? mode) {
-                if (mode != null) {
-                  themeService.setThemeMode(mode);
+              onChanged: (value) {
+                if (value != null) {
+                  stopwatchSettings.setPrecision(value);
                 }
               },
             ),
@@ -522,6 +562,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: const TextStyle(color: Colors.red),
             ),
             onTap: _showDeleteAllDataDialog,
+          ),
+
+          const Divider(),
+          // --- SEZIONE INFO ---
+          ListTile(
+            title: Text(l10n.info,
+                style: Theme.of(context).textTheme.titleSmall),
+          ),
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              final info = snapshot.data;
+              return ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(l10n.appVersion),
+                subtitle: Text(
+                  info == null ? '…' : '${info.version} (${info.buildNumber})',
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(l10n.openSourceLicenses),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async {
+              final info = await PackageInfo.fromPlatform();
+              if (!context.mounted) return;
+              showLicensePage(
+                context: context,
+                applicationName: 'SplashUp',
+                applicationVersion: info.version,
+              );
+            },
           ),
 
  /*
