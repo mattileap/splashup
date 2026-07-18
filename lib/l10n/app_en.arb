@@ -117,8 +117,8 @@
   "deleteTeamConfirmation": "This action is irreversible. To confirm, please type DELETE below.",
   "dataCleanup": "Data Cleanup",
   "deactivateInactiveAthletes": "Deactivate Inactive Athletes",
-  "deactivateInactiveDescription": "Automatically set athletes to 'Inactive' if they have no new times recorded.",
-  "deactivateAfter": "Deactivate after",
+  "deactivateInactiveDescription": "Sets athletes with no new recorded times for longer than the selected period as 'Inactive'.",
+  "deactivateAfter": "No times for",
   "months": "months",
   "run": "Run",
   "deactivationConfirmation": "This will check all active athletes. If their last recorded time is older than the selected period, they will be set to 'Inactive'. Are you sure you want to proceed?",
@@ -129,8 +129,8 @@
     }
   },
   "deleteInactiveAthletes": "Delete Inactive Athletes",
-  "deleteInactiveDescription": "Permanently delete athletes who have been inactive for a long time.",
-  "deleteAfter": "Delete after",
+  "deleteInactiveDescription": "Permanently deletes athletes who have been 'Inactive' for longer than the selected period.",
+  "deleteAfter": "Inactive for",
   "years": "years",
   "deletionConfirmation": "This will permanently delete all athletes who have been inactive for more than the selected period. This action cannot be undone. Are you sure?",
   "deletionComplete": "Cleanup complete. {count} athlete(s) were deleted.",
@@ -312,5 +312,6 @@
   "precisionTenths": "Tenths (0.1 s)",
   "info": "Info",
   "appVersion": "Version",
-  "openSourceLicenses": "Open source licenses"
+  "openSourceLicenses": "Open source licenses",
+  "timePrecisionDescription": "Display only: times are always saved to the hundredth."
 }

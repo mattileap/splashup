@@ -761,13 +761,13 @@ abstract class AppLocalizations {
   /// No description provided for @deactivateInactiveDescription.
   ///
   /// In en, this message translates to:
-  /// **'Automatically set athletes to \'Inactive\' if they have no new times recorded.'**
+  /// **'Sets athletes with no new recorded times for longer than the selected period as \'Inactive\'.'**
   String get deactivateInactiveDescription;
 
   /// No description provided for @deactivateAfter.
   ///
   /// In en, this message translates to:
-  /// **'Deactivate after'**
+  /// **'No times for'**
   String get deactivateAfter;
 
   /// No description provided for @months.
@@ -803,13 +803,13 @@ abstract class AppLocalizations {
   /// No description provided for @deleteInactiveDescription.
   ///
   /// In en, this message translates to:
-  /// **'Permanently delete athletes who have been inactive for a long time.'**
+  /// **'Permanently deletes athletes who have been \'Inactive\' for longer than the selected period.'**
   String get deleteInactiveDescription;
 
   /// No description provided for @deleteAfter.
   ///
   /// In en, this message translates to:
-  /// **'Delete after'**
+  /// **'Inactive for'**
   String get deleteAfter;
 
   /// No description provided for @years.
@@ -1469,6 +1469,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open source licenses'**
   String get openSourceLicenses;
+
+  /// No description provided for @timePrecisionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Display only: times are always saved to the hundredth.'**
+  String get timePrecisionDescription;
 }
 
 class _AppLocalizationsDelegate

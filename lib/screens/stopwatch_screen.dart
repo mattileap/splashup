@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -25,10 +26,23 @@ class StopwatchScreen extends StatefulWidget {
 }
 
 class _StopwatchScreenState extends State<StopwatchScreen> {
+  // Player dedicato al click del cronometro. Suono in bundle negli asset:
+  // SystemSound.click su Android suonava solo con i "Suoni alla pressione"
+  // di sistema attivi (e su iOS non faceva nulla).
+  final AudioPlayer _clickPlayer = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    // Modalità a bassa latenza: ideale per suoni brevi e frequenti.
+    _clickPlayer.setPlayerMode(PlayerMode.lowLatency);
+  }
+
   @override
   void dispose() {
     // Rilasciamo sempre il wakelock quando si lascia il cronometro.
     WakelockPlus.disable();
+    _clickPlayer.dispose();
     super.dispose();
   }
 
@@ -38,7 +52,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
       HapticFeedback.mediumImpact();
     }
     if (settings.soundFeedback) {
-      SystemSound.play(SystemSoundType.click);
+      _clickPlayer.play(AssetSource('sounds/stopwatch_click.wav'));
     }
   }
 

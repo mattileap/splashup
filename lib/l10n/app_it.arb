@@ -117,8 +117,8 @@
   "deleteTeamConfirmation": "Questa azione è irreversibile. Per confermare, scrivi DELETE qui sotto.",
   "dataCleanup": "Pulizia Dati",
   "deactivateInactiveAthletes": "Disattiva Atleti Inattivi",
-  "deactivateInactiveDescription": "Imposta automaticamente gli atleti come 'Inattivi' se non hanno nuovi tempi registrati.",
-  "deactivateAfter": "Disattiva dopo",
+  "deactivateInactiveDescription": "Imposta come 'Inattivi' gli atleti senza nuovi tempi registrati da oltre il periodo scelto.",
+  "deactivateAfter": "Senza tempi da",
   "months": "mesi",
   "run": "Esegui",
   "deactivationConfirmation": "Questo controllerà tutti gli atleti attivi. Se il loro ultimo tempo registrato è più vecchio del periodo selezionato, verranno impostati come 'Inattivi'. Sei sicuro di voler procedere?",
@@ -129,8 +129,8 @@
     }
   },
   "deleteInactiveAthletes": "Elimina Atleti Inattivi",
-  "deleteInactiveDescription": "Elimina permanentemente gli atleti che sono inattivi da molto tempo.",
-  "deleteAfter": "Elimina dopo",
+  "deleteInactiveDescription": "Elimina definitivamente gli atleti rimasti 'Inattivi' da oltre il periodo scelto.",
+  "deleteAfter": "Inattivi da",
   "years": "anni",
   "deletionConfirmation": "Questo eliminerà permanentemente tutti gli atleti che sono stati inattivi per più del periodo selezionato. Questa azione non può essere annullata. Sei sicuro?",
   "deletionComplete": "Pulizia completata. {count} atleta(i) sono stati eliminati.",
@@ -312,5 +312,6 @@
   "precisionTenths": "Decimi (0,1 s)",
   "info": "Info",
   "appVersion": "Versione",
-  "openSourceLicenses": "Licenze open source"
+  "openSourceLicenses": "Licenze open source",
+  "timePrecisionDescription": "Solo visualizzazione: il salvataggio resta al centesimo."
 }

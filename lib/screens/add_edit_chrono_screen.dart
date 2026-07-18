@@ -633,10 +633,14 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Table(
+          // FIX 2.4.1: più spazio alla colonna "Cumulativo" (campo editabile
+          // + pulsante X): con OpenDyslexic a dimensione Grande l'ultima
+          // cifra veniva parzialmente coperta dalla X di azzeramento.
+          // La colonna distanza ("50m") è corta e può cedere spazio.
           columnWidths: const {
-            0: FlexColumnWidth(2),
+            0: FlexColumnWidth(1.5),
             1: FlexColumnWidth(2),
-            2: FlexColumnWidth(3),
+            2: FlexColumnWidth(3.5),
           },
           border: TableBorder.all(color: borderColor),
           children: [
@@ -702,7 +706,10 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                 ),
               ),
               // NEW: Clear button for non-last splits
-              if (!isLastSplit)
+              // FIX 2.4.1: piccolo distacco dal campo, così la X non tocca
+              // l'ultima cifra con font larghi (OpenDyslexic) o testo Grande.
+              if (!isLastSplit) ...[
+                const SizedBox(width: 4),
                 IconButton(
                   icon: const Icon(Icons.clear, size: 16),
                   tooltip: l10n.reset,
@@ -713,6 +720,7 @@ class _AddEditChronoScreenState extends State<AddEditChronoScreen> {
                     _updateSplitTime(index, '');
                   },
                 ),
+              ],
             ],
           ),
         ),

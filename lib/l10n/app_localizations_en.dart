@@ -352,10 +352,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deactivateInactiveDescription =>
-      'Automatically set athletes to \'Inactive\' if they have no new times recorded.';
+      'Sets athletes with no new recorded times for longer than the selected period as \'Inactive\'.';
 
   @override
-  String get deactivateAfter => 'Deactivate after';
+  String get deactivateAfter => 'No times for';
 
   @override
   String get months => 'months';
@@ -377,10 +377,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteInactiveDescription =>
-      'Permanently delete athletes who have been inactive for a long time.';
+      'Permanently deletes athletes who have been \'Inactive\' for longer than the selected period.';
 
   @override
-  String get deleteAfter => 'Delete after';
+  String get deleteAfter => 'Inactive for';
 
   @override
   String get years => 'years';
@@ -748,4 +748,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openSourceLicenses => 'Open source licenses';
+
+  @override
+  String get timePrecisionDescription =>
+      'Display only: times are always saved to the hundredth.';
 }

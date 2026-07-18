@@ -414,6 +414,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.timer_outlined),
             title: Text(l10n.timePrecision),
+            subtitle: Text(l10n.timePrecisionDescription),
             trailing: DropdownButton<StopwatchPrecision>(
               value: stopwatchSettings.precision,
               items: [

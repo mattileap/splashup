@@ -2,6 +2,21 @@
 
 Tutte le modifiche rilevanti di SplashUp. Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [2.4.1] - 2026-07-18
+
+Fix di rifinitura dopo i test sul campo della 2.4.0.
+
+### Corretto
+- **Feedback sonoro del cronometro**: non suonava su molti dispositivi. `SystemSound.click` dipendeva dai "Suoni alla pressione" di sistema su Android (e non faceva nulla su iOS). Ora l'app usa un click in bundle (`assets/sounds/stopwatch_click.wav`, ~5 KB, generato ad hoc) riprodotto via `audioplayers` in modalità bassa latenza: funziona sempre, ovunque.
+- **Tabella parziali con OpenDyslexic + testo Grande**: l'ultima cifra del tempo cumulativo veniva parzialmente coperta dalla X di azzeramento riga. Ridistribuiti i pesi delle colonne (distanza 2→1,5, cumulativo 3→3,5) e aggiunto un piccolo distacco tra campo e X.
+
+### Modificato
+- **"Precisione tempo"** ora ha la descrizione "Solo visualizzazione: il salvataggio resta al centesimo."
+- **Testi sezione "Pulizia dati"** riscritti: le vecchie descrizioni suggerivano un'automazione, ma le operazioni sono (e restano) manuali. Nuove descrizioni per "Disattiva/Elimina atleti inattivi" e mini-label "Senza tempi da" / "Inattivi da" al posto di "Disattiva dopo" / "Elimina dopo".
+
+### Tecnico
+- Nuova dipendenza: `audioplayers ^6.8.1` (ultima versione).
+
 ## [2.4.0] - 2026-07-17
 
 Release dedicata alla personalizzazione e all'accessibilità.
