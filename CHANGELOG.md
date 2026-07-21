@@ -2,6 +2,11 @@
 
 Tutte le modifiche rilevanti di SplashUp. Formato ispirato a [Keep a Changelog](https://keepachangelog.com/it/1.1.0/).
 
+## [2.4.2] - 2026-07-18
+
+### Corretto
+- **Il click del cronometro suonava solo su "Avvia"**: in modalità bassa latenza, dopo la prima riproduzione il player di `audioplayers` resta in stato "completed" e i `play()` successivi non ripartono ("Giro" e "Ferma" restavano muti). Ora la sorgente è precaricata una sola volta con `ReleaseMode.stop` e ogni click esegue `stop()` + `resume()`, il pattern documentato per suoni brevi ripetuti.
+
 ## [2.4.1] - 2026-07-18
 
 Fix di rifinitura dopo i test sul campo della 2.4.0.

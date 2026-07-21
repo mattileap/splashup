@@ -34,8 +34,25 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
   @override
   void initState() {
     super.initState();
+    _initClickPlayer();
+  }
+
+  // FIX 2.4.2: il suono partiva solo su "Avvia". In bassa latenza, dopo la
+  // prima riproduzione il player resta in stato "completed" e i play()
+  // successivi non ripartono. Soluzione documentata per suoni brevi
+  // ripetuti: sorgente precaricata + ReleaseMode.stop, e a ogni click
+  // stop() (riporta il player in stato riproducibile) seguito da resume().
+  Future<void> _initClickPlayer() async {
     // Modalità a bassa latenza: ideale per suoni brevi e frequenti.
-    _clickPlayer.setPlayerMode(PlayerMode.lowLatency);
+    await _clickPlayer.setPlayerMode(PlayerMode.lowLatency);
+    // Mantiene la sorgente caricata dopo ogni riproduzione.
+    await _clickPlayer.setReleaseMode(ReleaseMode.stop);
+    await _clickPlayer.setSource(AssetSource('sounds/stopwatch_click.wav'));
+  }
+
+  Future<void> _playClick() async {
+    await _clickPlayer.stop();
+    await _clickPlayer.resume();
   }
 
   @override
@@ -52,7 +69,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
       HapticFeedback.mediumImpact();
     }
     if (settings.soundFeedback) {
-      _clickPlayer.play(AssetSource('sounds/stopwatch_click.wav'));
+      _playClick();
     }
   }
 
