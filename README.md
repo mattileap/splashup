@@ -26,11 +26,11 @@ SplashUp è un'app Flutter pensata per allenatori di nuoto che vogliono cronomet
 ## Screenshot
 
 <p align="center">
-  <img src="assets/screenshots/Squadre.jpg" alt="Squadre" width="18%">
-  <img src="assets/screenshots/Modifica.jpg" alt="Modifica" width="18%">
-  <img src="assets/screenshots/Crono.jpg" alt="Crono" width="18%">
-  <img src="assets/screenshots/Impostazioni.jpg" alt="Impostazioni" width="18%">
-  <img src="assets/screenshots/Personalizzazione.jpg" alt="Personalizzazione" width="18%">
+  <img src="assets/Screenshots/Squadre.jpg" alt="Squadre" width="18%">
+  <img src="assets/Screenshots/Modifica.jpg" alt="Modifica" width="18%">
+  <img src="assets/Screenshots/Crono.jpg" alt="Crono" width="18%">
+  <img src="assets/Screenshots/Impostazioni.jpg" alt="Impostazioni" width="18%">
+  <img src="assets/Screenshots/Personalizzazione.jpg" alt="Personalizzazione" width="18%">
 </p>
 
 ## Stack tecnologico
@@ -65,3 +65,11 @@ lib/
 ## Changelog
 
 Le modifiche di ogni versione sono documentate in [CHANGELOG.md](CHANGELOG.md).
+
+## Contribuire
+
+I contributi sono benvenuti! Vedi [CONTRIBUTING.md](CONTRIBUTING.md) per come iniziare.
+
+## Licenza
+
+Distribuito con licenza [MIT](LICENSE). Il nome "SplashUp" e l'icona dell'app sono riservati alla versione ufficiale (vedi la nota nel file [LICENSE](LICENSE)).

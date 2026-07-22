@@ -26,11 +26,11 @@ SplashUp is a Flutter app built for swim coaches who want to time athletes in th
 ## Screenshots
 
 <p align="center">
-  <img src="assets/screenshots/Squadre.jpg" alt="Teams" width="18%">
-  <img src="assets/screenshots/Modifica.jpg" alt="Edit" width="18%">
-  <img src="assets/screenshots/Crono.jpg" alt="Chrono" width="18%">
-  <img src="assets/screenshots/Impostazioni.jpg" alt="Settings" width="18%">
-  <img src="assets/screenshots/Personalizzazione.jpg" alt="Customization" width="18%">
+  <img src="assets/Screenshots/Squadre.jpg" alt="Teams" width="18%">
+  <img src="assets/Screenshots/Modifica.jpg" alt="Edit" width="18%">
+  <img src="assets/Screenshots/Crono.jpg" alt="Chrono" width="18%">
+  <img src="assets/Screenshots/Impostazioni.jpg" alt="Settings" width="18%">
+  <img src="assets/Screenshots/Personalizzazione.jpg" alt="Customization" width="18%">
 </p>
 
 ## Tech stack
@@ -65,3 +65,11 @@ lib/
 ## Changelog
 
 Release notes are documented in [CHANGELOG.md](CHANGELOG.md).
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.en.md](CONTRIBUTING.en.md) to get started.
+
+## License
+
+Distributed under the [MIT](LICENSE) license. The "SplashUp" name and app icon are reserved for the official release (see the note in the [LICENSE](LICENSE) file).
