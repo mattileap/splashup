@@ -893,4 +893,127 @@ class AppLocalizationsIt extends AppLocalizations {
   ) {
     return 'Il file contiene — squadre: $teams, atleti: $athletes, tempi: $chronos.\n\nAttenzione: $dropped record del file sono scollegati (atleti senza squadra, o tempi senza atleta) e NON verranno ripristinati.\n\nTutto quello che c’è ora su questo dispositivo verrà eliminato e sostituito. L’operazione non si può annullare.';
   }
+
+  @override
+  String get notebooks => 'Taccuino Allenatore';
+
+  @override
+  String get noNotebooksYet => 'Nessun taccuino.';
+
+  @override
+  String get noNotebooksHint =>
+      'Tocca il pulsante + per scrivere la tua prima sessione di allenamento!';
+
+  @override
+  String get addNotebook => 'Nuovo Taccuino';
+
+  @override
+  String get notebookTitle => 'Titolo';
+
+  @override
+  String get notebookTitleHint => 'es. Martedì - Esordienti A';
+
+  @override
+  String get rename => 'Rinomina';
+
+  @override
+  String get deleteNotebookTitle => 'Eliminare il taccuino?';
+
+  @override
+  String deleteNotebookMessage(Object title) {
+    return '\"$title\" verrà eliminato definitivamente.';
+  }
+
+  @override
+  String get deleteGroupTitle => 'Eliminare il gruppo?';
+
+  @override
+  String get deleteGroupMessage =>
+      'Verranno eliminati il gruppo e tutto il suo contenuto.';
+
+  @override
+  String get emptyNotebookHint => 'Aggiungi una riga o un gruppo per iniziare.';
+
+  @override
+  String get addLine => 'Riga';
+
+  @override
+  String get addGroup => 'Gruppo';
+
+  @override
+  String get groupLabel => 'Etichetta (facoltativa)';
+
+  @override
+  String get groupLabelHint => 'es. Serie centrale';
+
+  @override
+  String get repetitions => 'Ripetizioni';
+
+  @override
+  String get multiplier => 'Moltiplicatore';
+
+  @override
+  String get openReps => 'Nx (a scelta)';
+
+  @override
+  String get modeLabel => 'Modalità';
+
+  @override
+  String get optional => 'facoltativa';
+
+  @override
+  String get noteLabel => 'Nota';
+
+  @override
+  String get noteHint => 'es. andata braccia, ritorno gambe';
+
+  @override
+  String get recovery => 'Recupero';
+
+  @override
+  String get recoveryStart => 'Partenza @';
+
+  @override
+  String get recoveryRest => 'Pausa';
+
+  @override
+  String restChip(Object value) {
+    return 'Pausa $value';
+  }
+
+  @override
+  String get duplicate => 'Duplica';
+
+  @override
+  String get done => 'Fatto';
+
+  @override
+  String get invalidPositiveNumber => 'Inserisci un numero maggiore di zero';
+
+  @override
+  String get sessionTotal => 'Totale sessione';
+
+  @override
+  String get partialTotal => 'Parziale: alcune parti sono a ripetizioni libere';
+
+  @override
+  String get metersByStyle => 'Metri per stile';
+
+  @override
+  String get metersByMode => 'Metri per modalità';
+
+  @override
+  String get modeKick => 'Gambe';
+
+  @override
+  String get modeArms => 'Braccia';
+
+  @override
+  String get modeFull => 'Completo';
+
+  @override
+  String get modePullBuoy => 'Pull buoy';
+
+  @override
+  String get modeKickboard => 'Tavoletta';
 }

@@ -101,9 +101,9 @@ Un allenatore può crearne più di uno (verosimilmente uno per sessione/periodo,
 
 ## Ordine di implementazione proposto
 
-1. Modello Dart + calcolo metri (totale, per stile, per modalità, Nx) con un test
-2. Persistenza Sembast + elenco taccuini + editor
-3. Export/import JSON e ingresso nel backup generico
+1. ~~Modello Dart + calcolo metri (totale, per stile, per modalità, Nx) con un test~~ (fatto)
+2. ~~Persistenza Sembast + elenco taccuini + editor~~ (fatto: store `notebooks`, ingresso provvisorio dall'icona nella schermata squadre)
+3. Export/import JSON e ingresso nel backup generico — **fino ad allora i taccuini non entrano nel backup e "elimina tutti i dati" non li tocca**
 4. PDF e condivisione
 
 ## Aperto
