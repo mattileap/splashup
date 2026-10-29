@@ -1690,6 +1690,252 @@ abstract class AppLocalizations {
     int chronos,
     int dropped,
   );
+
+  /// No description provided for @notebooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Coach Notebook'**
+  String get notebooks;
+
+  /// No description provided for @noNotebooksYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No notebooks yet.'**
+  String get noNotebooksYet;
+
+  /// No description provided for @noNotebooksHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button to write your first training session!'**
+  String get noNotebooksHint;
+
+  /// No description provided for @addNotebook.
+  ///
+  /// In en, this message translates to:
+  /// **'New Notebook'**
+  String get addNotebook;
+
+  /// No description provided for @notebookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get notebookTitle;
+
+  /// No description provided for @notebookTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Tuesday - Juniors A'**
+  String get notebookTitleHint;
+
+  /// No description provided for @rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get rename;
+
+  /// No description provided for @deleteNotebookTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete notebook?'**
+  String get deleteNotebookTitle;
+
+  /// No description provided for @deleteNotebookMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" will be permanently deleted.'**
+  String deleteNotebookMessage(Object title);
+
+  /// No description provided for @deleteGroupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete group?'**
+  String get deleteGroupTitle;
+
+  /// No description provided for @deleteGroupMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The group and everything inside it will be deleted.'**
+  String get deleteGroupMessage;
+
+  /// No description provided for @emptyNotebookHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a line or a group to start.'**
+  String get emptyNotebookHint;
+
+  /// No description provided for @addLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Line'**
+  String get addLine;
+
+  /// No description provided for @addGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get addGroup;
+
+  /// No description provided for @groupLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label (optional)'**
+  String get groupLabel;
+
+  /// No description provided for @groupLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Main set'**
+  String get groupLabelHint;
+
+  /// No description provided for @repetitions.
+  ///
+  /// In en, this message translates to:
+  /// **'Repetitions'**
+  String get repetitions;
+
+  /// No description provided for @multiplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiplier'**
+  String get multiplier;
+
+  /// No description provided for @openReps.
+  ///
+  /// In en, this message translates to:
+  /// **'Nx (athlete\'s choice)'**
+  String get openReps;
+
+  /// No description provided for @modeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get modeLabel;
+
+  /// No description provided for @optional.
+  ///
+  /// In en, this message translates to:
+  /// **'optional'**
+  String get optional;
+
+  /// No description provided for @noteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get noteLabel;
+
+  /// No description provided for @noteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. out arms, back kick'**
+  String get noteHint;
+
+  /// No description provided for @recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get recovery;
+
+  /// No description provided for @recoveryStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Send-off @'**
+  String get recoveryStart;
+
+  /// No description provided for @recoveryRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest'**
+  String get recoveryRest;
+
+  /// No description provided for @restChip.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest {value}'**
+  String restChip(Object value);
+
+  /// No description provided for @duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get duplicate;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @invalidPositiveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number greater than zero'**
+  String get invalidPositiveNumber;
+
+  /// No description provided for @sessionTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Session total'**
+  String get sessionTotal;
+
+  /// No description provided for @partialTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial: some parts are at the athlete\'s choice (Nx)'**
+  String get partialTotal;
+
+  /// No description provided for @metersByStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meters by stroke'**
+  String get metersByStyle;
+
+  /// No description provided for @metersByMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Meters by mode'**
+  String get metersByMode;
+
+  /// No description provided for @modeKick.
+  ///
+  /// In en, this message translates to:
+  /// **'Kick'**
+  String get modeKick;
+
+  /// No description provided for @modeArms.
+  ///
+  /// In en, this message translates to:
+  /// **'Arms'**
+  String get modeArms;
+
+  /// No description provided for @modeFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full stroke'**
+  String get modeFull;
+
+  /// No description provided for @modePullBuoy.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull buoy'**
+  String get modePullBuoy;
+
+  /// No description provided for @modeKickboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Kickboard'**
+  String get modeKickboard;
+
+  /// No description provided for @moveTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to…'**
+  String get moveTo;
+
+  /// No description provided for @mainLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Main level'**
+  String get mainLevel;
 }
 
 class _AppLocalizationsDelegate

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart' hide Finder;
 import 'package:sembast/sembast_memory.dart';
 import 'package:splashup/models/athlete_model.dart';
 import 'package:splashup/models/chrono_model.dart';
+import 'package:splashup/models/notebook_model.dart';
 import 'package:splashup/models/team_model.dart';
 import 'package:splashup/repositories/sembast_repository.dart';
 import 'package:splashup/services/backup/backup_payload.dart';
@@ -260,5 +261,22 @@ void main() {
     expect(await repo.getTeamsStream().first, isEmpty);
     expect(await athletesStore.find(db), isEmpty);
     expect(await chronosStore.find(db), isEmpty);
+  });
+
+  test('notebooks: add, update with tree, newest first, delete', () async {
+    final idA = await repo.addNotebook(Notebook(id: '', title: 'A'));
+    final idB = await repo.addNotebook(Notebook(id: '', title: 'B'));
+
+    final a = (await repo.getNotebooksStream().first).firstWhere((n) => n.id == idA);
+    a.root.children.add(NotebookGroup(reps: 4, children: [NotebookLine(distance: 50, reps: 2)]));
+    await Future<void>.delayed(const Duration(milliseconds: 2)); // updatedAt diverso
+    await repo.updateNotebook(a);
+
+    final list = await repo.getNotebooksStream().first;
+    expect(list.map((n) => n.id), [idA, idB]);
+    expect(list.first.root.meters, 400);
+
+    await repo.deleteNotebook(idA);
+    expect((await repo.getNotebooksStream().first).map((n) => n.id), [idB]);
   });
 }

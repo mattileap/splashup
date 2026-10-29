@@ -888,4 +888,134 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return 'The file contains — teams: $teams, athletes: $athletes, times: $chronos.\n\nCareful: $dropped records in the file are orphaned (athletes with no team, or times with no athlete) and will NOT be restored.\n\nEverything currently on this device will be deleted and replaced. This cannot be undone.';
   }
+
+  @override
+  String get notebooks => 'Coach Notebook';
+
+  @override
+  String get noNotebooksYet => 'No notebooks yet.';
+
+  @override
+  String get noNotebooksHint =>
+      'Tap the + button to write your first training session!';
+
+  @override
+  String get addNotebook => 'New Notebook';
+
+  @override
+  String get notebookTitle => 'Title';
+
+  @override
+  String get notebookTitleHint => 'e.g. Tuesday - Juniors A';
+
+  @override
+  String get rename => 'Rename';
+
+  @override
+  String get deleteNotebookTitle => 'Delete notebook?';
+
+  @override
+  String deleteNotebookMessage(Object title) {
+    return '\"$title\" will be permanently deleted.';
+  }
+
+  @override
+  String get deleteGroupTitle => 'Delete group?';
+
+  @override
+  String get deleteGroupMessage =>
+      'The group and everything inside it will be deleted.';
+
+  @override
+  String get emptyNotebookHint => 'Add a line or a group to start.';
+
+  @override
+  String get addLine => 'Line';
+
+  @override
+  String get addGroup => 'Group';
+
+  @override
+  String get groupLabel => 'Label (optional)';
+
+  @override
+  String get groupLabelHint => 'e.g. Main set';
+
+  @override
+  String get repetitions => 'Repetitions';
+
+  @override
+  String get multiplier => 'Multiplier';
+
+  @override
+  String get openReps => 'Nx (athlete\'s choice)';
+
+  @override
+  String get modeLabel => 'Mode';
+
+  @override
+  String get optional => 'optional';
+
+  @override
+  String get noteLabel => 'Note';
+
+  @override
+  String get noteHint => 'e.g. out arms, back kick';
+
+  @override
+  String get recovery => 'Recovery';
+
+  @override
+  String get recoveryStart => 'Send-off @';
+
+  @override
+  String get recoveryRest => 'Rest';
+
+  @override
+  String restChip(Object value) {
+    return 'Rest $value';
+  }
+
+  @override
+  String get duplicate => 'Duplicate';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get invalidPositiveNumber => 'Enter a number greater than zero';
+
+  @override
+  String get sessionTotal => 'Session total';
+
+  @override
+  String get partialTotal =>
+      'Partial: some parts are at the athlete\'s choice (Nx)';
+
+  @override
+  String get metersByStyle => 'Meters by stroke';
+
+  @override
+  String get metersByMode => 'Meters by mode';
+
+  @override
+  String get modeKick => 'Kick';
+
+  @override
+  String get modeArms => 'Arms';
+
+  @override
+  String get modeFull => 'Full stroke';
+
+  @override
+  String get modePullBuoy => 'Pull buoy';
+
+  @override
+  String get modeKickboard => 'Kickboard';
+
+  @override
+  String get moveTo => 'Move to…';
+
+  @override
+  String get mainLevel => 'Main level';
 }

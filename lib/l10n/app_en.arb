@@ -424,5 +424,56 @@
         "type": "int"
       }
     }
-  }
+  },
+  "notebooks": "Coach Notebook",
+  "noNotebooksYet": "No notebooks yet.",
+  "noNotebooksHint": "Tap the + button to write your first training session!",
+  "addNotebook": "New Notebook",
+  "notebookTitle": "Title",
+  "notebookTitleHint": "e.g. Tuesday - Juniors A",
+  "rename": "Rename",
+  "deleteNotebookTitle": "Delete notebook?",
+  "deleteNotebookMessage": "\"{title}\" will be permanently deleted.",
+  "@deleteNotebookMessage": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "deleteGroupTitle": "Delete group?",
+  "deleteGroupMessage": "The group and everything inside it will be deleted.",
+  "emptyNotebookHint": "Add a line or a group to start.",
+  "addLine": "Line",
+  "addGroup": "Group",
+  "groupLabel": "Label (optional)",
+  "groupLabelHint": "e.g. Main set",
+  "repetitions": "Repetitions",
+  "multiplier": "Multiplier",
+  "openReps": "Nx (athlete's choice)",
+  "modeLabel": "Mode",
+  "optional": "optional",
+  "noteLabel": "Note",
+  "noteHint": "e.g. out arms, back kick",
+  "recovery": "Recovery",
+  "recoveryStart": "Send-off @",
+  "recoveryRest": "Rest",
+  "restChip": "Rest {value}",
+  "@restChip": {
+    "placeholders": {
+      "value": {}
+    }
+  },
+  "duplicate": "Duplicate",
+  "done": "Done",
+  "invalidPositiveNumber": "Enter a number greater than zero",
+  "sessionTotal": "Session total",
+  "partialTotal": "Partial: some parts are at the athlete's choice (Nx)",
+  "metersByStyle": "Meters by stroke",
+  "metersByMode": "Meters by mode",
+  "modeKick": "Kick",
+  "modeArms": "Arms",
+  "modeFull": "Full stroke",
+  "modePullBuoy": "Pull buoy",
+  "modeKickboard": "Kickboard",
+  "moveTo": "Move to…",
+  "mainLevel": "Main level"
 }

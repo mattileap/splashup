@@ -73,8 +73,10 @@ Sotto il totale sessione, due righe di riepilogo: metri per stile e metri per mo
 - ogni gruppo mostra in testa moltiplicatore, etichetta, recupero e **totale metri del gruppo**, sempre visibili; i gruppi si possono comprimere
 - in fondo a ogni gruppo: "+ riga" e "+ gruppo"
 - **modifica in un pannello che sale dal basso** (`showModalBottomSheet`), non direttamente sulla riga. All'apertura la lista scorre in modo che la riga in modifica resti visibile appena sopra il pannello
-- nel pannello: Duplica (copia il nodo con tutti i figli subito sotto l'originale), Elimina, Fatto
-- **riordino trascinando** con pressione prolungata, solo dentro lo stesso gruppo. Lo spostamento tra gruppi diversi è rimandato: col trascinamento è scomodo su telefono
+- nel pannello: Duplica (copia il nodo con tutti i figli subito sotto l'originale), Sposta in…, Elimina, Fatto
+- **riordino trascinando** con pressione prolungata, solo dentro lo stesso gruppo
+- **spostamento tra gruppi con "Sposta in…"**: elenco dei gruppi validi (rientrati per livello), il nodo va in fondo al gruppo scelto e poi si riordina trascinando. Esclusi il gruppo attuale, il nodo stesso e i suoi discendenti, e le destinazioni che porterebbero oltre i 3 livelli. Scelto al posto del trascinamento tra gruppi, scomodo e fragile su telefono
+- il pannello sta sopra la barra di navigazione di Android (edge-to-edge) e sopra la tastiera
 
 ## Vincoli dell'app da rispettare
 
@@ -101,16 +103,15 @@ Un allenatore può crearne più di uno (verosimilmente uno per sessione/periodo,
 
 ## Ordine di implementazione proposto
 
-1. Modello Dart + calcolo metri (totale, per stile, per modalità, Nx) con un test
-2. Persistenza Sembast + elenco taccuini + editor
-3. Export/import JSON e ingresso nel backup generico
+1. ~~Modello Dart + calcolo metri (totale, per stile, per modalità, Nx) con un test~~ (fatto)
+2. ~~Persistenza Sembast + elenco taccuini + editor~~ (fatto: store `notebooks`, ingresso provvisorio dall'icona nella schermata squadre)
+3. Export/import JSON e ingresso nel backup generico — **fino ad allora i taccuini non entrano nel backup e "elimina tutti i dati" non li tocca**
 4. PDF e condivisione
 
 ## Aperto
 
 - Testo esatto della didascalia "parziale" — non bloccante.
 - Elenco preciso dei predefiniti di stile e modalità (base: stile libero, dorso, rana, delfino, misti / gambe, braccia, completo, pull buoy, tavoletta).
-- Spostamento di un nodo tra gruppi diversi (es. azione "Sposta in…" nel pannello) — rimandato.
 
 ## Nota architetturale (footer navigazione)
 
