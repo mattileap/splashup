@@ -1924,6 +1924,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Kickboard'**
   String get modeKickboard;
+
+  /// No description provided for @moveTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to…'**
+  String get moveTo;
+
+  /// No description provided for @mainLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Main level'**
+  String get mainLevel;
 }
 
 class _AppLocalizationsDelegate

@@ -69,4 +69,76 @@ void main() {
     expect(find.text('Partial: some parts are at the athlete\'s choice (Nx)'), findsOneWidget);
     expect(repo.saves, greaterThan(0));
   });
+
+  // Same setup as above, factored for the shorter tests below.
+  Future<Notebook> pumpEditor(WidgetTester tester, NotebookGroup root) async {
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final notebook = Notebook(id: 'n1', title: 'Tuesday', root: root);
+    await tester.pumpWidget(Provider<DatabaseRepository>.value(
+      value: _FakeRepo(),
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+        home: NotebookEditorScreen(notebook: notebook),
+      ),
+    ));
+    return notebook;
+  }
+
+  testWidgets('move a line into another group', (tester) async {
+    final line = NotebookLine(distance: 25, style: 'freestyle');
+    final target = NotebookGroup(label: 'Main set', reps: 4);
+    await pumpEditor(tester, NotebookGroup(children: [
+      NotebookGroup(label: 'Warm-up', children: [line]),
+      target,
+    ]));
+
+    await tester.tap(find.text('25 Freestyle'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Move to…'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Move to…'));
+    await tester.pumpAndSettle();
+    // Destinations: main level and "Main set", not the current group.
+    expect(find.text('Main level'), findsOneWidget);
+    expect(find.textContaining('Warm-up'), findsOneWidget); // Only the row behind the dialog
+    await tester.tap(find.text('4x Main set · 0 m'));
+    await tester.pumpAndSettle();
+
+    expect(target.children.single, same(line));
+    expect(find.text('100 m'), findsWidgets); // 4x 25, group row + total
+  });
+
+  testWidgets('a group cannot be moved past the depth limit', (tester) async {
+    // Moving "Two levels" (2 group levels) into "Deep" (depth 2) would make 4.
+    final moving = NotebookGroup(label: 'Two levels', children: [NotebookGroup()]);
+    await pumpEditor(tester, NotebookGroup(children: [
+      moving,
+      NotebookGroup(label: 'A', children: [NotebookGroup(label: 'Deep')]),
+    ]));
+
+    await tester.tap(find.text('Two levels'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Move to…'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Move to…'));
+    await tester.pumpAndSettle();
+    expect(find.text('A · 0 m'), findsOneWidget);
+    expect(find.text('Deep · 0 m'), findsNothing);
+  });
+
+  testWidgets('sheet buttons stay above the Android navigation bar', (tester) async {
+    tester.view.padding = const FakeViewPadding(bottom: 144); // 48 logical
+    addTearDown(tester.view.resetPadding);
+    await pumpEditor(tester, NotebookGroup());
+
+    await tester.tap(find.text('Line'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(find.text('Done')).bottom, lessThanOrEqualTo(780 - 48));
+  });
 }

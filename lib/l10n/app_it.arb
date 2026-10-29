@@ -463,5 +463,7 @@
   "modeArms": "Braccia",
   "modeFull": "Completo",
   "modePullBuoy": "Pull buoy",
-  "modeKickboard": "Tavoletta"
+  "modeKickboard": "Tavoletta",
+  "moveTo": "Sposta in…",
+  "mainLevel": "Livello principale"
 }

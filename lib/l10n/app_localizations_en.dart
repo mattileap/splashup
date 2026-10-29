@@ -1012,4 +1012,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modeKickboard => 'Kickboard';
+
+  @override
+  String get moveTo => 'Move to…';
+
+  @override
+  String get mainLevel => 'Main level';
 }

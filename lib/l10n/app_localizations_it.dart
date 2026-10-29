@@ -1016,4 +1016,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get modeKickboard => 'Tavoletta';
+
+  @override
+  String get moveTo => 'Sposta in…';
+
+  @override
+  String get mainLevel => 'Livello principale';
 }

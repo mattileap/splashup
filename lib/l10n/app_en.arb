@@ -473,5 +473,7 @@
   "modeArms": "Arms",
   "modeFull": "Full stroke",
   "modePullBuoy": "Pull buoy",
-  "modeKickboard": "Kickboard"
+  "modeKickboard": "Kickboard",
+  "moveTo": "Move to…",
+  "mainLevel": "Main level"
 }

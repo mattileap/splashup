@@ -52,7 +52,7 @@ String formatNodeMeters(BuildContext context, NotebookNode node) {
       : formatMeters(context, node.definedMeters).replaceFirst(' m', '+ m');
 }
 
-enum _SheetAction { delete, duplicate }
+enum _SheetAction { delete, duplicate, move }
 
 /// Editor ad albero di un taccuino. Ogni modifica viene salvata subito.
 class NotebookEditorScreen extends StatefulWidget {
@@ -129,8 +129,10 @@ class _NotebookEditorScreenState extends State<NotebookEditorScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      useSafeArea: true,
       builder: (_) => _NodeSheet(
         node: node,
+        canMove: _destinations(node, parent).isNotEmpty,
         styles: styles,
         modes: modes,
         usedStyles: _used((l) => l.style, styles),
@@ -145,8 +147,75 @@ class _NotebookEditorScreenState extends State<NotebookEditorScreen> {
       parent.children.insert(index + 1, NotebookNode.fromMap(node.toMap()));
     } else if (action == _SheetAction.delete && await _confirmDelete(node)) {
       parent.children.remove(node);
+    } else if (action == _SheetAction.move) {
+      final dest = await _pickDestination(node, parent);
+      if (dest != null) {
+        parent.children.remove(node);
+        dest.children.add(node); // In fondo: la posizione si sistema trascinando
+        _collapsed.remove(dest);
+        _changed();
+        await WidgetsBinding.instance.endOfFrame;
+        final moved = _keys[node]?.currentContext;
+        if (moved != null && moved.mounted) {
+          Scrollable.ensureVisible(moved, alignment: 0.3, duration: const Duration(milliseconds: 300));
+        }
+        return;
+      }
     }
     _changed();
+  }
+
+  /// Livelli di gruppo di un nodo, lui compreso (una riga vale 0).
+  int _groupHeight(NotebookNode n) => switch (n) {
+        NotebookLine() => 0,
+        NotebookGroup() =>
+          1 + n.children.fold(0, (h, c) => h > _groupHeight(c) ? h : _groupHeight(c)),
+      };
+
+  bool _isInside(NotebookGroup g, NotebookNode n) =>
+      identical(g, n) || (n is NotebookGroup && n.children.any((c) => _isInside(g, c)));
+
+  /// Gruppi in cui [node] può essere spostato, con la loro profondità
+  /// (radice = 0): non dentro se stesso, non dove sta già, e senza superare
+  /// il limite di livelli.
+  List<(NotebookGroup, int)> _destinations(NotebookNode node, NotebookGroup parent) {
+    final result = <(NotebookGroup, int)>[];
+    void walk(NotebookGroup g, int depth) {
+      if (_isInside(g, node)) return; // Salta anche tutto il suo contenuto
+      if (!identical(g, parent) && depth + _groupHeight(node) <= maxGroupDepth) {
+        result.add((g, depth));
+      }
+      for (final c in g.children) {
+        if (c is NotebookGroup) walk(c, depth + 1);
+      }
+    }
+
+    walk(_root, 0);
+    return result;
+  }
+
+  Future<NotebookGroup?> _pickDestination(NotebookNode node, NotebookGroup parent) {
+    final l10n = AppLocalizations.of(context)!;
+    return showDialog<NotebookGroup>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(l10n.moveTo),
+        children: [
+          for (final (group, depth) in _destinations(node, parent))
+            SimpleDialogOption(
+              padding: EdgeInsets.fromLTRB(24.0 + 16 * depth, 12, 24, 12),
+              onPressed: () => Navigator.of(dialogContext).pop(group),
+              child: Text(depth == 0
+                  ? l10n.mainLevel
+                  : [
+                      if (group.reps != 1) group.reps == null ? 'Nx' : '${group.reps}x',
+                      group.label.isNotEmpty ? group.label : l10n.addGroup,
+                      '· ${formatNodeMeters(context, group)}',
+                    ].join(' ')),
+            ),
+        ],
+      ),
+    );
   }
 
   Future<bool> _confirmDelete(NotebookNode node) async {
@@ -420,9 +489,11 @@ class _NodeSheet extends StatefulWidget {
   final Map<String, String> styles, modes;
   final List<String> usedStyles, usedModes;
   final VoidCallback onChanged;
+  final bool canMove;
 
   const _NodeSheet({
     required this.node,
+    required this.canMove,
     required this.styles,
     required this.modes,
     required this.usedStyles,
@@ -516,8 +587,14 @@ class _NodeSheetState extends State<_NodeSheet> {
     final isLine = n is NotebookLine;
     const gap = SizedBox(height: 12);
 
+    // Sopra la tastiera quando è aperta, altrimenti sopra la barra di
+    // navigazione di Android (con l'edge-to-edge il pannello ci finiva
+    // sotto). padding.bottom vale la barra a tastiera chiusa e 0 a tastiera
+    // aperta, quindi la somma copre entrambi i casi.
+    final mq = MediaQuery.of(context);
+    final bottom = mq.viewInsets.bottom + mq.padding.bottom;
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottom),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -636,6 +713,12 @@ class _NodeSheetState extends State<_NodeSheet> {
                   label: Text(l10n.duplicate),
                   onPressed: () => Navigator.of(context).pop(_SheetAction.duplicate),
                 ),
+                if (widget.canMove)
+                  TextButton.icon(
+                    icon: const Icon(Icons.drive_file_move_outlined),
+                    label: Text(l10n.moveTo),
+                    onPressed: () => Navigator.of(context).pop(_SheetAction.move),
+                  ),
                 TextButton.icon(
                   icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                   label: Text(l10n.delete,
