@@ -3,6 +3,7 @@ import 'package:provider/provider.dart'; // Serve per accedere al Repository
 import '../l10n/app_localizations.dart';
 import '../models/team_model.dart';
 import 'athletes_screen.dart';
+import 'notebooks_screen.dart';
 import 'settings_screen.dart';
 
 // NUOVO IMPORT
@@ -191,6 +192,16 @@ class _TeamsScreenState extends State<TeamsScreen> {
       appBar: AppBar(
         title: Text(l10n.myTeams),
         actions: [
+          // Ingresso provvisorio al taccuino, finche' non c'e' la bottom bar
+          IconButton(
+            icon: const Icon(Icons.menu_book_outlined),
+            tooltip: l10n.notebooks,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const NotebooksScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {

@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../models/team_model.dart';
 import '../models/athlete_model.dart';
 import '../models/chrono_model.dart';
+import '../models/notebook_model.dart';
 import '../services/backup/backup_payload.dart';
 import 'database_repository.dart';
 
@@ -25,6 +26,7 @@ class SembastRepository implements DatabaseRepository {
   final _teamsStore = stringMapStoreFactory.store('teams');
   final _athletesStore = stringMapStoreFactory.store('athletes');
   final _chronosStore = stringMapStoreFactory.store('chronos');
+  final _notebooksStore = stringMapStoreFactory.store('notebooks');
 
   // Initialize DB
   Future<void> init() async {
@@ -207,6 +209,48 @@ class SembastRepository implements DatabaseRepository {
     final db = await _readyDb;
     await _chronosStore.record(chronoId).delete(db);
   }
+
+  // --- NOTEBOOKS ---
+
+  @override
+  Stream<List<Notebook>> getNotebooksStream() async* {
+    final db = await _readyDb;
+    final query = _notebooksStore.query(
+      finder: Finder(sortOrders: [SortOrder('updatedAt', false)]), // Ultimo modificato in cima
+    );
+
+    yield* query.onSnapshots(db).map((snapshots) {
+      return snapshots.map((snapshot) {
+        return Notebook.fromMap(snapshot.value, snapshot.key);
+      }).toList();
+    });
+  }
+
+  @override
+  Future<String> addNotebook(Notebook notebook) async {
+    final db = await _readyDb;
+    final id = _uuid.v4();
+    await _notebooksStore.record(id).put(db, _notebookMap(notebook));
+    return id;
+  }
+
+  @override
+  Future<void> updateNotebook(Notebook notebook) async {
+    final db = await _readyDb;
+    await _notebooksStore.record(notebook.id).put(db, _notebookMap(notebook));
+  }
+
+  @override
+  Future<void> deleteNotebook(String notebookId) async {
+    final db = await _readyDb;
+    await _notebooksStore.record(notebookId).delete(db);
+  }
+
+  /// Come per atleti e tempi, i campi di servizio li aggiunge il repository.
+  Map<String, Object?> _notebookMap(Notebook notebook) => {
+        ...notebook.toMap(),
+        'updatedAt': DateTime.now().millisecondsSinceEpoch,
+      };
 
   // --- COMPLEX OPERATIONS ---
 

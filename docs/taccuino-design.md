@@ -18,7 +18,7 @@ Decisioni UX validate con due mockup interattivi (ottobre 2026).
 - **ripetizioni**, default 1, oppure "Nx"
 - **distanza** in metri (numero libero, non vincolato a multipli della vasca: si può scrivere 15)
 - **stile** (es. stile libero, dorso) — vedi "Stile e modalità"
-- **modalità opzionale** (es. gambe, braccia, pull buoy, tavoletta)
+- **modalità opzionali, anche più d'una** (es. braccia + pull buoy, gambe + pinne)
 - **nota opzionale**, testo libero (es. "andata braccia, ritorno gambe", "sciolto, a scelta")
 - **recupero opzionale**
 
@@ -30,16 +30,19 @@ Le sezioni non sono obbligatorie: chi scrive tutto in fila ottiene lo stesso alb
 
 ## Stile e modalità
 
-Due campi separati, entrambi **testo libero con suggerimenti**, non menu chiusi:
+Due campi separati, entrambi **testo libero con suggerimenti**, non menu chiusi. Lo stile è uno solo (per le combinazioni c'è "misti"), le modalità possono essere più d'una:
 
-- sotto il campo, i valori predefiniti e quelli già usati dall'allenatore come chip da un tocco; si può sempre scrivere un termine proprio, che da quel momento compare tra i suggerimenti
-- nessuna schermata per gestire i valori: l'elenco dei suggerimenti si ricava da quelli già usati
-- **i predefiniti si salvano come chiave** (`freestyle`, `backstroke`, `kick`, `pull`…) e vengono mostrati tradotti nella lingua dell'app; i valori personalizzati si salvano così come sono stati scritti. Altrimenti cambiando lingua le statistiche si spezzano in due voci ("stile libero" e "freestyle")
+- sotto il campo, i valori predefiniti e quelli già usati **nello stesso taccuino** come chip da un tocco (per le modalità a scelta multipla); si può sempre scrivere un termine proprio (per le modalità: scrivi e premi invio, o il +; quello rimasto scritto viene aggiunto anche chiudendo il pannello)
+- **i valori scritti a mano restano nel loro taccuino**: non compaiono negli altri, così un valore usato una volta o un errore di battitura non si propaga. Non sono salvati a parte: si ricavano dalle righe, e tolti da tutte le righe spariscono anche dai suggerimenti
+- nessuna schermata per gestire i valori. Se in futuro si riscrivono spesso le stesse voci in taccuini diversi, la strada è una sezione "I miei stili/modalità" nelle Impostazioni — non prima che serva
+- **i predefiniti si salvano come chiave** (`freestyle`, `backstroke`, `kick`, `pull_buoy`…) e vengono mostrati tradotti nella lingua dell'app; i valori personalizzati si salvano così come sono stati scritti. Altrimenti cambiando lingua le statistiche si spezzano in due voci ("stile libero" e "freestyle")
 - i valori personalizzati si confrontano senza distinguere maiuscole/minuscole e senza spazi ai bordi ("Pull" e "pull" sono la stessa voce)
 
 Casi combinati:
 - **alternanze** (andata braccia / ritorno gambe): si scrivono con l'albero, `2x [25 stile libero · braccia, 25 stile libero · gambe]` — metri contati sia per stile sia per modalità
 - **casi troppo complessi da modellare**: riga con stile e senza modalità, descrizione nella nota. Lo stile viene contato, la modalità no — scelta accettata
+
+Predefiniti attuali — stili: stile libero, dorso, rana, farfalla, misti; modalità: gambe, braccia, completo, pull buoy, tavoletta, palette, pinne.
 
 ## Recupero
 
@@ -65,7 +68,9 @@ Un nodo "Nx" ha totale indefinito, e l'indefinito si propaga verso l'alto (un gr
 
 ### Metri per stile e per modalità
 
-Sotto il totale sessione, due righe di riepilogo: metri per stile e metri per modalità. Si calcolano percorrendo l'albero e moltiplicando i moltiplicatori degli antenati; i rami "Nx" sono esclusi. Una riga senza modalità conta solo nello stile.
+Sotto il totale sessione, due righe di riepilogo: metri per stile e metri per modalità. Si calcolano percorrendo l'albero e moltiplicando i moltiplicatori degli antenati; i rami "Nx" sono esclusi. Una riga senza modalità conta solo nello stile. Una riga con più modalità conta **tutti** i suoi metri in ognuna (100 m braccia + pull buoy = 100 m in braccia e 100 m in pull buoy), quindi la somma dei metri per modalità può superare il totale: è la risposta giusta a "quanti metri ho fatto con il pull buoy?".
+
+Il formato salvato usa `modes` (elenco); le righe salvate dalle prime versioni con `mode` (stringa singola) vengono lette come elenco di un elemento.
 
 ## Editor (UI)
 
@@ -73,8 +78,10 @@ Sotto il totale sessione, due righe di riepilogo: metri per stile e metri per mo
 - ogni gruppo mostra in testa moltiplicatore, etichetta, recupero e **totale metri del gruppo**, sempre visibili; i gruppi si possono comprimere
 - in fondo a ogni gruppo: "+ riga" e "+ gruppo"
 - **modifica in un pannello che sale dal basso** (`showModalBottomSheet`), non direttamente sulla riga. All'apertura la lista scorre in modo che la riga in modifica resti visibile appena sopra il pannello
-- nel pannello: Duplica (copia il nodo con tutti i figli subito sotto l'originale), Elimina, Fatto
-- **riordino trascinando** con pressione prolungata, solo dentro lo stesso gruppo. Lo spostamento tra gruppi diversi è rimandato: col trascinamento è scomodo su telefono
+- nel pannello: Duplica (copia il nodo con tutti i figli subito sotto l'originale), Sposta in…, Elimina, Fatto
+- **riordino trascinando** con pressione prolungata, solo dentro lo stesso gruppo
+- **spostamento tra gruppi con "Sposta in…"**: elenco dei gruppi validi (rientrati per livello), il nodo va in fondo al gruppo scelto e poi si riordina trascinando. Esclusi il gruppo attuale, il nodo stesso e i suoi discendenti, e le destinazioni che porterebbero oltre i 3 livelli. Scelto al posto del trascinamento tra gruppi, scomodo e fragile su telefono
+- il pannello sta sopra la barra di navigazione di Android (edge-to-edge) e sopra la tastiera
 
 ## Vincoli dell'app da rispettare
 
@@ -101,16 +108,14 @@ Un allenatore può crearne più di uno (verosimilmente uno per sessione/periodo,
 
 ## Ordine di implementazione proposto
 
-1. Modello Dart + calcolo metri (totale, per stile, per modalità, Nx) con un test
-2. Persistenza Sembast + elenco taccuini + editor
-3. Export/import JSON e ingresso nel backup generico
+1. ~~Modello Dart + calcolo metri (totale, per stile, per modalità, Nx) con un test~~ (fatto)
+2. ~~Persistenza Sembast + elenco taccuini + editor~~ (fatto: store `notebooks`, ingresso provvisorio dall'icona nella schermata squadre)
+3. Export/import JSON e ingresso nel backup generico — **fino ad allora i taccuini non entrano nel backup e "elimina tutti i dati" non li tocca**
 4. PDF e condivisione
 
 ## Aperto
 
 - Testo esatto della didascalia "parziale" — non bloccante.
-- Elenco preciso dei predefiniti di stile e modalità (base: stile libero, dorso, rana, delfino, misti / gambe, braccia, completo, pull buoy, tavoletta).
-- Spostamento di un nodo tra gruppi diversi (es. azione "Sposta in…" nel pannello) — rimandato.
 
 ## Nota architetturale (footer navigazione)
 

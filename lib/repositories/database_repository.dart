@@ -1,6 +1,7 @@
 import '../models/team_model.dart';
 import '../models/athlete_model.dart';
 import '../models/chrono_model.dart';
+import '../models/notebook_model.dart';
 import '../services/backup/backup_payload.dart';
 
 abstract class DatabaseRepository {
@@ -21,6 +22,14 @@ abstract class DatabaseRepository {
   Future<String> addChrono(String teamId, String athleteId, Chrono chrono);
   Future<void> updateChrono(String teamId, String athleteId, Chrono chrono);
   Future<void> deleteChrono(String athleteId, String chronoId);
+
+  // --- Notebooks (taccuino allenatore) ---
+  // Non ancora inclusi in backup/ripristino e "elimina tutti i dati":
+  // arriveranno con l'export JSON, vedi docs/taccuino-design.md.
+  Stream<List<Notebook>> getNotebooksStream(); // Ultimo modificato in cima
+  Future<String> addNotebook(Notebook notebook);
+  Future<void> updateNotebook(Notebook notebook);
+  Future<void> deleteNotebook(String notebookId);
 
   // --- Batch / Complex Operations (per Settings e Move) ---
   Future<void> moveAthlete(String athleteId, String sourceTeamId, String destTeamId);
