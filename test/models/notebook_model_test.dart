@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:splashup/models/notebook_model.dart';
 
 NotebookLine line(int? reps, int distance, [String style = '', String mode = '']) =>
-    NotebookLine(reps: reps, distance: distance, style: style, mode: mode);
+    NotebookLine(reps: reps, distance: distance, style: style, modes: [if (mode.isNotEmpty) mode]);
 
 void main() {
   test('esempio del design doc: 4x [2x [2x50 ×3] Pausa 1\'] = 2400 m', () {
@@ -67,5 +67,22 @@ void main() {
     final serie = back.root.children.single as NotebookGroup;
     expect(serie.recovery!.type, RecoveryType.start);
     expect((serie.children.single as NotebookLine).reps, isNull);
+  });
+
+  test('più modalità: ogni modalità conta tutti i metri della riga', () {
+    final g = NotebookGroup(reps: 2, children: [
+      NotebookLine(distance: 100, style: 'freestyle', modes: ['arms', 'pull_buoy', 'Arms ']),
+      NotebookLine(distance: 50, style: 'freestyle', modes: ['kick']),
+    ]);
+    expect(g.meters, 300);
+    expect(g.metersByMode, {'arms': 200, 'pull_buoy': 200, 'kick': 100});
+  });
+
+  test('una riga salvata col vecchio campo "mode" viene letta come elenco', () {
+    final old = NotebookLine.fromMap({'kind': 'line', 'reps': 1, 'distance': 50, 'mode': 'kick'});
+    expect(old.modes, ['kick']);
+    final none = NotebookLine.fromMap({'kind': 'line', 'reps': 1, 'distance': 50});
+    expect(none.modes, isEmpty);
+    expect(old.toMap().containsKey('mode'), isFalse);
   });
 }

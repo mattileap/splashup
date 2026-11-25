@@ -14,23 +14,18 @@ class NotebooksScreen extends StatefulWidget {
 }
 
 class _NotebooksScreenState extends State<NotebooksScreen> {
-  late final Stream<List<Notebook>> _notebooksStream;
-  List<Notebook> _notebooks = const [];
+  late final Stream<List<Notebook>> notebooksStream;
 
   @override
   void initState() {
     super.initState();
-    _notebooksStream = context.read<DatabaseRepository>().getNotebooksStream();
+    notebooksStream = context.read<DatabaseRepository>().getNotebooksStream();
   }
 
   void _open(Notebook notebook) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => NotebookEditorScreen(
-          notebook: notebook,
-          // Suggerimenti di stile/modalità presi da tutti i taccuini
-          others: _notebooks,
-        ),
+        builder: (context) => NotebookEditorScreen(notebook: notebook),
       ),
     );
   }
@@ -84,7 +79,7 @@ class _NotebooksScreenState extends State<NotebooksScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.notebooks)),
       body: StreamBuilder<List<Notebook>>(
-        stream: _notebooksStream,
+        stream: notebooksStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -92,9 +87,9 @@ class _NotebooksScreenState extends State<NotebooksScreen> {
           if (snapshot.hasError) {
             return Center(child: Text(l10n.errorWithDetails(snapshot.error.toString())));
           }
-          _notebooks = snapshot.data ?? const [];
+          final notebooks = snapshot.data ?? const <Notebook>[];
 
-          if (_notebooks.isEmpty) {
+          if (notebooks.isEmpty) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -117,9 +112,9 @@ class _NotebooksScreenState extends State<NotebooksScreen> {
 
           return ListView.builder(
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 88), // Spazio per il FAB
-            itemCount: _notebooks.length,
+            itemCount: notebooks.length,
             itemBuilder: (context, index) {
-              final notebook = _notebooks[index];
+              final notebook = notebooks[index];
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 6),
                 child: ListTile(

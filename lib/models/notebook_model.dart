@@ -45,18 +45,22 @@ sealed class NotebookNode {
   bool get isPartial => meters == null;
 
   /// Metri per stile, sui soli rami definiti. Righe senza stile escluse.
-  Map<String, int> get metersByStyle => _metersBy((l) => l.style);
+  Map<String, int> get metersByStyle => _metersBy((l) => [l.style]);
 
   /// Metri per modalità, sui soli rami definiti. Righe senza modalità escluse.
-  Map<String, int> get metersByMode => _metersBy((l) => l.mode);
+  /// Una riga con più modalità (braccia + pull buoy) conta tutti i suoi metri
+  /// in ognuna, quindi la somma può superare il totale della sessione.
+  Map<String, int> get metersByMode => _metersBy((l) => l.modes);
 
-  Map<String, int> _metersBy(String Function(NotebookLine) key) {
+  Map<String, int> _metersBy(Iterable<String> Function(NotebookLine) keys) {
     final result = <String, int>{};
     _forEachDefinedLine(this, 1, (line, m) {
       // Predefiniti salvati come chiave (es. "freestyle"), personalizzati
-      // come scritti: "Pull" e " pull " sono la stessa voce.
-      final k = key(line).trim().toLowerCase();
-      if (k.isNotEmpty) result[k] = (result[k] ?? 0) + m;
+      // come scritti: "Pull" e " pull " sono la stessa voce (anche sulla
+      // stessa riga, da qui il Set).
+      for (final k in {for (final k in keys(line)) k.trim().toLowerCase()}) {
+        if (k.isNotEmpty) result[k] = (result[k] ?? 0) + m;
+      }
     });
     return result;
   }
@@ -118,21 +122,22 @@ class NotebookGroup extends NotebookNode {
       );
 }
 
-/// Riga: ripetizioni × distanza, con stile, modalità e nota facoltative.
+/// Riga: ripetizioni × distanza, con stile, modalità (anche più d'una) e
+/// nota facoltative.
 class NotebookLine extends NotebookNode {
   int distance;
   String style;
-  String mode;
+  List<String> modes;
   String note;
 
   NotebookLine({
     required this.distance,
     this.style = '',
-    this.mode = '',
+    List<String>? modes,
     this.note = '',
     super.reps,
     super.recovery,
-  });
+  }) : modes = modes ?? [];
 
   @override
   int? get meters => reps == null ? null : reps! * distance;
@@ -143,14 +148,14 @@ class NotebookLine extends NotebookNode {
         ..._baseMap(),
         'distance': distance,
         'style': style,
-        'mode': mode,
+        'modes': modes,
         'note': note,
       };
 
   factory NotebookLine.fromMap(Map<String, dynamic> map) => NotebookLine(
         distance: map['distance'] as int,
         style: map['style'] as String? ?? '',
-        mode: map['mode'] as String? ?? '',
+        modes: _modesFromMap(map),
         note: map['note'] as String? ?? '',
         reps: map['reps'] as int?,
         recovery: _recoveryFromMap(map),
@@ -180,6 +185,14 @@ class Notebook {
         title: map['title'] as String? ?? '',
         root: NotebookGroup.fromMap(Map<String, dynamic>.from(map['root'] as Map)),
       );
+}
+
+/// Le prime versioni salvavano una sola modalità nel campo "mode".
+List<String> _modesFromMap(Map<String, dynamic> map) {
+  final modes = map['modes'];
+  if (modes is List) return modes.cast<String>().toList();
+  final legacy = map['mode'] as String? ?? '';
+  return legacy.isEmpty ? [] : [legacy];
 }
 
 Recovery? _recoveryFromMap(Map<String, dynamic> map) => map['recovery'] == null

@@ -954,9 +954,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modeLabel => 'Mode';
 
   @override
-  String get optional => 'optional';
-
-  @override
   String get noteLabel => 'Note';
 
   @override
@@ -1018,4 +1015,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mainLevel => 'Main level';
+
+  @override
+  String get modePaddles => 'Paddles';
+
+  @override
+  String get modeFins => 'Fins';
+
+  @override
+  String get addModeHint => 'Type and press enter to add';
 }

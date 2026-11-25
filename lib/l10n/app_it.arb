@@ -445,7 +445,6 @@
   "multiplier": "Moltiplicatore",
   "openReps": "Nx (a scelta)",
   "modeLabel": "Modalità",
-  "optional": "facoltativa",
   "noteLabel": "Nota",
   "noteHint": "es. andata braccia, ritorno gambe",
   "recovery": "Recupero",
@@ -465,5 +464,8 @@
   "modePullBuoy": "Pull buoy",
   "modeKickboard": "Tavoletta",
   "moveTo": "Sposta in…",
-  "mainLevel": "Livello principale"
+  "mainLevel": "Livello principale",
+  "modePaddles": "Palette",
+  "modeFins": "Pinne",
+  "addModeHint": "Scrivi e premi invio per aggiungere"
 }

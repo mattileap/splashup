@@ -959,9 +959,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get modeLabel => 'Modalità';
 
   @override
-  String get optional => 'facoltativa';
-
-  @override
   String get noteLabel => 'Nota';
 
   @override
@@ -1022,4 +1019,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get mainLevel => 'Livello principale';
+
+  @override
+  String get modePaddles => 'Palette';
+
+  @override
+  String get modeFins => 'Pinne';
+
+  @override
+  String get addModeHint => 'Scrivi e premi invio per aggiungere';
 }

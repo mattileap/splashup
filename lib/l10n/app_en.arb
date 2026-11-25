@@ -450,7 +450,6 @@
   "multiplier": "Multiplier",
   "openReps": "Nx (athlete's choice)",
   "modeLabel": "Mode",
-  "optional": "optional",
   "noteLabel": "Note",
   "noteHint": "e.g. out arms, back kick",
   "recovery": "Recovery",
@@ -475,5 +474,8 @@
   "modePullBuoy": "Pull buoy",
   "modeKickboard": "Kickboard",
   "moveTo": "Move to…",
-  "mainLevel": "Main level"
+  "mainLevel": "Main level",
+  "modePaddles": "Paddles",
+  "modeFins": "Fins",
+  "addModeHint": "Type and press enter to add"
 }

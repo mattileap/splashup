@@ -48,14 +48,25 @@ void main() {
     await tester.enterText(find.widgetWithText(TextField, 'Distance (m)'), '100');
     await tester.tap(find.widgetWithText(ChoiceChip, 'Backstroke'));
     await tester.pump();
+    // Several modes: two chips, one custom value added with enter, and one
+    // left typed in the field when tapping Done (must not get lost).
+    await tester.ensureVisible(find.widgetWithText(FilterChip, 'Arms'));
+    await tester.tap(find.widgetWithText(FilterChip, 'Arms'));
+    await tester.tap(find.widgetWithText(FilterChip, 'Fins'));
+    await tester.pump();
+    await tester.enterText(find.widgetWithText(TextField, 'Mode'), 'snorkel');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    expect(find.widgetWithText(FilterChip, 'snorkel'), findsOneWidget);
     // Typing the translated label of a predefined value stores its key.
-    await tester.enterText(find.widgetWithText(TextField, 'Mode'), 'kick');
+    await tester.enterText(find.widgetWithText(TextField, 'Mode'), 'pull buoy');
     await tapInSheet('Done');
     await tester.pumpAndSettle();
 
     final line = notebook.root.children.single as NotebookLine;
-    expect([line.reps, line.distance, line.style, line.mode], [4, 100, 'backstroke', 'kick']);
-    expect(find.text('100 Backstroke · Kick'), findsOneWidget);
+    expect([line.reps, line.distance, line.style], [4, 100, 'backstroke']);
+    expect(line.modes, ['arms', 'fins', 'snorkel', 'pull_buoy']);
+    expect(find.text('100 Backstroke · Arms + Fins + snorkel + Pull buoy'), findsOneWidget);
     expect(find.text('400 m'), findsWidgets); // row + session total
 
     await tester.tap(find.text('Group'));

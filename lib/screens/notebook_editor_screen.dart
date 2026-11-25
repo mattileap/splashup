@@ -25,6 +25,8 @@ Map<String, String> modeLabels(AppLocalizations l10n) => {
       'full': l10n.modeFull,
       'pull_buoy': l10n.modePullBuoy,
       'kickboard': l10n.modeKickboard,
+      'paddles': l10n.modePaddles,
+      'fins': l10n.modeFins,
     };
 
 String _display(Map<String, String> labels, String value) => labels[value] ?? value;
@@ -58,10 +60,7 @@ enum _SheetAction { delete, duplicate, move }
 class NotebookEditorScreen extends StatefulWidget {
   final Notebook notebook;
 
-  /// Tutti i taccuini, per suggerire gli stili/modalità già usati.
-  final List<Notebook> others;
-
-  const NotebookEditorScreen({super.key, required this.notebook, this.others = const []});
+  const NotebookEditorScreen({super.key, required this.notebook});
 
   @override
   State<NotebookEditorScreen> createState() => _NotebookEditorScreenState();
@@ -85,24 +84,25 @@ class _NotebookEditorScreenState extends State<NotebookEditorScreen> {
     _changed();
   }
 
-  /// Valori personalizzati già usati in tutti i taccuini, per i suggerimenti.
-  List<String> _used(String Function(NotebookLine) field, Map<String, String> labels) {
+  /// Valori personalizzati già usati in QUESTO taccuino, per i suggerimenti.
+  /// Volutamente non condivisi tra taccuini: un valore scritto una volta (o
+  /// un errore di battitura) non deve comparire ovunque. Non sono salvati a
+  /// parte: tolto da tutte le righe, sparisce anche dai suggerimenti.
+  List<String> _used(Iterable<String> Function(NotebookLine) field, Map<String, String> labels) {
     final seen = <String>{...labels.keys};
     final result = <String>[];
     void walk(NotebookNode n) {
       switch (n) {
         case NotebookLine():
-          final v = field(n);
-          if (v.isNotEmpty && seen.add(v.toLowerCase())) result.add(v);
+          for (final v in field(n)) {
+            if (v.isNotEmpty && seen.add(v.toLowerCase())) result.add(v);
+          }
         case NotebookGroup():
           n.children.forEach(walk);
       }
     }
 
     walk(_root);
-    for (final nb in widget.others) {
-      walk(nb.root);
-    }
     return result;
   }
 
@@ -135,8 +135,8 @@ class _NotebookEditorScreenState extends State<NotebookEditorScreen> {
         canMove: _destinations(node, parent).isNotEmpty,
         styles: styles,
         modes: modes,
-        usedStyles: _used((l) => l.style, styles),
-        usedModes: _used((l) => l.mode, modes),
+        usedStyles: _used((l) => [l.style], styles),
+        usedModes: _used((l) => l.modes, modes),
         onChanged: () => setState(() {}),
       ),
     );
@@ -307,7 +307,7 @@ class _NotebookEditorScreenState extends State<NotebookEditorScreen> {
   Widget _line(NotebookLine line, NotebookGroup parent) {
     final l10n = AppLocalizations.of(context)!;
     final style = _display(styleLabels(l10n), line.style);
-    final mode = _display(modeLabels(l10n), line.mode);
+    final mode = line.modes.map((m) => _display(modeLabels(l10n), m)).join(' + ');
     return _row(
       line,
       parent,
@@ -512,8 +512,8 @@ class _NodeSheetState extends State<_NodeSheet> {
   late final _distance = TextEditingController(text: node is NotebookLine ? '${(node as NotebookLine).distance}' : '');
   late final _style = TextEditingController(
       text: node is NotebookLine ? _display(widget.styles, (node as NotebookLine).style) : '');
-  late final _mode = TextEditingController(
-      text: node is NotebookLine ? _display(widget.modes, (node as NotebookLine).mode) : '');
+  late final _mode = TextEditingController(); // Solo per aggiungere una modalità scritta a mano
+  late final List<String> _modes = node is NotebookLine ? (node as NotebookLine).modes : [];
   late final _note = TextEditingController(text: node is NotebookLine ? (node as NotebookLine).note : '');
   late final _recovery = TextEditingController(text: node.recovery?.value ?? '');
   late RecoveryType _recoveryType = node.recovery?.type ?? RecoveryType.start;
@@ -553,11 +553,51 @@ class _NodeSheetState extends State<_NodeSheet> {
         _distanceError = d == null ? l10n.invalidPositiveNumber : null;
         if (d != null) n.distance = d;
         n.style = _toStored(widget.styles, _style.text);
-        n.mode = _toStored(widget.modes, _mode.text);
         n.note = _note.text.trim();
     }
     setState(() {});
     widget.onChanged();
+  }
+
+  bool _hasMode(String v) => _modes.any((m) => m.toLowerCase() == v.toLowerCase());
+
+  /// Aggiunge la modalità scritta nel campo, se c'è. Chiamata con invio, col
+  /// pulsante + e prima di chiudere il pannello, così non va persa.
+  void _addTypedMode() {
+    final v = _toStored(widget.modes, _mode.text);
+    _mode.clear();
+    if (v.isNotEmpty && !_hasMode(v)) _modes.add(v);
+    _apply();
+  }
+
+  void _close([_SheetAction? action]) {
+    if (node is NotebookLine) _addTypedMode();
+    Navigator.of(context).pop(action);
+  }
+
+  /// Chip a scelta multipla: predefinite, poi quelle già usate nel taccuino,
+  /// poi quelle appena aggiunte su questa riga.
+  Widget _modeChips() {
+    final seen = <String>{};
+    final values = [
+      for (final v in [...widget.modes.keys, ...widget.usedModes, ..._modes])
+        if (seen.add(v.toLowerCase())) v,
+    ];
+    return Wrap(
+      spacing: 6,
+      children: [
+        for (final v in values)
+          FilterChip(
+            label: Text(_display(widget.modes, v)),
+            selected: _hasMode(v),
+            visualDensity: VisualDensity.compact,
+            onSelected: (on) {
+              on ? _modes.add(v) : _modes.removeWhere((m) => m.toLowerCase() == v.toLowerCase());
+              _apply();
+            },
+          ),
+      ],
+    );
   }
 
   Widget _suggestions(TextEditingController controller, Map<String, String> labels, List<String> used) {
@@ -660,11 +700,19 @@ class _NodeSheetState extends State<_NodeSheet> {
               gap,
               TextField(
                 controller: _mode,
-                decoration: InputDecoration(labelText: l10n.modeLabel, hintText: l10n.optional),
-                onChanged: (_) => _apply(),
+                decoration: InputDecoration(
+                  labelText: l10n.modeLabel,
+                  hintText: l10n.addModeHint,
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.add),
+                    tooltip: l10n.add,
+                    onPressed: _addTypedMode,
+                  ),
+                ),
+                onSubmitted: (_) => _addTypedMode(),
               ),
               const SizedBox(height: 4),
-              _suggestions(_mode, widget.modes, widget.usedModes),
+              _modeChips(),
               gap,
               TextField(
                 controller: _note,
@@ -711,22 +759,22 @@ class _NodeSheetState extends State<_NodeSheet> {
                 TextButton.icon(
                   icon: const Icon(Icons.copy_outlined),
                   label: Text(l10n.duplicate),
-                  onPressed: () => Navigator.of(context).pop(_SheetAction.duplicate),
+                  onPressed: () => _close(_SheetAction.duplicate),
                 ),
                 if (widget.canMove)
                   TextButton.icon(
                     icon: const Icon(Icons.drive_file_move_outlined),
                     label: Text(l10n.moveTo),
-                    onPressed: () => Navigator.of(context).pop(_SheetAction.move),
+                    onPressed: () => _close(_SheetAction.move),
                   ),
                 TextButton.icon(
                   icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                   label: Text(l10n.delete,
                       style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                  onPressed: () => Navigator.of(context).pop(_SheetAction.delete),
+                  onPressed: () => _close(_SheetAction.delete),
                 ),
                 FilledButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: _close,
                   child: Text(l10n.done),
                 ),
               ],

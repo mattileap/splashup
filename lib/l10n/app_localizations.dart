@@ -1811,12 +1811,6 @@ abstract class AppLocalizations {
   /// **'Mode'**
   String get modeLabel;
 
-  /// No description provided for @optional.
-  ///
-  /// In en, this message translates to:
-  /// **'optional'**
-  String get optional;
-
   /// No description provided for @noteLabel.
   ///
   /// In en, this message translates to:
@@ -1936,6 +1930,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Main level'**
   String get mainLevel;
+
+  /// No description provided for @modePaddles.
+  ///
+  /// In en, this message translates to:
+  /// **'Paddles'**
+  String get modePaddles;
+
+  /// No description provided for @modeFins.
+  ///
+  /// In en, this message translates to:
+  /// **'Fins'**
+  String get modeFins;
+
+  /// No description provided for @addModeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type and press enter to add'**
+  String get addModeHint;
 }
 
 class _AppLocalizationsDelegate
